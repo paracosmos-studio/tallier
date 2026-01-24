@@ -1,0 +1,56 @@
+:root {
+    --red: #E16470;
+    --yellow: #EEC675;
+    --green: #9ECB78;
+
+    --gray-10: #D6D6D6;
+    --gray-20: #989898;
+    --gray-30: #7A7A7A;
+    --gray-40: #5C5C5C;
+    --gray-50: #404040;
+    --gray-60: #333333;
+    --gray-70: #262626;
+    --gray-80: #1F1F1F;
+    --gray-90: #1C1C1C;
+
+    --color-background: #090909;
+    --color-text: var(--gray-10);
+
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+html {
+    background-color: transparent;
+}
+
+body {
+    margin: 0 auto;
+    padding: 0;
+    background-color: transparent;
+    color: var(--color-text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    box-sizing: border-box;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+@media screen and (min-width: 800px) {
+    body {
+        border: none;
+    }
+}
+
+a {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
