@@ -80,18 +80,23 @@
 
 <style>
     footer {
-        position: relative;
+        position: absolute;
+        bottom: 0px;
+        left: 0;
+        right: 0;
         width: 100%;
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        margin: 45px auto 0 auto;
-        padding: 1rem 0.1rem;
+        margin: 16px auto 0 auto;
+        padding: 1rem;
         background-color: var(--color-background);
         color: var(--gray-40);
         font-size: 0.65rem;
         border-top: 1px solid var(--gray-70);
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
         box-sizing: border-box;
     }
 

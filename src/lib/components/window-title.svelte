@@ -1,6 +1,6 @@
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
-    import { Alarm, Settings, Contract, ChartBar } from "$lib/icons";
+    import { Alarm, Settings, FolderOpen, ChartBar } from "$lib/icons";
     import { page } from '$app/state';
 
     interface TitleInfo {
@@ -14,7 +14,7 @@
         },
         '/projects': {
             title: 'Projects',
-            icon: Contract
+            icon: FolderOpen
         },
         '/settings': {
             title: 'Settings',

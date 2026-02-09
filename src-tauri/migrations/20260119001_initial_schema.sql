@@ -26,3 +26,8 @@ CREATE TABLE IF NOT EXISTS entries (
     FOREIGN KEY ("timer_id") REFERENCES timers("id"),
     FOREIGN KEY ("project_id") REFERENCES projects("id")
 );
+
+CREATE TABLE IF NOT EXISTS settings (
+    "key" TEXT PRIMARY KEY,
+    "value" TEXT NOT NULL
+);

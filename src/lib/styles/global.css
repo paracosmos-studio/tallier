@@ -15,9 +15,9 @@
 
     --color-background: #090909;
     --color-text: var(--gray-10);
-
+/*
     overscroll-behavior-x: none;
-    overscroll-behavior-y: none;
+    overscroll-behavior-y: none; */
     user-select: none;
     -webkit-user-select: none;
 }

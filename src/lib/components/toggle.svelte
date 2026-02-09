@@ -1,0 +1,76 @@
+<script lang="ts">
+    interface Props {
+        checked?: boolean;
+        onchange?: (checked: boolean) => void
+    };
+
+    let { checked = $bindable(false), onchange }: Props = $props();
+
+    function handleToggle() {
+        checked = !checked;
+        onchange?.(checked);
+    }
+</script>
+
+
+<!--
+    @component
+    Animated toggle switch component with smooth transitions
+
+    @param {boolean} checked - toggle state
+    @param {(checked: boolean) => void} [onchange] - callback when state changes
+
+    @example
+    <Toggle checked={enabled} onchange={(checked) => enabled = checked} />
+-->
+<button
+    class="toggle"
+    class:checked
+    onclick={handleToggle}
+    type="button"
+    aria-label="Toggle switch"
+>
+    <span class="slider"></span>
+</button>
+
+<style>
+    .toggle {
+        position: relative;
+        display: inline-block;
+        width: 35px;
+        height: 20px;
+        background-color: var(--gray-50);
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        padding: 0;
+        outline: none;
+        flex-shrink: 0;
+    }
+
+    .toggle:hover {
+        opacity: 0.9;
+    }
+
+    .toggle.checked {
+        background-color: var(--green);
+    }
+
+    .slider {
+        position: absolute;
+        top: 2px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        background-color: var(--gray-30);
+        border-radius: 50%;
+        transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        pointer-events: none;
+    }
+
+    .toggle.checked .slider {
+        background-color: var(--color-background);
+        transform: translateX(14px);
+    }
+</style>

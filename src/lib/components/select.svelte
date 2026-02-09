@@ -7,6 +7,8 @@
         value?: string;
         placeholder?: string;
         nullable?: boolean;
+        searchable?: boolean;
+        size?: 'sm' | 'md' | 'lg';
         onopen?: () => void;
         onclose?: () => void;
         onchange?: (value: string) => void;
@@ -17,6 +19,8 @@
         value = $bindable(''),
         placeholder = 'Select an option',
         nullable = false,
+        searchable = true,
+        size = 'md',
         onopen,
         onclose,
         onchange
@@ -25,6 +29,11 @@
     let isOpen = $state(false);
     let searchQuery = $state('');
     let searchInputRef: HTMLInputElement | undefined = $state();
+    let iconSizeMap = {
+        close: { sm: "11", md: "13", lg: "16" },
+        dropdown: { sm: "16", md: "20", lg: "20" },
+        search: { sm: "15", md: "15", lg: "18" }
+    };
 
     const filteredOptions = $derived(
         options.filter(opt =>
@@ -90,6 +99,8 @@
     @param {string} [value] The currently selected value (bindable).
     @param {string} [placeholder="Select an option"] Placeholder text when no option is selected.
     @param {boolean} [nullable=false] Allow clearing selection to null/empty value.
+    @param {boolean} [searchable=true] Enable search functionality within the dropdown.
+    @param {'sm' | 'md' | 'lg'} [size="md"] Size of the select component.
     @param {() => void} [onopen] Callback when dropdown opens.
     @param {() => void} [onclose] Callback when dropdown closes.
     @param {(value: string) => void} [onchange] Callback when selection changes.
@@ -97,7 +108,7 @@
 <div class="select-container">
     <button
         type="button"
-        class="select-trigger"
+        class={`select-trigger ${size}`}
         onclick={toggleDropdown}
         class:open={isOpen}
     >
@@ -112,21 +123,25 @@
                     onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && clearSelection(e)}
                     title="Clear selection"
                 >
-                    <Icon path={Close} size="16" fill="currentColor" />
+                    <Icon path={Close} size={iconSizeMap.close[size]} fill="currentColor" />
                 </span>
             {/if}
-            <Icon path={ArrowDropdown} size="20" fill="var(--gray-20)" />
+            <Icon path={ArrowDropdown} size={iconSizeMap.dropdown[size]} fill="var(--gray-20)" />
         {:else}
-            <div class="search-wrapper">
-                <Icon path={Search} size="18" fill="var(--gray-30)" />
-                <input
-                    bind:this={searchInputRef}
-                    type="text"
-                    class="search-input"
-                    bind:value={searchQuery}
-                    placeholder={searchQuery ? '' : placeholder}
-                />
-            </div>
+            {#if searchable}
+                <div class={`search-wrapper ${size}`}>
+                    <Icon path={Search} size={iconSizeMap.search[size]} fill="var(--gray-30)" />
+                    <input
+                        bind:this={searchInputRef}
+                        type="text"
+                        class={`search-input ${size}`}
+                        bind:value={searchQuery}
+                        placeholder={searchQuery ? '' : placeholder}
+                    />
+                </div>
+            {:else}
+                <span class="selected-value">{selectedLabel}</span>
+            {/if}
         {/if}
     </button>
 
@@ -136,7 +151,7 @@
                 <li>
                     <button
                         type="button"
-                        class="option"
+                        class={`option ${size}`}
                         class:selected={!value}
                         onclick={() => selectOption('')}
                     >
@@ -148,7 +163,7 @@
                 <li>
                     <button
                         type="button"
-                        class="option"
+                        class={`option ${size}`}
                         class:selected={option.value === value}
                         onclick={() => selectOption(option.value)}
                     >
@@ -174,15 +189,30 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
-        padding: 0.65rem;
         background: var(--gray-90);
         border: 1px solid var(--gray-70);
         border-radius: 6px;
         color: var(--color-text);
-        font-size: 1rem;
         cursor: pointer;
         transition: all 0.15s ease;
+    }
+
+    .select-trigger.sm {
+        padding: 0.25rem 0.45rem;
+        font-size: 0.875rem;
+        gap: 2px;
+    }
+
+    .select-trigger.md {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.95rem;
+        gap: 4px;
+    }
+
+    .select-trigger.lg {
+        padding: 0.65rem;
+        font-size: 1rem;
+        gap: 6px;
     }
 
     .select-trigger:hover {
@@ -206,9 +236,17 @@
         flex: 1;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
         pointer-events: none;
         box-sizing: border-box;
+    }
+
+    .search-wrapper.sm,
+    .search-wrapper.md {
+        gap: 0.4rem;
+    }
+
+    .search-wrapper.lg {
+        gap: 0.5rem;
     }
 
     .search-input {
@@ -218,9 +256,20 @@
         outline: none;
         color: var(--color-text);
         font-family: inherit;
-        font-size: 1rem;
         padding: 0;
         pointer-events: auto;
+    }
+
+    .search-input.sm {
+        font-size: 0.875rem;
+    }
+
+    .search-input.md {
+        font-size: 0.95rem;
+    }
+
+    .search-input.lg {
+        font-size: 1rem;
     }
 
     .search-input::placeholder {
@@ -259,17 +308,30 @@
     .option {
         width: 100%;
         display: block;
-        padding: 0.5rem 0.65rem;
         background: transparent;
         border: none;
         border-radius: 0px;
         color: var(--gray-10);
         font-family: inherit;
-        font-size: 1rem;
         text-align: left;
         cursor: pointer;
         transition: all 0.1s ease;
         outline: none;
+    }
+
+    .option.sm {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .option.md {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.95rem;
+    }
+
+    .option.lg {
+        padding: 0.5rem 0.65rem;
+        font-size: 1rem;
     }
 
     .option:hover,

@@ -27,7 +27,7 @@
 
 <!--
     @component
-    A page navigation component with a back button and a next button.
+    A page navigation component with a back and a next buttons.
 
     @param {string} [previousPage] The URL of the previous page to navigate to.
     @param {string} [nextPage] The URL of the next page to navigate to.

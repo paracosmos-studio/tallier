@@ -9,7 +9,7 @@ const appWindow = getCurrentWindow();
  * @param {number} width The desired width of the window
  * @param {number} height The desired height of the window
  */
-async function setCurrentWindowSize(width: number, height: number) {
+async function resizeWindow(width: number, height: number): Promise<void> {
     const physicalSize: PhysicalSize = await appWindow.innerSize();
     const scaleFactor = await appWindow.scaleFactor();
     const currentWindowSize = physicalSize.toLogical(scaleFactor);
@@ -19,4 +19,4 @@ async function setCurrentWindowSize(width: number, height: number) {
     }
 }
 
-export { setCurrentWindowSize };
+export { resizeWindow };
