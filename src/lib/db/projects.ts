@@ -1,24 +1,8 @@
-import Database from "@tauri-apps/plugin-sql";
+import { getDB } from "./connection";
 import type { Project } from "$lib/types";
 
-let db: Database | null = null;
 
-
-export async function initDB(): Promise<Database> {
-    if (db) return db;
-    db = await Database.load("sqlite:tally.db");
-    return db;
-}
-
-
-export function getDB(): Database {
-    if (!db) throw new Error(
-        "Database not initialized. Call initDB() first."
-    );
-    return db;
-}
-
-
+/** Returns all projects ordered by position ascending. */
 export async function getProjects(): Promise<Project[]> {
     const database = getDB();
     return database.select<Project[]>(
@@ -27,6 +11,10 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 
+/**
+ * Creates a new project appended to the end of the position list.
+ * @param name - display name for the project.
+ */
 export async function createProject(name: string): Promise<void> {
     const database = getDB();
     const rows = await database.select<{max_pos: number | null}[]>(
@@ -40,6 +28,11 @@ export async function createProject(name: string): Promise<void> {
 }
 
 
+/**
+ * Updates the display name of an existing project.
+ * @param id - project ID.
+ * @param name - new display name.
+ */
 export async function updateProjectName(
     id: number,
     name: string
@@ -52,6 +45,10 @@ export async function updateProjectName(
 }
 
 
+/**
+ * Bulk-updates position values for a list of projects.
+ * @param order - array of `{ id, position }` pairs to apply.
+ */
 export async function reorderProjects(
     order: {id: number; position: number}[]
 ): Promise<void> {
@@ -65,6 +62,10 @@ export async function reorderProjects(
 }
 
 
+/**
+ * Deletes a project and all its associated entries.
+ * @param id - project ID.
+ */
 export async function deleteProject(id: number): Promise<void> {
     const database = getDB();
     await database.execute(

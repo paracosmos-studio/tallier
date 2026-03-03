@@ -1,3 +1,14 @@
+<!--
+    @component
+    Displays a draggable list of projects with inline edit, configure, and delete actions.
+
+    @param {Project[]} projects - Array of projects to display.
+    @param {(id: number, name: string) => void} onrename - Callback when a project name is saved.
+    @param {(project: Project) => void} onconfigure - Callback when configure is clicked.
+    @param {(id: number) => void} ondelete - Callback when delete is clicked.
+    @param {(projects: Project[]) => void} onreorder - Callback with reordered project array after drag.
+-->
+
 <script lang="ts">
     import type { Project } from "$lib/types";
     import Icon from "$lib/components/icon.svelte";
@@ -76,16 +87,6 @@
     }
 </script>
 
-<!--
-    @component
-    Displays a draggable list of projects with inline edit, configure, and delete actions.
-
-    @param {Project[]} projects - Array of projects to display.
-    @param {(id: number, name: string) => void} onrename - Callback when a project name is saved.
-    @param {(project: Project) => void} onconfigure - Callback when configure is clicked.
-    @param {(id: number) => void} ondelete - Callback when delete is clicked.
-    @param {(projects: Project[]) => void} onreorder - Callback with reordered project array after drag.
--->
 <section>
     {#if projects.length === 0}
         <p class="empty">No projects yet.</p>
@@ -127,7 +128,7 @@
                                 tabindex="0"
                                 aria-label="Drag to reorder"
                             >
-                                <Icon path={Drag} size="20" fill="var(--gray-60)" />
+                                <Icon path={Drag} size="20" fill="var(--gray-50)" />
                             </span>
                             <span class="pr-name">{project.name}</span>
                         </div>
@@ -212,7 +213,7 @@
         border: none;
         border-radius: 4px;
         padding: 6px;
-        color: var(--gray-20);
+        color: var(--gray-10);
         font-size: 14px;
         width: 100%;
         margin: 0;
@@ -221,7 +222,7 @@
 
     .pr-name {
         font-size: 14px;
-        color: var(--gray-20);
+        color: var(--gray-10);
     }
 
     .pr-actions button {

@@ -1,3 +1,19 @@
+<!--
+    @component
+    Custom select dropdown with search functionality.
+
+    @param {Array<{value: string, label: string}>} options The selectable options.
+    @param {string} [value] The currently selected value (bindable).
+    @param {string} [placeholder="Select an option"] Placeholder text when no option is selected.
+    @param {boolean} [nullable=false] Allow clearing selection to null/empty value.
+    @param {boolean} [searchable=true] Enable search functionality within the dropdown.
+    @param {boolean} [disabled=false] Disable the select component, preventing interaction.
+    @param {'sm' | 'md' | 'lg'} [size="md"] Size of the select component.
+    @param {() => void} [onopen] Callback when dropdown opens.
+    @param {() => void} [onclose] Callback when dropdown closes.
+    @param {(value: string) => void} [onchange] Callback when selection changes.
+-->
+
 <script lang="ts">
     import Icon from './icon.svelte';
     import { ArrowDropdown, Search, Close } from '$lib/icons';
@@ -8,6 +24,7 @@
         placeholder?: string;
         nullable?: boolean;
         searchable?: boolean;
+        disabled?: boolean;
         size?: 'sm' | 'md' | 'lg';
         onopen?: () => void;
         onclose?: () => void;
@@ -20,6 +37,7 @@
         placeholder = 'Select an option',
         nullable = false,
         searchable = true,
+        disabled = false,
         size = 'md',
         onopen,
         onclose,
@@ -46,6 +64,7 @@
     );
 
     function toggleDropdown() {
+        if (disabled) return;
         isOpen = !isOpen;
         if (isOpen) {
             onopen?.();
@@ -91,26 +110,13 @@
     });
 </script>
 
-<!--
-    @component
-    Custom select dropdown with search functionality.
-
-    @param {Array<{value: string, label: string}>} options The selectable options.
-    @param {string} [value] The currently selected value (bindable).
-    @param {string} [placeholder="Select an option"] Placeholder text when no option is selected.
-    @param {boolean} [nullable=false] Allow clearing selection to null/empty value.
-    @param {boolean} [searchable=true] Enable search functionality within the dropdown.
-    @param {'sm' | 'md' | 'lg'} [size="md"] Size of the select component.
-    @param {() => void} [onopen] Callback when dropdown opens.
-    @param {() => void} [onclose] Callback when dropdown closes.
-    @param {(value: string) => void} [onchange] Callback when selection changes.
--->
 <div class="select-container">
     <button
         type="button"
         class={`select-trigger ${size}`}
         onclick={toggleDropdown}
         class:open={isOpen}
+        class:disabled={disabled}
     >
         {#if !isOpen}
             <span class="selected-value">{selectedLabel}</span>
@@ -218,6 +224,12 @@
     .select-trigger:hover {
         border-color: var(--gray-60);
         background: var(--gray-80);
+    }
+
+    .select-trigger.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
     }
 
     .select-trigger.open {
