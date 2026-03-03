@@ -37,16 +37,17 @@
     .toggle {
         position: relative;
         display: inline-block;
-        width: 35px;
-        height: 20px;
+        width: 48px;
+        height: 23px;
         background-color: var(--gray-50);
         border: none;
-        border-radius: 12px;
+        border-radius: 20px;
         cursor: pointer;
         transition: background-color 0.3s ease;
         padding: 0;
         outline: none;
         flex-shrink: 0;
+        margin: 2px 0;
     }
 
     .toggle:hover {
@@ -60,9 +61,9 @@
     .slider {
         position: absolute;
         top: 2px;
-        left: 3px;
-        width: 16px;
-        height: 16px;
+        left: 2px;
+        width: 19px;
+        height: 19px;
         background-color: var(--gray-30);
         border-radius: 50%;
         transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -71,6 +72,6 @@
 
     .toggle.checked .slider {
         background-color: var(--color-background);
-        transform: translateX(14px);
+        transform: translateX(25px);
     }
 </style>

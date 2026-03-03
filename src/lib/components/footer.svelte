@@ -133,4 +133,10 @@
         color: var(--gray-10);
         text-decoration: none;
     }
+
+    @media screen and (min-width: 800px) {
+        footer {
+            width: 400px;
+        }
+    }
 </style>

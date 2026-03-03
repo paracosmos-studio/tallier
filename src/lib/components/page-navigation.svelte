@@ -39,7 +39,7 @@
             onclick={async () => goto(previousPage)}
             class="page-nav-btn prev"
         >
-            ← &nbsp;Back
+            ← Back
         </button>
     {/if}
     {#if children}
@@ -50,7 +50,7 @@
             onclick={async () => goto(nextPage)}
             class="page-nav-btn next"
         >
-            Next&nbsp; →
+            Next →
         </button>
     {/if}
 </div>
@@ -63,7 +63,7 @@
         justify-content: space-between;
         justify-items: center;
         gap: 1rem;
-        margin: 20px 0;
+        margin: 12px 0 8px 0;
     }
 
     .page-nav-btn {
@@ -71,11 +71,12 @@
         border: none;
         cursor: pointer;
         text-decoration: none;
-        color: var(--yellow);
-        font-size: 1rem;
-        font-weight: 500;
+        color: var(--gray-30);
+        font-size: 0.875rem;
+        font-weight: 400;
         padding: 0;
         transition: all 0.2s;
+        margin: 4px 0;
     }
 
     .page-nav-btn:hover {

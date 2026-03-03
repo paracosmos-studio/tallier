@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import type { Timer, Project, Entry } from "$lib/types";
+import type { Project } from "$lib/types";
 
 let db: Database | null = null;
 
@@ -21,58 +21,58 @@ export function getDB(): Database {
 
 export async function getProjects(): Promise<Project[]> {
     const database = getDB();
-    const result = await database.select<Project[]>(
+    return database.select<Project[]>(
         "SELECT * FROM projects ORDER BY position ASC"
     );
-    return result;
 }
 
 
-export async function createProject(
-    name: string,
-    description?: string
-): Promise<void> {
-
+export async function createProject(name: string): Promise<void> {
     const database = getDB();
+    const rows = await database.select<{max_pos: number | null}[]>(
+        "SELECT MAX(position) as max_pos FROM projects"
+    );
+    const nextPos = (rows[0]?.max_pos ?? -1) + 1;
     await database.execute(
-        "INSERT INTO projects (name, description) VALUES ($1, $2)",
-        [name, description]
+        "INSERT INTO projects (name, position) VALUES ($1, $2)",
+        [name, nextPos]
     );
 }
 
-export async function updateProject(
+
+export async function updateProjectName(
     id: number,
-    name: string,
-    description?: string
+    name: string
 ): Promise<void> {
-
     const database = getDB();
     await database.execute(
-        "UPDATE projects SET name = $1, description = $2 WHERE id = $3",
-        [name, description, id]
+        "UPDATE projects SET name = $1 WHERE id = $2",
+        [name, id]
     );
 }
+
+
+export async function reorderProjects(
+    order: {id: number; position: number}[]
+): Promise<void> {
+    const database = getDB();
+    for (const { id, position } of order) {
+        await database.execute(
+            "UPDATE projects SET position = $1 WHERE id = $2",
+            [position, id]
+        );
+    }
+}
+
 
 export async function deleteProject(id: number): Promise<void> {
     const database = getDB();
+    await database.execute(
+        "DELETE FROM entries WHERE project_id = $1",
+        [id]
+    );
     await database.execute(
         "DELETE FROM projects WHERE id = $1",
         [id]
     );
 }
-
-// export async function getUsers(): Promise<User[]> {
-//   const database = getDB();
-//   const result = await database.select<User[]>(
-//     "SELECT * FROM users ORDER BY created_at DESC"
-//   );
-//   return result;
-// }
-
-// export async function deleteUser(id: number): Promise<void> {
-//   const database = getDB();
-//   await database.execute(
-//     "DELETE FROM users WHERE id = $1",
-//     [id]
-//   );
-// }

@@ -11,7 +11,6 @@ export interface Project {
   id?: number;
   position: number;
   name: string;
-  description?: string;
 }
 
 export interface Entry {

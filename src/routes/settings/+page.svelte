@@ -10,10 +10,21 @@
     import { onMount } from "svelte";
     import { Play } from "$lib/icons";
 
-    let notifications: boolean = $state(false);
-    let taskbarDisplay: boolean = $state(false);
-    let trackUsage: boolean = $state(false);
-    let autoPauseOption: string = $state("inactive-30");
+    type Settings = {
+        notifications: boolean
+        taskbarDisplay: boolean
+        autoPauseOption: string
+        sendAnonymousUsagePing: boolean
+        enableAutomaticUpdates: boolean
+    };
+
+    let settings: Settings = $state({
+        notifications: false,
+        taskbarDisplay: false,
+        autoPauseOption: "inactive-30",
+        sendAnonymousUsagePing: false,
+        enableAutomaticUpdates: true,
+    })
 
     onMount(async () => {
         return await resizeWindow(400, 600);
@@ -35,17 +46,22 @@
     <div id="preferences">
         <div class="preference-item">
             <span>Enable desktop notifications</span>
-            <Toggle bind:checked={notifications} />
+            <Toggle bind:checked={settings.notifications} />
         </div>
 
         <div class="preference-item">
             <span>Display time on taskbar</span>
-            <Toggle bind:checked={taskbarDisplay} />
+            <Toggle bind:checked={settings.taskbarDisplay} />
         </div>
 
         <div class="preference-item">
-            <span>Track application usage (permission required)</span>
-            <Toggle bind:checked={trackUsage} />
+            <span>Send anonymous usage ping</span>
+            <Toggle bind:checked={settings.sendAnonymousUsagePing} />
+        </div>
+
+        <div class="preference-item">
+            <span>Enable automatic updates</span>
+            <Toggle bind:checked={settings.enableAutomaticUpdates} />
         </div>
 
         <div class="preference-item">
@@ -58,7 +74,7 @@
                         { value: "inactive-60", label: "1 min" },
                         { value: "inactive-300", label: "5 min" },
                     ]}
-                    bind:value={autoPauseOption}
+                    bind:value={settings.autoPauseOption}
                     placeholder="Select Option"
                     size="sm"
                     searchable={false}
@@ -86,7 +102,7 @@
         font-size: 1.1rem;
         font-weight: 600;
         transition: all 0.2s ease;
-        margin-bottom: 1.5rem;
+        margin: 0.875rem 0 1.5rem 0;
     }
 
     .manage-projects:hover {
@@ -114,7 +130,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         color: var(--gray-20);
     }
 

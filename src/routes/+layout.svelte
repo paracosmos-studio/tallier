@@ -1,11 +1,20 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import WindowControls from '$lib/components/window-controls.svelte';
     import WindowTitle from '$lib/components/window-title.svelte';
+    import { initDB } from '$lib/db';
+    import { page } from '$app/state';
 
     import "$lib/styles/fonts.css";
     import "$lib/styles/global.css";
 
     let { children } = $props();
+    let dbReady: boolean = $state(false);
+
+    onMount(async () => {
+        await initDB();
+        dbReady = true;
+    });
 </script>
 
 <div class="titlebar" data-tauri-drag-region>
@@ -13,9 +22,11 @@
     <WindowTitle />
 </div>
 
-<div class="app-content-wrapper">
+<div class="app-content-wrapper" class:spacing={page.url.pathname !== "/"}>
     <div class="app-content">
-        {@render children()}
+        {#if dbReady}
+            {@render children()}
+        {/if}
     </div>
 </div>
 
@@ -58,6 +69,10 @@
         margin: 0 auto;
         padding: 2rem 0.65rem 0.65rem;
         box-sizing: border-box;
+    }
+
+    .spacing {
+        padding: 0rem 0.35rem;
     }
 
     @media screen and (min-width: 800px) {

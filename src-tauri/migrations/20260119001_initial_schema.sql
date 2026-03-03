@@ -1,8 +1,6 @@
-CREATE TYPE IF NOT EXISTS timer_status AS ENUM ('running', 'stopped');
-
 CREATE TABLE IF NOT EXISTS timers (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-    "status" timer_status NOT NULL,
+    "status" TEXT NOT NULL CHECK("status" IN ('running', 'stopped')),
     "date" DATE NOT NULL,
     "start" TIME NOT NULL,
     "end" TIME,
@@ -13,7 +11,6 @@ CREATE TABLE IF NOT EXISTS projects (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
     "position" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    "description" TEXT,
     UNIQUE("id", "position")
 );
 
