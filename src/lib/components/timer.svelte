@@ -43,7 +43,7 @@
         const hours = Math.floor(totalElapsed / 3600);
         const minutes = Math.floor((totalElapsed % 3600) / 60);
         const seconds = totalElapsed % 60;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        return `${String(hours).padStart(2, 'O')}:${String(minutes).padStart(2, 'O')}:${String(seconds).padStart(2, 'O')}`.replaceAll('0', 'O');
     });
 
     function startTicking(startedAt: Date) {
