@@ -84,9 +84,10 @@
         size="lg"
         onopen={async () => {
             let height = 
-                projectOptions.length >= 4 ? 345 :
-                    projectOptions.length === 3 ? 300 :
-                        projectOptions.length === 2 ? 265 : 250;
+                projectOptions.length > 4 ? 343 :
+                    projectOptions.length === 4 ? 339 :
+                        projectOptions.length === 3 ? 303 :
+                            projectOptions.length === 2 ? 266 : 250;
 
             await resizeWindow(400, height);
         }}

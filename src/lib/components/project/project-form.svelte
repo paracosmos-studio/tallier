@@ -35,6 +35,7 @@
             type="text"
             name="pr-name"
             placeholder="Title"
+            maxlength="30"
             bind:value={name}
             onkeydown={(e: KeyboardEvent) => {
                 if (e.key === "Escape") oncancel();

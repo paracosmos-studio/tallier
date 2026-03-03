@@ -104,6 +104,7 @@
                             <input
                                 type="text"
                                 class="pr-name-input"
+                                maxlength="30"
                                 bind:value={editingName}
                                 onkeydown={(e: KeyboardEvent) => {
                                     if (e.key === "Enter") saveEdit();
