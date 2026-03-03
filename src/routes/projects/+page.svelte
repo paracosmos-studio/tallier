@@ -6,6 +6,7 @@
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import ProjectList from "$lib/components/project/project-list.svelte";
     import ProjectForm from "$lib/components/project/project-form.svelte";
+    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
 
     type View = "list" | "add" | "edit";
 
@@ -13,6 +14,7 @@
     let projects: Project[] = $state([]);
     let editingProject: Project | undefined = $state(undefined);
     let formName: string = $state("");
+    let deleteTarget: Project | undefined = $state(undefined);
 
     onMount(loadProjects);
 
@@ -58,9 +60,19 @@
         await loadProjects();
     }
 
-    async function handleDelete(id: number) {
-        await deleteProject(id);
+    function requestDelete(project: Project) {
+        deleteTarget = project;
+    }
+
+    async function confirmDelete() {
+        if (deleteTarget?.id == null) return;
+        await deleteProject(deleteTarget.id);
+        deleteTarget = undefined;
         await loadProjects();
+    }
+
+    function cancelDelete() {
+        deleteTarget = undefined;
     }
 </script>
 
@@ -91,7 +103,7 @@
                 {projects}
                 onrename={handleRename}
                 onconfigure={showEdit}
-                ondelete={handleDelete}
+                ondelete={requestDelete}
                 onreorder={handleReorder}
             />
         {:else}
@@ -103,6 +115,15 @@
             />
         {/if}
     </div>
+
+    <DialogConfirm
+        open={deleteTarget != null}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${deleteTarget?.name ?? ""}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onconfirm={confirmDelete}
+        oncancel={cancelDelete}
+    />
 </main>
 
 <style>

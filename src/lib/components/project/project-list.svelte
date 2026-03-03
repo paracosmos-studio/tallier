@@ -5,7 +5,7 @@
     @param {Project[]} projects - Array of projects to display.
     @param {(id: number, name: string) => void} onrename - Callback when a project name is saved.
     @param {(project: Project) => void} onconfigure - Callback when configure is clicked.
-    @param {(id: number) => void} ondelete - Callback when delete is clicked.
+    @param {(project: Project) => void} ondelete - Callback when delete is clicked.
     @param {(projects: Project[]) => void} onreorder - Callback with reordered project array after drag.
 -->
 
@@ -18,7 +18,7 @@
         projects: Project[];
         onrename: (id: number, name: string) => void;
         onconfigure: (project: Project) => void;
-        ondelete: (id: number) => void;
+        ondelete: (project: Project) => void;
         onreorder: (projects: Project[]) => void;
     };
 
@@ -140,7 +140,7 @@
                             <button title="Configure" class="configure" onclick={() => onconfigure(project)}>
                                 <Icon path={Tune} size="20" fill="currentColor" />
                             </button>
-                            <button title="Delete" class="delete" onclick={() => ondelete(project.id!)}>
+                            <button title="Delete" class="delete" onclick={() => ondelete(project)}>
                                 <Icon path={Delete} size="20" fill="currentColor" />
                             </button>
                         </div>
