@@ -26,6 +26,25 @@ export async function createEntry(
 
 
 /**
+ * Updates title and summary on an existing entry by timer ID.
+ * @param timerId - ID of the associated timer.
+ * @param title - title for the entry.
+ * @param summary - summary/notes for the entry.
+ */
+export async function updateEntrySummary(
+    timerId: number,
+    title: string,
+    summary: string
+): Promise<void> {
+    const database = getDB();
+    await database.execute(
+        "UPDATE entries SET title = $1, summary = $2 WHERE timer_id = $3",
+        [title || null, summary || null, timerId]
+    );
+}
+
+
+/**
  * Gets the entry associated with a specific timer.
  * @param timerId - ID of the timer to find an entry for.
  */

@@ -54,3 +54,25 @@ a {
 a:hover {
     text-decoration: underline;
 }
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-80);
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gray-40);
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-30);
+    width: 8px;
+}

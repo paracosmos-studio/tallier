@@ -1,9 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { getProjects, startTimer, stopTimer, createEntry, getEntryByTimerId, getRunningTimer, getTodayProjectTotal } from "$lib/db";
+    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal } from "$lib/db";
     import Select from "$lib/components/select.svelte";
     import Menu from "$lib/components/menu.svelte";
     import Timer from "$lib/components/timer.svelte";
+    import DialogSummary from "$lib/components/dialogs/dialog-summary.svelte";
     import { resizeWindow } from "$lib/window";
     import type { Project } from "$lib/types";
 
@@ -16,6 +17,7 @@
 
     let running: { timerId: number; startedAt: Date } | null = $state(null);
     let todayTotal = $state(0);
+    let stoppedTimerId: number | null = $state(null);
 
     async function refreshTodayTotal() {
         if (selectedProject) {
@@ -60,6 +62,21 @@
         await stopTimer(timerId);
         running = null;
         await refreshTodayTotal();
+        await resizeWindow(400, 300);
+        stoppedTimerId = timerId;
+    }
+
+    async function handleSummary(title: string, summary: string) {
+        if (stoppedTimerId !== null) {
+            await updateEntrySummary(stoppedTimerId, title, summary);
+        }
+        stoppedTimerId = null;
+        await resizeWindow(400, 250);
+    }
+
+    async function handleSkipSummary() {
+        stoppedTimerId = null;
+        await resizeWindow(400, 250);
     }
 </script>
 
@@ -96,6 +113,12 @@
         }}
     />
     <Menu />
+
+    <DialogSummary
+        open={stoppedTimerId !== null}
+        onsave={handleSummary}
+        onskip={handleSkipSummary}
+    />
 </main>
 
 <style>

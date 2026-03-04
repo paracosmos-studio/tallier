@@ -1,8 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { getCurrentWindow } from '@tauri-apps/api/window';
     import WindowControls from '$lib/components/window-controls.svelte';
     import WindowTitle from '$lib/components/window-title.svelte';
-    import { initDB } from '$lib/db';
+    import DialogConfirm from '$lib/components/dialogs/dialog-confirm.svelte';
+    import { initDB, getRunningTimer, stopTimer } from '$lib/db';
     import { page } from '$app/state';
 
     import "$lib/styles/fonts.css";
@@ -10,11 +12,32 @@
 
     let { children } = $props();
     let dbReady: boolean = $state(false);
+    let showCloseConfirm: boolean = $state(false);
+    let unlisten: (() => void) | undefined;
 
-    onMount(async () => {
-        await initDB();
-        dbReady = true;
+    const appWindow = getCurrentWindow();
+
+    onMount(() => {
+        initDB().then(() => dbReady = true);
+
+        appWindow.onCloseRequested(async (e) => {
+            const running = await getRunningTimer();
+            if (running) {
+                e.preventDefault();
+                showCloseConfirm = true;
+            }
+        }).then((fn) => unlisten = fn);
+
+        return () => unlisten?.();
     });
+
+    async function forceClose() {
+        const running = await getRunningTimer();
+        if (running?.id != null) await stopTimer(running.id);
+        showCloseConfirm = false;
+        unlisten?.();
+        appWindow.close();
+    }
 </script>
 
 <div class="titlebar" data-tauri-drag-region>
@@ -29,6 +52,15 @@
         {/if}
     </div>
 </div>
+
+<DialogConfirm
+    open={showCloseConfirm}
+    title="Timer Running"
+    message="A timer is still running. Are you sure you want to close the app?"
+    confirmLabel="Stop & Close"
+    onconfirm={forceClose}
+    oncancel={() => showCloseConfirm = false}
+/>
 
 <style>
     .titlebar {

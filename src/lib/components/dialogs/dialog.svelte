@@ -4,6 +4,7 @@
 
     @param {boolean} open - Controls dialog visibility.
     @param {string} [title=""] - Header title text.
+    @param {boolean} [dismissible=true] - Whether the dialog can be closed via close icon, Escape, or backdrop click.
     @param {() => void} onclose - Callback when dialog is closed.
 -->
 
@@ -16,10 +17,11 @@
         footer?: () => any;
         open: boolean;
         title?: string;
+        dismissible?: boolean;
         onclose: () => void;
     };
 
-    let { children, footer, open, title = "", onclose }: Props = $props();
+    let { children, footer, open, title = "", dismissible = true, onclose }: Props = $props();
 
     let dialogEl: HTMLDialogElement | undefined = $state(undefined);
 
@@ -34,11 +36,11 @@
 
     function handleCancel(e: Event) {
         e.preventDefault();
-        onclose();
+        if (dismissible) onclose();
     }
 
     function handleBackdropClick(e: MouseEvent) {
-        if (e.target === dialogEl) onclose();
+        if (dismissible && e.target === dialogEl) onclose();
     }
 </script>
 
@@ -53,9 +55,11 @@
             {#if title}
                 <h2>{title}</h2>
             {/if}
-            <button class="close" title="Close" onclick={onclose}>
-                <Icon path={Close} size="20" fill="currentColor" />
-            </button>
+            {#if dismissible}
+                <button class="close" title="Close" onclick={onclose}>
+                    <Icon path={Close} size="20" fill="currentColor" />
+                </button>
+            {/if}
         </header>
         <div class="body">
             {@render children()}
@@ -75,6 +79,7 @@
         max-width: 90vw;
         max-height: 80vh;
         overflow: visible;
+        border: none;
     }
 
     dialog::backdrop {

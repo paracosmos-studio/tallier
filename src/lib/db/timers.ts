@@ -9,7 +9,7 @@ import type { Timer } from "$lib/types";
 export async function startTimer(): Promise<number> {
     const database = getDB();
     const now = new Date();
-    const date = now.toISOString().split("T")[0];
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const time = now.toTimeString().split(" ")[0];
 
     const result = await database.execute(
@@ -68,7 +68,8 @@ export async function getRunningTimer(): Promise<Timer | null> {
  */
 export async function getTodayProjectTotal(projectId: number): Promise<number> {
     const database = getDB();
-    const today = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const rows = await database.select<{ total_seconds: number }[]>(
         `SELECT COALESCE(SUM(t.total), 0) as total_seconds
          FROM timers t
