@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { Project } from "$lib/types";
-    import { getProjects, createProject, updateProjectName, deleteProject, reorderProjects } from "$lib/db";
+    import type { Project, ProjectLimits } from "$lib/types";
+    import { getProjects, createProject, updateProject, updateProjectName, deleteProject, reorderProjects } from "$lib/db";
     import Button from "$lib/components/button.svelte";
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import ProjectList from "$lib/components/project/project-list.svelte";
@@ -39,11 +39,11 @@
         view = "list";
     }
 
-    async function handleFormSave(name: string) {
+    async function handleFormSave(name: string, limits: ProjectLimits) {
         if (view === "edit" && editingProject?.id != null) {
-            await updateProjectName(editingProject.id, name);
+            await updateProject(editingProject.id, name, limits);
         } else {
-            await createProject(name);
+            await createProject(name, limits);
         }
         await loadProjects();
         showList();
@@ -88,8 +88,7 @@
                     Cancel
                 </Button>
                 <Button size="xs" title="Save Project" onclick={() => {
-                    const trimmed = formName.trim();
-                    if (trimmed) handleFormSave(trimmed);
+                    document.getElementById('project-form')?.dispatchEvent(new Event('submit', { cancelable: true }));
                 }}>
                     Save
                 </Button>

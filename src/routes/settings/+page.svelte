@@ -13,7 +13,6 @@
     import { setTrayShowTitle } from "$lib/tray";
 
     type Settings = {
-        notifications: boolean
         taskbarDisplay: boolean
         autoPauseOption: string
         sendAnonymousUsagePing: boolean
@@ -21,7 +20,6 @@
     };
 
     let settings: Settings = $state({
-        notifications: false,
         taskbarDisplay: false,
         autoPauseOption: "inactive-30",
         sendAnonymousUsagePing: false,
@@ -55,11 +53,6 @@
     <label for="preferences">Preferences</label>
     <div id="preferences">
         <div class="preference-item">
-            <span>Enable desktop notifications</span>
-            <Toggle bind:checked={settings.notifications} />
-        </div>
-
-        <div class="preference-item">
             <span>Display time on menu bar</span>
             <Toggle checked={settings.taskbarDisplay} onchange={handleTaskbarToggle} />
         </div>
@@ -75,7 +68,7 @@
         </div>
 
         <div class="preference-item">
-            <span>Pause timer when asleep for</span>
+            <span>Stop timer when asleep for</span>
             <div class="dropdown">
                 <Select
                     options={[

@@ -11,6 +11,21 @@ export interface Project {
   id?: number;
   position: number;
   name: string;
+  max_daily: number | null;
+  max_daily_alert: number | null;
+  max_weekly: number | null;
+  max_weekly_alert: number | null;
+  max_daily_enabled: boolean;
+  max_weekly_enabled: boolean;
+}
+
+export interface ProjectLimits {
+  maxDaily: number | null;
+  maxDailyAlert: number | null;
+  maxWeekly: number | null;
+  maxWeeklyAlert: number | null;
+  maxDailyEnabled: boolean;
+  maxWeeklyEnabled: boolean;
 }
 
 export interface Entry {

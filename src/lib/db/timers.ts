@@ -81,3 +81,33 @@ export async function getTodayProjectTotal(projectId: number): Promise<number> {
     );
     return rows[0]?.total_seconds ?? 0;
 }
+
+
+/**
+ * Gets the total seconds logged for a project this week (Mon-Sun, stopped timers only).
+ * @param projectId - ID of the project to calculate total for.
+ */
+export async function getWeekProjectTotal(projectId: number): Promise<number> {
+    const database = getDB();
+    const now = new Date();
+    const day = now.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    const rows = await database.select<{ total_seconds: number }[]>(
+        `SELECT COALESCE(SUM(t.total), 0) as total_seconds
+         FROM timers t
+         JOIN entries e ON e.timer_id = t.id
+         WHERE e.project_id = $1
+           AND t.date >= $2
+           AND t.date <= $3
+           AND t.status = 'stopped'`,
+        [projectId, fmt(monday), fmt(sunday)]
+    );
+    return rows[0]?.total_seconds ?? 0;
+}

@@ -11,6 +11,8 @@ export async function setTrayTimer(
     projects: TrayProject[] = [],
     selectedId?: number,
     showTitle: boolean = true,
+    maxSeconds?: number,
+    limitReached: boolean = false,
 ): Promise<void> {
     await invoke("set_tray_timer", {
         baseElapsed,
@@ -18,6 +20,8 @@ export async function setTrayTimer(
         projects,
         selectedId: selectedId ?? null,
         showTitle,
+        maxSeconds: maxSeconds ?? null,
+        limitReached,
     });
 }
 

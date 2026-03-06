@@ -39,22 +39,34 @@ fn spawn_ticker(
     app: AppHandle,
     base: u64,
     started_at_ms: i64,
-    stop: Arc<AtomicBool>
+    stop: Arc<AtomicBool>,
+    max_seconds: Option<u64>,
 ) {
     thread::spawn(move || {
+        let mut limit_emitted = false;
         while !stop.load(Ordering::Relaxed) {
             thread::sleep(Duration::from_secs(1));
 
             if stop.load(Ordering::Relaxed) { break; }
 
             let live = ((now_ms() - started_at_ms) / 1000).max(0) as u64;
-            let title = format_elapsed(base + live);
+            let total = base + live;
+            let title = format_elapsed(total);
             let state = app.state::<TrayState>();
 
             if let Ok(guard) = state.0.lock() {
                 if let Some(ref inner) = *guard {
                     if inner.show_title.load(Ordering::Relaxed) {
                         let _ = inner.icon.set_title(Some(&title));
+                    }
+                }
+            }
+
+            if !limit_emitted {
+                if let Some(cap) = max_seconds {
+                    if total >= cap {
+                        let _ = app.emit("tray-menu-action", "limit_reached");
+                        limit_emitted = true;
                     }
                 }
             }
@@ -67,6 +79,7 @@ fn build_menu(
     running: bool,
     projects: &[TrayProject],
     selected_id: Option<i64>,
+    limit_reached: bool,
 ) -> Result<Menu<Wry>, String> {
 
     // tray menu icons
@@ -80,11 +93,17 @@ fn build_menu(
     let toggle_label = if running { "Stop Timer" } else { "Start Timer" };
     let toggle_icon = if running { stop_icon } else { start_icon };
 
+    let toggle_enabled = if running {
+        true
+    } else {
+        selected_id.is_some() && !limit_reached
+    };
+
     let toggle = IconMenuItem::with_id(
         app,
         "tray_toggle",
         toggle_label,
-        running || selected_id.is_some(),
+        toggle_enabled,
         Some(toggle_icon),
         None::<&str>,
     ).map_err(|e| e.to_string())?;
@@ -225,12 +244,14 @@ fn set_tray_timer(
     projects: Vec<TrayProject>,
     selected_id: Option<i64>,
     show_title: bool,
+    max_seconds: Option<u64>,
+    limit_reached: bool,
 ) -> Result<(), String> {
     let state = app.state::<TrayState>();
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
     let running = started_at_ms.is_some();
 
-    let menu = build_menu(&app, running, &projects, selected_id)?;
+    let menu = build_menu(&app, running, &projects, selected_id, limit_reached)?;
 
     if let Some(ref mut inner) = *guard {
         inner.stop_signal.store(true, Ordering::Relaxed);
@@ -253,7 +274,7 @@ fn set_tray_timer(
             if let Some(ms) = started_at_ms {
                 let stop = Arc::new(AtomicBool::new(false));
                 inner.stop_signal = stop.clone();
-                spawn_ticker(app.clone(), base_elapsed, ms, stop);
+                spawn_ticker(app.clone(), base_elapsed, ms, stop, max_seconds);
             } else {
                 inner.stop_signal = Arc::new(AtomicBool::new(true));
             }
@@ -331,7 +352,7 @@ fn set_tray_timer(
     let stop_signal = if show_title {
         if let Some(ms) = started_at_ms {
             let stop = Arc::new(AtomicBool::new(false));
-            spawn_ticker(app.clone(), base_elapsed, ms, stop.clone());
+            spawn_ticker(app.clone(), base_elapsed, ms, stop.clone(), max_seconds);
             stop
         } else {
             Arc::new(AtomicBool::new(true))
@@ -376,8 +397,13 @@ fn load_migrations() -> Vec<Migration> {
             description: "create initial schema",
             sql: include_str!("../migrations/20260119001_initial_schema.sql"),
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "add project limit columns",
+            sql: include_str!("../migrations/20260306001_project_limits.sql"),
+            kind: MigrationKind::Up,
         }
-        // add more migrations here as needed
     ]
 }
 
@@ -387,6 +413,7 @@ pub fn run() {
         .manage(TrayState(Mutex::new(None)))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:tally.db", load_migrations())

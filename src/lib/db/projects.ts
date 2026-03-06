@@ -1,5 +1,5 @@
 import { getDB } from "./connection";
-import type { Project } from "$lib/types";
+import type { Project, ProjectLimits } from "$lib/types";
 
 
 /** Returns all projects ordered by position ascending. */
@@ -11,25 +11,87 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 
+/** Returns a single project by ID, or null if not found. */
+export async function getProject(id: number): Promise<Project | null> {
+    const database = getDB();
+    const rows = await database.select<Project[]>(
+        "SELECT * FROM projects WHERE id = $1",
+        [id]
+    );
+    return rows.length > 0 ? rows[0] : null;
+}
+
+
 /**
  * Creates a new project appended to the end of the position list.
  * @param name - display name for the project.
+ * @param limits - optional timer limit config.
  */
-export async function createProject(name: string): Promise<void> {
+export async function createProject(
+    name: string,
+    limits?: ProjectLimits
+): Promise<void> {
     const database = getDB();
     const rows = await database.select<{max_pos: number | null}[]>(
         "SELECT MAX(position) as max_pos FROM projects"
     );
     const nextPos = (rows[0]?.max_pos ?? -1) + 1;
     await database.execute(
-        "INSERT INTO projects (name, position) VALUES ($1, $2)",
-        [name, nextPos]
+        `INSERT INTO projects
+            (name, position, max_daily, max_daily_alert, max_weekly, max_weekly_alert, max_daily_enabled, max_weekly_enabled)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+            name,
+            nextPos,
+            limits?.maxDaily ?? null,
+            limits?.maxDailyAlert ?? null,
+            limits?.maxWeekly ?? null,
+            limits?.maxWeeklyAlert ?? null,
+            limits?.maxDailyEnabled ? 1 : 0,
+            limits?.maxWeeklyEnabled ? 1 : 0,
+        ]
     );
 }
 
 
 /**
- * Updates the display name of an existing project.
+ * Updates the display name and limits of an existing project.
+ * @param id - project ID.
+ * @param name - new display name.
+ * @param limits - timer limit config.
+ */
+export async function updateProject(
+    id: number,
+    name: string,
+    limits?: ProjectLimits
+): Promise<void> {
+    const database = getDB();
+    await database.execute(
+        `UPDATE projects
+         SET name = $1,
+             max_daily = $2,
+             max_daily_alert = $3,
+             max_weekly = $4,
+             max_weekly_alert = $5,
+             max_daily_enabled = $6,
+             max_weekly_enabled = $7
+         WHERE id = $8`,
+        [
+            name,
+            limits?.maxDaily ?? null,
+            limits?.maxDailyAlert ?? null,
+            limits?.maxWeekly ?? null,
+            limits?.maxWeeklyAlert ?? null,
+            limits?.maxDailyEnabled ? 1 : 0,
+            limits?.maxWeeklyEnabled ? 1 : 0,
+            id,
+        ]
+    );
+}
+
+
+/**
+ * Updates only the display name of an existing project.
  * @param id - project ID.
  * @param name - new display name.
  */
