@@ -45,7 +45,7 @@
                 }
             } else if (payload === "settings") {
                 goto('/settings');
-            } else if (payload === "stop_timer" || payload === "start_timer") {
+            } else if (payload === "stop_timer" || payload === "start_timer" || payload.startsWith("select_project:")) {
                 if (page.url.pathname !== '/') {
                     await goto(`/?tray=${payload}`);
                 }

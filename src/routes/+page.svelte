@@ -79,6 +79,9 @@
                 handleStop(running.timerId, true);
             } else if (trayAction === "start_timer" && !running && selectedProject) {
                 handleStart();
+            } else if (trayAction.startsWith("select_project:")) {
+                const projId = Number(trayAction.slice("select_project:".length));
+                handleTrayProjectSelect(projId);
             }
         }
 
