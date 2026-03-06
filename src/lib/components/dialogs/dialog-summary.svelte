@@ -21,8 +21,13 @@
 
     let title: string = $state("");
     let summary: string = $state("");
+    let error: string = $state("");
 
     function handleSave() {
+        if (!title.trim()) {
+            error = "* Required field is empty";
+            return;
+        }
         onsave(title.trim(), summary.trim());
         reset();
     }
@@ -35,6 +40,7 @@
     function reset() {
         title = "";
         summary = "";
+        error = "";
     }
 </script>
 
@@ -42,10 +48,13 @@
     <form onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
         <input
             id="entry-title"
+            class:missing={error !== ""}
             type="text"
+            required={true}
             placeholder="what did you work on?"
             maxlength="100"
             bind:value={title}
+            oninput={() => (error = "")}
         />
         <textarea
             id="entry-summary"
@@ -54,6 +63,10 @@
             rows="3"
             bind:value={summary}
         ></textarea>
+
+        {#if error}
+            <p class="error"><small>{error}</small></p>
+        {/if}
     </form>
 
     {#snippet footer()}
@@ -113,5 +126,15 @@
     textarea:focus {
         border-color: var(--gray-40);
         z-index: 9;
+    }
+
+    .error {
+        color: var(--red);
+        margin: 5px 0 0 0;
+    }
+
+    .missing {
+        border-color: var(--red);
+        z-index: 12;
     }
 </style>
