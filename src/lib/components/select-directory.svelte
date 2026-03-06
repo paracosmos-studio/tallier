@@ -45,7 +45,9 @@
 <div class="sel-dir" id={id}>
     <div class="sel-dir-path">
         <Icon path={HardDrive} size="24" fill="var(--gray-20)" />
-        <span>{displayPath}</span>
+        <span class="trimmed" title={displayPath}>
+            {displayPath}
+        </span>
     </div>
     <button class="sel-dir-action" onclick={handleSelectDirectory}>
         <Icon path={FolderOpen} size="24" fill="var(--green)" />
@@ -88,5 +90,14 @@
         padding: 0.2rem 0.5rem;
         cursor: pointer;
         transition: background-color 0.2s ease;
+    }
+
+    .trimmed {
+        max-width: 265px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        direction: rtl;
+        text-align: left;
     }
 </style>

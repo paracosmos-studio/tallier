@@ -9,6 +9,8 @@
     import { resizeWindow } from "$lib/window";
     import { onMount } from "svelte";
     import { Play } from "$lib/icons";
+    import { getSetting, setSetting } from "$lib/db";
+    import { setTrayShowTitle } from "$lib/tray";
 
     type Settings = {
         notifications: boolean
@@ -27,8 +29,16 @@
     })
 
     onMount(async () => {
+        const stored = await getSetting("taskbarDisplay");
+        if (stored !== null) settings.taskbarDisplay = stored === "true";
         return await resizeWindow(400, 600);
     });
+
+    async function handleTaskbarToggle(checked: boolean) {
+        settings.taskbarDisplay = checked;
+        await setSetting("taskbarDisplay", String(checked));
+        await setTrayShowTitle(checked);
+    }
 </script>
 
 <main>
@@ -50,8 +60,8 @@
         </div>
 
         <div class="preference-item">
-            <span>Display time on taskbar</span>
-            <Toggle bind:checked={settings.taskbarDisplay} />
+            <span>Display time on menu bar</span>
+            <Toggle checked={settings.taskbarDisplay} onchange={handleTaskbarToggle} />
         </div>
 
         <div class="preference-item">

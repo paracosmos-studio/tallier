@@ -19,6 +19,7 @@ struct TrayInner {
     icon: TrayIcon,
     is_running: Arc<AtomicBool>,
     stop_signal: Arc<AtomicBool>,
+    show_title: Arc<AtomicBool>,
 }
 
 struct TrayState(Mutex<Option<TrayInner>>);
@@ -52,7 +53,9 @@ fn spawn_ticker(
 
             if let Ok(guard) = state.0.lock() {
                 if let Some(ref inner) = *guard {
-                    let _ = inner.icon.set_title(Some(&title));
+                    if inner.show_title.load(Ordering::Relaxed) {
+                        let _ = inner.icon.set_title(Some(&title));
+                    }
                 }
             }
         }
@@ -221,6 +224,7 @@ fn set_tray_timer(
     started_at_ms: Option<i64>,
     projects: Vec<TrayProject>,
     selected_id: Option<i64>,
+    show_title: bool,
 ) -> Result<(), String> {
     let state = app.state::<TrayState>();
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
@@ -231,19 +235,28 @@ fn set_tray_timer(
     if let Some(ref mut inner) = *guard {
         inner.stop_signal.store(true, Ordering::Relaxed);
         inner.is_running.store(running, Ordering::Relaxed);
+        inner.show_title.store(show_title, Ordering::Relaxed);
         inner.icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
 
-        let title = if let Some(ms) = started_at_ms {
-            format_elapsed(base_elapsed + ((now_ms() - ms) / 1000).max(0) as u64)
+        if show_title {
+            let title = if let Some(ms) = started_at_ms {
+                format_elapsed(base_elapsed + ((now_ms() - ms) / 1000).max(0) as u64)
+            } else {
+                format_elapsed(base_elapsed)
+            };
+            inner.icon.set_title(Some(&title)).map_err(|e| e.to_string())?;
         } else {
-            format_elapsed(base_elapsed)
-        };
-        inner.icon.set_title(Some(&title)).map_err(|e| e.to_string())?;
+            inner.icon.set_title(Some("")).map_err(|e| e.to_string())?;
+        }
 
-        if let Some(ms) = started_at_ms {
-            let stop = Arc::new(AtomicBool::new(false));
-            inner.stop_signal = stop.clone();
-            spawn_ticker(app.clone(), base_elapsed, ms, stop);
+        if show_title {
+            if let Some(ms) = started_at_ms {
+                let stop = Arc::new(AtomicBool::new(false));
+                inner.stop_signal = stop.clone();
+                spawn_ticker(app.clone(), base_elapsed, ms, stop);
+            } else {
+                inner.stop_signal = Arc::new(AtomicBool::new(true));
+            }
         } else {
             inner.stop_signal = Arc::new(AtomicBool::new(true));
         }
@@ -255,22 +268,26 @@ fn set_tray_timer(
     let is_running = Arc::new(AtomicBool::new(running));
     let is_running_clone = is_running.clone();
 
-    let title = if let Some(ms) = started_at_ms {
-        format_elapsed(base_elapsed + ((now_ms() - ms) / 1000).max(0) as u64)
-    } else {
-        format_elapsed(base_elapsed)
-    };
-
     let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
         .map_err(|e| e.to_string())?;
 
-    let icon = TrayIconBuilder::new()
+    let mut builder = TrayIconBuilder::new()
         .icon(tray_icon)
         .icon_as_template(true)
-        .title(&title)
         .tooltip("Tally")
         .menu(&menu)
-        .show_menu_on_left_click(true)
+        .show_menu_on_left_click(true);
+
+    if show_title {
+        let title = if let Some(ms) = started_at_ms {
+            format_elapsed(base_elapsed + ((now_ms() - ms) / 1000).max(0) as u64)
+        } else {
+            format_elapsed(base_elapsed)
+        };
+        builder = builder.title(&title);
+    }
+
+    let icon = builder
         .on_menu_event(move |app, event| {
             let id = event.id().as_ref();
             match id {
@@ -311,10 +328,14 @@ fn set_tray_timer(
         .build(&app)
         .map_err(|e| e.to_string())?;
 
-    let stop_signal = if let Some(ms) = started_at_ms {
-        let stop = Arc::new(AtomicBool::new(false));
-        spawn_ticker(app.clone(), base_elapsed, ms, stop.clone());
-        stop
+    let stop_signal = if show_title {
+        if let Some(ms) = started_at_ms {
+            let stop = Arc::new(AtomicBool::new(false));
+            spawn_ticker(app.clone(), base_elapsed, ms, stop.clone());
+            stop
+        } else {
+            Arc::new(AtomicBool::new(true))
+        }
     } else {
         Arc::new(AtomicBool::new(true))
     };
@@ -323,7 +344,27 @@ fn set_tray_timer(
         icon,
         is_running,
         stop_signal,
+        show_title: Arc::new(AtomicBool::new(show_title)),
     });
+
+    Ok(())
+}
+
+#[tauri::command]
+fn set_tray_show_title(app: AppHandle, show: bool) -> Result<(), String> {
+    let state = app.state::<TrayState>();
+    let mut guard = state.0.lock().map_err(|e| e.to_string())?;
+
+    if let Some(ref mut inner) = *guard {
+        inner.show_title.store(show, Ordering::Relaxed);
+        if show {
+            inner.icon.set_title(Some(&format_elapsed(0))).map_err(|e| e.to_string())?;
+        } else {
+            inner.stop_signal.store(true, Ordering::Relaxed);
+            inner.stop_signal = Arc::new(AtomicBool::new(true));
+            inner.icon.set_title(Some("")).map_err(|e| e.to_string())?;
+        }
+    }
 
     Ok(())
 }
@@ -351,7 +392,7 @@ pub fn run() {
                 .add_migrations("sqlite:tally.db", load_migrations())
                 .build()
         )
-        .invoke_handler(tauri::generate_handler![set_tray_timer])
+        .invoke_handler(tauri::generate_handler![set_tray_timer, set_tray_show_title])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

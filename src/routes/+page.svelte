@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { listen } from "@tauri-apps/api/event";
-    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal } from "$lib/db";
+    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getSetting } from "$lib/db";
     import { setTrayTimer } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
     import Select from "$lib/components/select.svelte";
@@ -25,6 +25,7 @@
     let running: { timerId: number; startedAt: Date } | null = $state(null);
     let todayTotal = $state(0);
     let stoppedTimerId: number | null = $state(null);
+    let showTrayTitle: boolean = $state(false);
     let unlistenTray: (() => void) | undefined;
 
     function getTrayProjects(): TrayProject[] {
@@ -38,9 +39,9 @@
         const tp = getTrayProjects();
         const selId = selectedProject ? Number(selectedProject) : undefined;
         if (running) {
-            setTrayTimer(todayTotal, running.startedAt.getTime(), tp, selId).catch(() => {});
+            setTrayTimer(todayTotal, running.startedAt.getTime(), tp, selId, showTrayTitle).catch(() => {});
         } else {
-            setTrayTimer(todayTotal, undefined, tp, selId).catch(() => {});
+            setTrayTimer(todayTotal, undefined, tp, selId, showTrayTitle).catch(() => {});
         }
     }
 
@@ -55,6 +56,7 @@
     onMount(async () => {
         projects = await getProjects();
         trayOrder = projects.map(p => p.id!);
+        showTrayTitle = (await getSetting("taskbarDisplay")) === "true";
 
         const existing = await getRunningTimer();
 
