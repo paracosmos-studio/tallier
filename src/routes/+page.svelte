@@ -1,15 +1,22 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
+    import { listen } from "@tauri-apps/api/event";
     import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal } from "$lib/db";
+    import { setTrayTimer } from "$lib/tray";
+    import type { TrayProject } from "$lib/tray";
     import Select from "$lib/components/select.svelte";
     import Menu from "$lib/components/menu.svelte";
     import Timer from "$lib/components/timer.svelte";
     import DialogSummary from "$lib/components/dialogs/dialog-summary.svelte";
     import { resizeWindow } from "$lib/window";
+    import { getCurrentWindow } from "@tauri-apps/api/window";
+    import { page } from "$app/state";
+    import { goto } from "$app/navigation";
     import type { Project } from "$lib/types";
 
     let selectedProject = $state("");
     let projects: Project[] = $state([]);
+    let trayOrder: number[] = $state([]);
     let projectOptions = $derived(
         projects.map(p => ({ value: String(p.id), label: p.name }))
     );
@@ -18,6 +25,24 @@
     let running: { timerId: number; startedAt: Date } | null = $state(null);
     let todayTotal = $state(0);
     let stoppedTimerId: number | null = $state(null);
+    let unlistenTray: (() => void) | undefined;
+
+    function getTrayProjects(): TrayProject[] {
+        return trayOrder
+            .map(id => projects.find(p => p.id === id))
+            .filter((p): p is Project => p != null)
+            .map(p => ({ id: p.id!, name: p.name }));
+    }
+
+    function syncTray() {
+        const tp = getTrayProjects();
+        const selId = selectedProject ? Number(selectedProject) : undefined;
+        if (running) {
+            setTrayTimer(todayTotal, running.startedAt.getTime(), tp, selId).catch(() => {});
+        } else {
+            setTrayTimer(todayTotal, undefined, tp, selId).catch(() => {});
+        }
+    }
 
     async function refreshTodayTotal() {
         if (selectedProject) {
@@ -29,15 +54,14 @@
 
     onMount(async () => {
         projects = await getProjects();
+        trayOrder = projects.map(p => p.id!);
 
-        // restore a running timer if the app was restarted
         const existing = await getRunningTimer();
 
         if (existing && existing.id !== undefined) {
             const startedAt = new Date(`${existing.date}T${existing.start}`);
             running = { timerId: existing.id, startedAt };
 
-            // restore the associated project selection
             const entry = await getEntryByTimerId(existing.id);
             if (entry) {
                 selectedProject = String(entry.project_id);
@@ -45,25 +69,66 @@
         }
 
         await refreshTodayTotal();
+        syncTray();
+
+        // handle tray actions routed via layout navigation
+        const trayAction = page.url.searchParams.get("tray");
+        if (trayAction) {
+            await goto("/", { replaceState: true });
+            if (trayAction === "stop_timer" && running) {
+                handleStop(running.timerId, true);
+            } else if (trayAction === "start_timer" && !running && selectedProject) {
+                handleStart();
+            }
+        }
+
+        listen<string>("tray-menu-action", (event) => {
+            const payload = event.payload;
+            if (payload === "stop_timer" && running) {
+                handleStop(running.timerId, true);
+            } else if (payload === "start_timer" && !running && selectedProject) {
+                handleStart();
+            } else if (payload.startsWith("select_project:")) {
+                const projId = Number(payload.slice("select_project:".length));
+                handleTrayProjectSelect(projId);
+            }
+        }).then((fn) => unlistenTray = fn);
+    });
+
+    onDestroy(() => {
+        unlistenTray?.();
     });
 
     async function handleStart() {
         const timerId = await startTimer();
         running = { timerId, startedAt: new Date() };
 
-        // create entry immediately so project association
-        // persists across restarts
         if (selectedProject) {
             await createEntry(timerId, Number(selectedProject));
         }
+
+        syncTray();
     }
 
-    async function handleStop(timerId: number) {
+    async function handleStop(timerId: number, showWindow = false) {
         await stopTimer(timerId);
         running = null;
         await refreshTodayTotal();
+        syncTray();
         await resizeWindow(400, 300);
         stoppedTimerId = timerId;
+        if (showWindow) {
+            const w = getCurrentWindow();
+            await w.show();
+            await w.setFocus();
+        }
+    }
+
+    async function handleTrayProjectSelect(projectId: number) {
+        if (running) return;
+        selectedProject = String(projectId);
+        await refreshTodayTotal();
+        syncTray();
     }
 
     async function handleSummary(title: string, summary: string) {
@@ -96,11 +161,12 @@
         onchange={async (value) => {
             selectedProject = value;
             await refreshTodayTotal();
+            syncTray();
             await resizeWindow(400, 250);
         }}
         size="lg"
         onopen={async () => {
-            let height = 
+            let height =
                 projectOptions.length > 4 ? 343 :
                     projectOptions.length === 4 ? 339 :
                         projectOptions.length === 3 ? 303 :

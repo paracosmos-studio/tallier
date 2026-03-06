@@ -38,7 +38,7 @@
     }
 </script>
 
-<Dialog {open} title="Entry Summary" dismissible={false} onclose={handleSkip}>
+<Dialog {open} title="Summary" dismissible={false} onclose={handleSkip}>
     <form onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
         <input
             id="entry-title"

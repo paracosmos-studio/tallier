@@ -20,6 +20,12 @@
     "sql:default",
     "sql:allow-execute",
     "dialog:allow-open",
-    "dialog:default"
+    "dialog:default",
+    "core:tray:default",
+    "core:menu:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:window:allow-set-focus",
+    "core:window:allow-show"
   ]
 }

@@ -1,9 +1,11 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { getCurrentWindow } from '@tauri-apps/api/window';
+    import { listen } from '@tauri-apps/api/event';
     import WindowControls from '$lib/components/window-controls.svelte';
     import WindowTitle from '$lib/components/window-title.svelte';
     import DialogConfirm from '$lib/components/dialogs/dialog-confirm.svelte';
+    import { goto } from '$app/navigation';
     import { initDB, getRunningTimer, stopTimer } from '$lib/db';
     import { page } from '$app/state';
 
@@ -14,6 +16,7 @@
     let dbReady: boolean = $state(false);
     let showCloseConfirm: boolean = $state(false);
     let unlisten: (() => void) | undefined;
+    let unlistenTray: (() => void) | undefined;
 
     const appWindow = getCurrentWindow();
 
@@ -28,7 +31,31 @@
             }
         }).then((fn) => unlisten = fn);
 
-        return () => unlisten?.();
+        listen<string>("tray-menu-action", async (event) => {
+            const payload = event.payload;
+            if (payload === "quit") {
+                const running = await getRunningTimer();
+                if (running) {
+                    const w = getCurrentWindow();
+                    await w.show();
+                    await w.setFocus();
+                    showCloseConfirm = true;
+                } else {
+                    forceClose();
+                }
+            } else if (payload === "settings") {
+                goto('/settings');
+            } else if (payload === "stop_timer" || payload === "start_timer") {
+                if (page.url.pathname !== '/') {
+                    await goto(`/?tray=${payload}`);
+                }
+            }
+        }).then((fn) => unlistenTray = fn);
+
+        return () => {
+            unlisten?.();
+            unlistenTray?.();
+        };
     });
 
     async function forceClose() {
