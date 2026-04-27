@@ -34,4 +34,61 @@ export interface Entry {
   project_id: number;
   title?: string;
   summary?: string;
+  created_at?: string;
+  updated_at?: string;
+  updated_reason?: string;
 }
+
+export interface ReportEntry {
+  entry_id: number;
+  timer_id: number;
+  project_id: number;
+  project_name: string;
+  title: string | null;
+  summary: string | null;
+  date: string;
+  start: string;
+  end: string | null;
+  total: number;
+}
+
+export interface DailyProjectTotal {
+  date: string;
+  project_id: number;
+  project_name: string;
+  total_seconds: number;
+}
+
+export interface ProjectTotal {
+  project_id: number;
+  project_name: string;
+  total_seconds: number;
+}
+
+export interface ProjectEntryGroup {
+  projectId: number;
+  projectName: string;
+  entries: ReportEntry[];
+  total: number;
+}
+
+export type StackedBarSegment = {
+  key: string | number;
+  label: string;
+  value: number;
+  color: string;
+};
+
+export type StackedBarColumn = {
+  id: string;
+  label: string;
+  tooltipLabel: string;
+  segments: StackedBarSegment[];
+};
+
+export type BarListItem = {
+  key: string | number;
+  label: string;
+  value: number;
+  color: string;
+};

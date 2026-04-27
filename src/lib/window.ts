@@ -19,4 +19,17 @@ async function resizeWindow(width: number, height: number): Promise<void> {
     }
 }
 
-export { resizeWindow };
+/**
+ * Enables vertical scrolling on the current page. Pages opt in because the
+ * default app shell has overflow hidden. Returns a teardown to restore the
+ * default — pass it from `onMount` so SvelteKit calls it on unmount.
+ *
+ * @example
+ *   onMount(() => enableScroll());
+ */
+function enableScroll(): () => void {
+    document.body.classList.add('scrollable');
+    return () => document.body.classList.remove('scrollable');
+}
+
+export { resizeWindow, enableScroll };

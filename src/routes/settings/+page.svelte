@@ -105,7 +105,7 @@
         font-size: 1.1rem;
         font-weight: 600;
         transition: all 0.2s ease;
-        margin: 0.875rem 0 1.5rem 0;
+        margin-bottom: 1.5rem;
     }
 
     .manage-projects:hover {

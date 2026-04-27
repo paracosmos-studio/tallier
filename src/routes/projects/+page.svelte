@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import type { Project, ProjectLimits } from "$lib/types";
+    import { enableScroll } from "$lib/window";
     import { getProjects, createProject, updateProject, updateProjectName, deleteProject, reorderProjects } from "$lib/db";
     import Button from "$lib/components/button.svelte";
     import PageNavigation from "$lib/components/page-navigation.svelte";
@@ -16,7 +17,11 @@
     let formName: string = $state("");
     let deleteTarget: Project | undefined = $state(undefined);
 
-    onMount(loadProjects);
+    onMount(() => {
+        const teardown = enableScroll();
+        loadProjects();
+        return teardown;
+    });
 
     async function loadProjects() {
         projects = await getProjects();
@@ -127,7 +132,7 @@
 
 <style>
     .pr-container {
-        margin: 1rem auto;
+        margin: 0 auto 1rem auto;
     }
 
     .actions {

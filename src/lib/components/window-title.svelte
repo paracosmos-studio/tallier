@@ -24,6 +24,10 @@
             title: 'Reports',
             icon: ChartBar
         },
+        '/reports/entries': {
+            title: 'Entries',
+            icon: ChartBar
+        },
         '/timesheet': {
             title: 'Timesheet',
             icon: Alarm

@@ -15,9 +15,12 @@
 
     --color-background: #090909;
     --color-text: var(--gray-10);
-/*
+
+    /*
     overscroll-behavior-x: none;
-    overscroll-behavior-y: none; */
+    overscroll-behavior-y: none;
+    */
+
     user-select: none;
     -webkit-user-select: none;
 }
@@ -38,6 +41,16 @@ body {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+}
+
+body.scrollable .app-content-wrapper {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+body.scrollable .app-content-wrapper::-webkit-scrollbar-track {
+    margin-top: 40px;
+    margin-bottom: 16px;
 }
 
 @media screen and (min-width: 800px) {
@@ -62,17 +75,17 @@ a:hover {
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--gray-80);
+    background: transparent;
     border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--gray-40);
+    background: var(--gray-80);
     border-radius: 4px;
     transition: all 0.2s ease-in-out;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-30);
+    background: var(--gray-70);
     width: 8px;
 }
