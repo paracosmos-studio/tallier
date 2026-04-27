@@ -57,13 +57,18 @@
 
 <style>
     .page-nav {
+        position: sticky;
+        top: 0;
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
         justify-items: center;
         gap: 1rem;
-        margin: 12px 0 8px 0;
+        margin: -2rem 0 0 0;
+        padding: calc(2rem + 10px) 0 0.75rem 0;
+        z-index: 10;
+        background-color: var(--color-background);
     }
 
     .page-nav-btn {
