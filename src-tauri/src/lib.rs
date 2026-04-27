@@ -403,6 +403,12 @@ fn load_migrations() -> Vec<Migration> {
             description: "add project limit columns",
             sql: include_str!("../migrations/20260306001_project_limits.sql"),
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "add entry metadata columns",
+            sql: include_str!("../migrations/20260307001_entry_metadata.sql"),
+            kind: MigrationKind::Up,
         }
     ]
 }

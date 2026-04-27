@@ -18,7 +18,7 @@ export async function createEntry(
 ): Promise<number> {
     const database = getDB();
     const result = await database.execute(
-        "INSERT INTO entries (timer_id, project_id, title, summary) VALUES ($1, $2, $3, $4)",
+        "INSERT INTO entries (timer_id, project_id, title, summary, created_at) VALUES ($1, $2, $3, $4, datetime('now'))",
         [timerId, projectId, title ?? null, summary ?? null]
     );
     return result.lastInsertId as number;
