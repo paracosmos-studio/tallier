@@ -25,12 +25,16 @@
 
 <div class="row">
     <span class="info">
-        <span class="title">{entry.title || "Untitled"}</span>
-        <span class="time">
-            {formatTimeOfDay(entry.start)}{entry.end ? ` - ${formatTimeOfDay(entry.end)}` : ""}
-            <span class="sep">|</span>
-            {formatDuration(entry.total)}
+        <span class="time-line">
+            <span class="range">
+                {formatTimeOfDay(entry.start)}{entry.end ? ` - ${formatTimeOfDay(entry.end)}` : ""}
+            </span>
+            <span class="sep">·</span>
+            <span class="duration">{formatDuration(entry.total)}</span>
         </span>
+        {#if entry.title}
+            <span class="summary">{entry.title}</span>
+        {/if}
     </span>
     <span class="actions">
         <button class="act edit" title="Edit entry" onclick={onedit}>
@@ -47,12 +51,13 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 7px 8px;
-        border-bottom: 1px solid var(--gray-80);
+        padding: 6px 8px;
+        border-radius: 3px;
+        transition: background 0.12s ease;
     }
 
-    .row:last-child {
-        border-bottom: none;
+    .row:hover {
+        background: var(--gray-80);
     }
 
     .info {
@@ -63,28 +68,44 @@
         min-width: 0;
     }
 
-    .title {
+    .time-line {
         font-size: 0.78rem;
         color: var(--gray-10);
+        font-variant-numeric: tabular-nums;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .time {
-        font-size: 0.68rem;
-        color: var(--gray-40);
+    .duration {
+        color: var(--gray-20);
     }
 
     .sep {
-        margin: 0 3px;
-        opacity: 0.4;
+        margin: 0 4px;
+        color: var(--gray-40);
+        opacity: 0.6;
+    }
+
+    .summary {
+        font-size: 0.7rem;
+        color: var(--gray-40);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .actions {
         display: flex;
         gap: 2px;
         flex-shrink: 0;
+        opacity: 0;
+        transition: opacity 0.12s ease;
+    }
+
+    .row:hover .actions,
+    .row:focus-within .actions {
+        opacity: 1;
     }
 
     .act {
@@ -95,7 +116,7 @@
         color: var(--gray-40);
         border-radius: 3px;
         display: flex;
-        transition: all 0.15s ease;
+        transition: color 0.15s ease;
     }
 
     .act.edit:hover {

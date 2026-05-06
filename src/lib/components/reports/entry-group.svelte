@@ -56,7 +56,9 @@
     <button class="header" onclick={ontoggle}>
         <span class="date">{formatDateLong(date)}</span>
         <span class="total">{formatDuration(dayTotal)}</span>
-        <span class="count">{entries.length} {entries.length === 1 ? "entry" : "entries"}</span>
+        {#if !expanded}
+            <span class="count">{entries.length} {entries.length === 1 ? "entry" : "entries"}</span>
+        {/if}
         <Icon
             path={expanded ? ArrowDropup : ArrowDropdown}
             size="18"
@@ -66,23 +68,25 @@
     {#if expanded}
         <div class="day-entries">
             {#each projectGroups as pg (pg.projectId)}
-                <div class="project-section">
+                {@const color = colorMap.get(pg.projectId) ?? "var(--gray-40)"}
+                <div
+                    class="project-section"
+                    style:--project-color={color}
+                >
                     <div class="project-header">
-                        <span
-                            class="dot"
-                            style:background-color={colorMap.get(pg.projectId) ?? "var(--gray-40)"}
-                        ></span>
                         <span class="project-name">{pg.projectName}</span>
                         <span class="project-total">{formatDuration(pg.total)}</span>
                     </div>
-                    {#each pg.entries as entry (entry.entry_id)}
-                        <EntryRow
-                            {entry}
-                            {colorMap}
-                            onedit={() => onedit(entry)}
-                            ondelete={() => ondelete(entry)}
-                        />
-                    {/each}
+                    <div class="project-entries">
+                        {#each pg.entries as entry (entry.entry_id)}
+                            <EntryRow
+                                {entry}
+                                {colorMap}
+                                onedit={() => onedit(entry)}
+                                ondelete={() => ondelete(entry)}
+                            />
+                        {/each}
+                    </div>
                 </div>
             {/each}
         </div>
@@ -134,40 +138,43 @@
     }
 
     .day-entries {
-        padding: 0 0 4px 0;
+        padding: 0 0 8px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .project-section {
-        margin-bottom: 4px;
-    }
-
-    .project-section:last-child {
-        margin-bottom: 0;
+        border-left: 2px solid var(--project-color);
+        border-radius: 2px;
+        overflow: hidden;
     }
 
     .project-header {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 4px 8px;
-    }
-
-    .dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        flex-shrink: 0;
+        padding: 5px 10px;
+        background: color-mix(in srgb, var(--project-color) 7%, transparent);
     }
 
     .project-name {
         font-size: 0.72rem;
         font-weight: 500;
-        color: var(--gray-20);
+        color: var(--gray-10);
         flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .project-total {
         font-size: 0.68rem;
-        color: var(--gray-40);
+        color: var(--gray-20);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .project-entries {
+        padding-left: 10px;
     }
 </style>
