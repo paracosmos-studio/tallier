@@ -146,11 +146,11 @@
     <PageNavigation previousPage="/">
         <Button
             size="xs"
-            title="Add New Project"
+            title="View Detailed Logs"
             onclick={() => goto("/reports/entries")}
         >
             <Icon path={Menu} size="16" />
-            <span>View Entries</span>
+            <span>View Logs</span>
         </Button>
     </PageNavigation>
 
@@ -194,7 +194,7 @@
         <p class="empty">Loading...</p>
 
     {:else if totalSeconds === 0}
-        <p class="empty">No data for this activeRange.</p>
+        <p class="empty">No data for the selected range.</p>
 
     {:else}
     <div class="content">

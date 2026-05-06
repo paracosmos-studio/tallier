@@ -1,6 +1,6 @@
 <!--
     @component
-    Dialog for manually adding an entry for any project on any day.
+    Dialog for manually adding a log for any project on any day.
 
     @param {boolean} open - controls dialog visibility.
     @param {Project[]} projects - all projects for the dropdown.
@@ -87,7 +87,7 @@
     );
 </script>
 
-<Dialog {open} title="Add Entry" {onclose}>
+<Dialog {open} title="Add Log" {onclose}>
     <div class="form">
         <div class="field">
             <label for="add-project">Project</label>

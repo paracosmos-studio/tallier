@@ -171,11 +171,11 @@
     <PageNavigation previousPage="/reports">
         <Button
             size="xs"
-            title="Add Entry"
+            title="Add Log"
             onclick={() => (addOpen = true)}
         >
             <Icon path={Add} size="14" />
-            <span>Add Entry</span>
+            <span>Add Log</span>
         </Button>
     </PageNavigation>
 

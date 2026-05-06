@@ -1,9 +1,9 @@
 <!--
     @component
-    Dialog for editing an existing entry's project, title, summary, times, and reason.
+    Dialog for editing an existing log's project, title, summary, times, and reason.
 
     @param {boolean} open - controls dialog visibility.
-    @param {ReportEntry | null} entry - the entry being edited.
+    @param {ReportEntry | null} entry - the log being edited.
     @param {Project[]} projects - all projects for the dropdown.
     @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; start: string; end: string; reason: string | null }) => void} onsave - save callback.
     @param {() => void} onclose - close callback.
@@ -96,7 +96,7 @@
     );
 </script>
 
-<Dialog {open} title="Edit Entry" {onclose}>
+<Dialog {open} title="Edit Log" {onclose}>
     {#if entry}
         <div class="form">
             <div class="field">
