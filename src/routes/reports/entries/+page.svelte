@@ -1,8 +1,12 @@
 <script lang="ts">
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import Select from "$lib/components/select.svelte";
+    import Button from "$lib/components/button.svelte";
+    import Icon from "$lib/components/icon.svelte";
+    import { Add } from "$lib/icons";
     import EntryGroup from "$lib/components/reports/entry-group.svelte";
     import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
+    import DialogAddEntry from "$lib/components/reports/dialog-add-entry.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import { onMount } from "svelte";
     import { resizeWindow, enableScroll } from "$lib/window";
@@ -12,6 +16,7 @@
         updateEntry,
         updateEntryTimes,
         deleteEntry,
+        createManualEntry,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDateISO } from "$lib/format";
@@ -30,6 +35,8 @@
 
     let editOpen: boolean = $state(false);
     let editEntry: ReportEntry | null = $state(null);
+
+    let addOpen: boolean = $state(false);
 
     let deleteOpen: boolean = $state(false);
     let deleteTarget: ReportEntry | null = $state(null);
@@ -103,6 +110,26 @@
         await loadEntries();
     }
 
+    async function handleAdd(data: {
+        projectId: number;
+        date: string;
+        start: string;
+        end: string;
+        title: string | null;
+        summary: string | null;
+    }) {
+        await createManualEntry(
+            data.projectId,
+            data.date,
+            data.start,
+            data.end,
+            data.title,
+            data.summary,
+        );
+        addOpen = false;
+        await loadEntries();
+    }
+
     function requestDelete(entry: ReportEntry) {
         deleteTarget = entry;
         deleteOpen = true;
@@ -141,7 +168,16 @@
 </script>
 
 <main>
-    <PageNavigation previousPage="/reports" />
+    <PageNavigation previousPage="/reports">
+        <Button
+            size="xs"
+            title="Add Entry"
+            onclick={() => (addOpen = true)}
+        >
+            <Icon path={Add} size="14" />
+            <span>Add Entry</span>
+        </Button>
+    </PageNavigation>
 
     <div class="sel">
         <Select
@@ -199,6 +235,13 @@
         </div>
     {/if}
 </main>
+
+<DialogAddEntry
+    open={addOpen}
+    {projects}
+    onsave={handleAdd}
+    onclose={() => (addOpen = false)}
+/>
 
 <DialogEditEntry
     open={editOpen}

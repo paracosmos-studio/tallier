@@ -116,6 +116,41 @@ export async function deleteEntry(
 
 
 /**
+ * Creates a manual entry: inserts a stopped timer + linked entry in one shot.
+ * @param projectId - project to associate the entry with.
+ * @param date - date of the entry (YYYY-MM-DD).
+ * @param start - start time (HH:MM:SS).
+ * @param end - end time (HH:MM:SS).
+ * @param title - optional title.
+ * @param summary - optional summary.
+ */
+export async function createManualEntry(
+    projectId: number,
+    date: string,
+    start: string,
+    end: string,
+    title: string | null,
+    summary: string | null,
+): Promise<void> {
+    const database = getDB();
+    const [sh, sm, ss] = start.split(":").map(Number);
+    const [eh, em, es] = end.split(":").map(Number);
+    const total = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+
+    const timerResult = await database.execute(
+        "INSERT INTO timers (status, date, start, \"end\", total) VALUES ($1, $2, $3, $4, $5)",
+        ["stopped", date, start, end, Math.max(0, total)]
+    );
+    const timerId = timerResult.lastInsertId as number;
+
+    await database.execute(
+        "INSERT INTO entries (timer_id, project_id, title, summary, created_at) VALUES ($1, $2, $3, $4, datetime('now'))",
+        [timerId, projectId, title, summary]
+    );
+}
+
+
+/**
  * Updates a timer's start/end times and recalculates the total.
  * @param timerId - ID of the timer to update.
  * @param start - new start time (HH:MM:SS).

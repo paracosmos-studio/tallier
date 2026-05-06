@@ -3,4 +3,4 @@ export { getProjects, getProject, createProject, updateProject, updateProjectNam
 export { startTimer, stopTimer, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal } from "./timers";
 export { createEntry, updateEntrySummary, getEntryByTimerId, getEntries } from "./entries";
 export { getSetting, setSetting } from "./settings";
-export { getReportEntries, getDailyProjectTotals, getProjectTotals, updateEntry, updateEntryTimes, deleteEntry } from "./reports";
+export { getReportEntries, getDailyProjectTotals, getProjectTotals, updateEntry, updateEntryTimes, deleteEntry, createManualEntry } from "./reports";

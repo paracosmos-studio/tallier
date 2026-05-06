@@ -1,0 +1,220 @@
+<!--
+    @component
+    Dialog for manually adding an entry for any project on any day.
+
+    @param {boolean} open - controls dialog visibility.
+    @param {Project[]} projects - all projects for the dropdown.
+    @param {(data: { projectId: number; date: string; start: string; end: string; title: string | null; summary: string | null }) => void} onsave - save callback.
+    @param {() => void} onclose - close callback.
+-->
+<script lang="ts">
+    import Dialog from "$lib/components/dialogs/dialog.svelte";
+    import Select from "$lib/components/select.svelte";
+    import Button from "$lib/components/button.svelte";
+    import { formatDateISO } from "$lib/format";
+    import type { Project } from "$lib/types";
+
+    type Props = {
+        open: boolean;
+        projects: Project[];
+        onsave: (data: {
+            projectId: number;
+            date: string;
+            start: string;
+            end: string;
+            title: string | null;
+            summary: string | null;
+        }) => void;
+        onclose: () => void;
+    };
+
+    let { open, projects, onsave, onclose }: Props = $props();
+
+    let projectId: string = $state("");
+    let date: string = $state("");
+    let title: string = $state("");
+    let summary: string = $state("");
+    let start: string = $state("");
+    let end: string = $state("");
+
+    $effect(() => {
+        if (open) {
+            projectId = projects[0] ? String(projects[0].id) : "";
+            date = formatDateISO(new Date());
+            title = "";
+            summary = "";
+            start = "09:00:00";
+            end = "10:00:00";
+        }
+    });
+
+    function toHHMMSS(val: string): string {
+        if (!val) return "00:00:00";
+        const parts = val.split(":");
+        return `${parts[0]}:${parts[1]}:${parts[2] ?? "00"}`;
+    }
+
+    function timeToSeconds(hhmmss: string): number {
+        const [h, m, s] = hhmmss.split(":").map(Number);
+        return h * 3600 + m * 60 + (s || 0);
+    }
+
+    let timeError: string | null = $derived.by(() => {
+        const s = toHHMMSS(start);
+        const e = toHHMMSS(end);
+        if (timeToSeconds(e) <= timeToSeconds(s)) {
+            return "End time must be after start time.";
+        }
+        return null;
+    });
+
+    let canSave: boolean = $derived(!!projectId && !!date && !timeError);
+
+    function handleSave() {
+        if (!canSave) return;
+        onsave({
+            projectId: parseInt(projectId),
+            date,
+            start: toHHMMSS(start),
+            end: toHHMMSS(end),
+            title: title.trim() || null,
+            summary: summary.trim() || null,
+        });
+    }
+
+    let projectOptions: { value: string; label: string }[] = $derived(
+        projects.map(p => ({ value: String(p.id), label: p.name }))
+    );
+</script>
+
+<Dialog {open} title="Add Entry" {onclose}>
+    <div class="form">
+        <div class="field">
+            <label for="add-project">Project</label>
+            <Select
+                options={projectOptions}
+                bind:value={projectId}
+                size="sm"
+                nullable={false}
+                searchable={false}
+            />
+        </div>
+        <div class="field">
+            <label for="add-date">Date</label>
+            <input
+                id="add-date"
+                type="date"
+                bind:value={date}
+            />
+        </div>
+        <div class="field">
+            <label for="add-title">Title</label>
+            <input
+                id="add-title"
+                type="text"
+                bind:value={title}
+                maxlength={100}
+                placeholder="Entry title"
+            />
+        </div>
+        <div class="field">
+            <label for="add-summary">Summary</label>
+            <textarea
+                id="add-summary"
+                bind:value={summary}
+                maxlength={500}
+                rows={2}
+                placeholder="Summary notes"
+            ></textarea>
+        </div>
+        <div class="times">
+            <div class="field">
+                <label for="add-start">Start</label>
+                <input
+                    id="add-start"
+                    type="time"
+                    step="1"
+                    bind:value={start}
+                />
+            </div>
+            <div class="field">
+                <label for="add-end">End</label>
+                <input
+                    id="add-end"
+                    type="time"
+                    step="1"
+                    bind:value={end}
+                    class:invalid={timeError}
+                />
+            </div>
+        </div>
+        {#if timeError}
+            <p class="error">{timeError}</p>
+        {/if}
+    </div>
+    {#snippet footer()}
+        <Button size="xs" onclick={onclose} bgColor="var(--gray-60)" fgColor="var(--gray-10)">Cancel</Button>
+        <Button size="xs" onclick={handleSave} bgColor="var(--green)" disabled={!canSave}>Add</Button>
+    {/snippet}
+</Dialog>
+
+<style>
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: 4px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .field label {
+        font-size: 0.65rem;
+        color: var(--gray-40);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .field input,
+    .field textarea {
+        background: var(--gray-90);
+        border: 1px solid var(--gray-60);
+        border-radius: 4px;
+        color: var(--gray-10);
+        font-size: 0.8rem;
+        padding: 6px 8px;
+        font-family: inherit;
+        resize: none;
+    }
+
+    .field input[type="time"],
+    .field input[type="date"] {
+        color-scheme: dark;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+        outline: none;
+        border-color: var(--gray-40);
+    }
+
+    .times {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .field input.invalid {
+        border-color: var(--red);
+    }
+
+    .error {
+        margin: 0;
+        font-size: 0.7rem;
+        color: var(--red);
+    }
+</style>
