@@ -228,6 +228,7 @@
         border: 1px solid var(--gray-60);
         border-radius: 4px;
         color: var(--gray-10);
+        color-scheme: dark;
         font-size: 0.8rem;
         padding: 6px 8px;
         font-family: inherit;
