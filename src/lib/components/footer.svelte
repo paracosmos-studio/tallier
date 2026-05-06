@@ -4,35 +4,21 @@
     import { ChatBubble, Donate, ShieldPerson, Contract } from '$lib/icons';
 
     let currentYear: number = new Date().getFullYear();
-    let year: string = "2026 - Present";
 </script>
 
 <footer>
     <div>
         <p>Tally (v{settings.version})</p>
-        {#if currentYear < 2026}
-            <p>© {year}</p>
-            <p>
-                <a
-                    href={settings.urls.paracosmos}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Paracosmos Studio Inc.
-                </a>
-            </p>
-        {:else}
-            <p>
-                © {currentYear}
-                <a
-                    href={settings.urls.paracosmos}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Paracosmos Studio Inc.
-                </a>
-            </p>
-        {/if}
+        <p>
+            © {Math.max(currentYear, settings.releaseYear)}
+            <a
+                href={settings.urls.paracosmos}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Paracosmos Studio Inc.
+            </a>
+        </p>
     </div>
     <nav>
         <div class="nav-col">
@@ -46,13 +32,13 @@
                 Feedback
             </a>
             <a
-                href={settings.urls.donate}
+                href={settings.urls.support}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="nav-item"
             >
                 <Icon path={Donate} size="14" fill="currentColor" />
-                Donate
+                Support
             </a>
         </div>
         <div class="nav-col">
