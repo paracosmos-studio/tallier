@@ -5,7 +5,7 @@
     import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import { onMount } from "svelte";
-    import { resizeWindow } from "$lib/window";
+    import { resizeWindow, enableScroll } from "$lib/window";
     import {
         getProjects,
         getReportEntries,
@@ -15,9 +15,13 @@
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDateISO } from "$lib/format";
+    import { loadRangeState, saveRangeState } from "$lib/range-storage";
     import type { Project, ReportEntry } from "$lib/types";
 
-    let selectedRange: string = $state("30");
+    const persisted = loadRangeState();
+    let selectedRange: string = $state(persisted.selectedRange ?? "30");
+    let customStart: string = $state(persisted.customStart ?? "");
+    let customEnd: string = $state(persisted.customEnd ?? "");
     let projects: Project[] = $state([]);
     let entries: ReportEntry[] = $state([]);
     let colorMap: Map<number, string> = $state(new Map());
@@ -30,10 +34,19 @@
     let deleteOpen: boolean = $state(false);
     let deleteTarget: ReportEntry | null = $state(null);
 
-    function getDateRange(): { start: string; end: string } {
+    function getDateRange(): { start: string; end: string } | null {
         const today = new Date();
         const end = formatDateISO(today);
-        if (selectedRange === "all") return { start: "2000-01-01", end };
+
+        if (selectedRange === "custom") {
+            if (!customStart || !customEnd) return null;
+            return { start: customStart, end: customEnd };
+        }
+
+        if (selectedRange === "all") {
+            return { start: "2000-01-01", end };
+        }
+
         const days = parseInt(selectedRange);
         const start = new Date(today);
         start.setDate(today.getDate() - days + 1);
@@ -55,10 +68,16 @@
     });
 
     async function loadEntries() {
-        loading = true;
         const range = getDateRange();
+        if (!range) return;
+        loading = true;
         entries = await getReportEntries(range.start, range.end);
         loading = false;
+    }
+
+    function handleRangeChange() {
+        saveRangeState({ selectedRange, customStart, customEnd });
+        loadEntries();
     }
 
     function openEdit(entry: ReportEntry) {
@@ -77,11 +96,7 @@
         reason: string | null;
     }) {
         await updateEntry(data.entryId, data.projectId, data.title, data.summary, data.reason);
-
-        const original = entries.find(e => e.entry_id === data.entryId);
-        if (original && (original.start !== data.start || original.end !== data.end)) {
-            await updateEntryTimes(data.timerId, data.start, data.end);
-        }
+        await updateEntryTimes(data.timerId, data.start, data.end);
 
         editOpen = false;
         editEntry = null;
@@ -113,35 +128,56 @@
         expandedDays = next;
     }
 
-    onMount(async () => {
-        await resizeWindow(400, 700);
-        projects = await getProjects();
-        colorMap = buildProjectColorMap(projects);
-        await loadEntries();
+    onMount(() => {
+        const teardown = enableScroll();
+        (async () => {
+            await resizeWindow(400, 700);
+            projects = await getProjects();
+            colorMap = buildProjectColorMap(projects);
+            await loadEntries();
+        })();
+        return teardown;
     });
 </script>
 
 <main>
-    <PageNavigation previousPage="/reports">
-        <div class="sel">
-            <Select
-                options={[
-                    { value: "7", label: "Last 7 days" },
-                    { value: "14", label: "Last 14 days" },
-                    { value: "30", label: "Last Month" },
-                    { value: "90", label: "Last 3 Months" },
-                    { value: "180", label: "Last 6 Months" },
-                    { value: "365", label: "Last Year" },
-                    { value: "all", label: "All Time" },
-                ]}
-                size="sm"
-                nullable={false}
-                searchable={false}
-                bind:value={selectedRange}
-                onchange={loadEntries}
+    <PageNavigation previousPage="/reports" />
+
+    <div class="sel">
+        <Select
+            options={[
+                { value: "7", label: "Last 7 days" },
+                { value: "14", label: "Last 14 days" },
+                { value: "30", label: "Last Month" },
+                { value: "90", label: "Last 3 Months" },
+                { value: "180", label: "Last 6 Months" },
+                { value: "365", label: "Last Year" },
+                { value: "all", label: "All Time" },
+                { value: "custom", label: "Custom Range" },
+            ]}
+            size="md"
+            nullable={false}
+            searchable={false}
+            bind:value={selectedRange}
+            onchange={handleRangeChange}
+        />
+    </div>
+
+    {#if selectedRange === "custom"}
+        <div class="custom-range">
+            <input
+                type="date"
+                bind:value={customStart}
+                onchange={handleRangeChange}
+            />
+            <span class="range-sep">to</span>
+            <input
+                type="date"
+                bind:value={customEnd}
+                onchange={handleRangeChange}
             />
         </div>
-    </PageNavigation>
+    {/if}
 
     {#if loading}
         <p class="empty">Loading...</p>
@@ -184,7 +220,35 @@
 
 <style>
     .sel {
-        width: 150px;
+        margin-bottom: 10px;
+    }
+
+    .custom-range {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .custom-range input {
+        flex: 1;
+        background: var(--gray-80);
+        border: 1px solid var(--gray-60);
+        border-radius: 4px;
+        color: var(--gray-10);
+        font-size: 0.8rem;
+        padding: 6px 8px;
+        font-family: inherit;
+    }
+
+    .custom-range input:focus {
+        outline: none;
+        border-color: var(--gray-40);
+    }
+
+    .range-sep {
+        font-size: 0.75rem;
+        color: var(--gray-40);
     }
 
     .empty {

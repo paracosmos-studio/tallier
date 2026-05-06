@@ -145,8 +145,7 @@
     }
 
     .project-section {
-        border-left: 2px solid var(--project-color);
-        border-radius: 2px;
+        border-left: 2px solid color-mix(in srgb, var(--project-color) 55%, transparent);
         overflow: hidden;
     }
 
@@ -161,7 +160,7 @@
     .project-name {
         font-size: 0.72rem;
         font-weight: 500;
-        color: var(--gray-10);
+        color: var(--project-color);
         flex: 1;
         white-space: nowrap;
         overflow: hidden;
@@ -170,7 +169,7 @@
 
     .project-total {
         font-size: 0.68rem;
-        color: var(--gray-20);
+        color: color-mix(in srgb, var(--project-color) 70%, var(--gray-20));
         font-variant-numeric: tabular-nums;
     }
 

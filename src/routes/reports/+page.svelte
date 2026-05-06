@@ -13,11 +13,13 @@
     import { getProjects, getDailyProjectTotals, getProjectTotals } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDuration, formatDateISO, formatDateShort } from "$lib/format";
+    import { loadRangeState, saveRangeState } from "$lib/range-storage";
     import type { Project, ProjectTotal, DailyProjectTotal, StackedBarColumn, BarListItem } from "$lib/types";
 
-    let selectedRange: string = $state("7");
-    let customStart: string = $state("");
-    let customEnd: string = $state("");
+    const persisted = loadRangeState();
+    let selectedRange: string = $state(persisted.selectedRange ?? "7");
+    let customStart: string = $state(persisted.customStart ?? "");
+    let customEnd: string = $state(persisted.customEnd ?? "");
     let projects: Project[] = $state([]);
     let projectTotals: ProjectTotal[] = $state([]);
     let dailyTotals: DailyProjectTotal[] = $state([]);
@@ -123,6 +125,7 @@
     }
 
     function handleRangeChange() {
+        saveRangeState({ selectedRange, customStart, customEnd });
         loadData();
     }
 
@@ -130,6 +133,7 @@
         const teardown = enableScroll();
         (async () => {
             await resizeWindow(400, 700);
+            saveRangeState({ selectedRange, customStart, customEnd });
             projects = await getProjects();
             colorMap = buildProjectColorMap(projects);
             await loadData();

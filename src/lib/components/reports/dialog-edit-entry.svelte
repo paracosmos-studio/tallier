@@ -63,8 +63,22 @@
         return `${parts[0]}:${parts[1]}:${parts[2] ?? "00"}`;
     }
 
+    function timeToSeconds(hhmmss: string): number {
+        const [h, m, s] = hhmmss.split(":").map(Number);
+        return h * 3600 + m * 60 + (s || 0);
+    }
+
+    let timeError: string | null = $derived.by(() => {
+        const s = toHHMMSS(editStart);
+        const e = toHHMMSS(editEnd);
+        if (timeToSeconds(e) <= timeToSeconds(s)) {
+            return "End time must be after start time.";
+        }
+        return null;
+    });
+
     function handleSave() {
-        if (!entry) return;
+        if (!entry || timeError) return;
         onsave({
             entryId: entry.entry_id,
             timerId: entry.timer_id,
@@ -132,9 +146,13 @@
                         type="time"
                         step="1"
                         bind:value={editEnd}
+                        class:invalid={timeError}
                     />
                 </div>
             </div>
+            {#if timeError}
+                <p class="error">{timeError}</p>
+            {/if}
             <div class="field">
                 <label for="edit-reason">Reason for edit</label>
                 <input
@@ -148,8 +166,8 @@
         </div>
     {/if}
     {#snippet footer()}
-        <Button size="xs" onclick={onclose} bgColor="var(--gray-60)">Cancel</Button>
-        <Button size="xs" onclick={handleSave} bgColor="var(--green)">Save</Button>
+        <Button size="xs" onclick={onclose} bgColor="var(--gray-60)" fgColor="var(--gray-10)">Cancel</Button>
+        <Button size="xs" onclick={handleSave} bgColor="var(--green)" disabled={!!timeError}>Save</Button>
     {/snippet}
 </Dialog>
 
@@ -200,5 +218,15 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
+    }
+
+    .field input.invalid {
+        border-color: var(--red);
+    }
+
+    .error {
+        margin: 0;
+        font-size: 0.7rem;
+        color: var(--red);
     }
 </style>

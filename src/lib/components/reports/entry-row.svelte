@@ -52,12 +52,6 @@
         align-items: center;
         gap: 8px;
         padding: 6px 8px;
-        border-radius: 3px;
-        transition: background 0.12s ease;
-    }
-
-    .row:hover {
-        background: var(--gray-80);
     }
 
     .info {
@@ -89,7 +83,7 @@
 
     .summary {
         font-size: 0.7rem;
-        color: var(--gray-40);
+        color: var(--gray-20);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -99,13 +93,6 @@
         display: flex;
         gap: 2px;
         flex-shrink: 0;
-        opacity: 0;
-        transition: opacity 0.12s ease;
-    }
-
-    .row:hover .actions,
-    .row:focus-within .actions {
-        opacity: 1;
     }
 
     .act {
