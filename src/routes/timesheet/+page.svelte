@@ -1,25 +1,47 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { resizeWindow, enableScroll } from "$lib/window";
-    import { getProjects } from "$lib/db";
+    import {
+        getProjects,
+        getReportEntries,
+        updateEntry,
+        updateEntryTimes,
+        deleteEntry,
+    } from "$lib/db";
+    import { buildProjectColorMap } from "$lib/colors";
+    import { formatDateISO } from "$lib/format";
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import Button from "$lib/components/button.svelte";
     import Select from "$lib/components/select.svelte";
     import SegmentedControl from "$lib/components/segmented-control.svelte";
     import Icon from "$lib/components/icon.svelte";
+    import ListView from "$lib/components/timesheet/list-view.svelte";
+    import WeekView from "$lib/components/timesheet/week-view.svelte";
+    import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
+    import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
+    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import { Download, ViewList, ViewWeek, CalendarMonth } from "$lib/icons";
-    import type { Project } from "$lib/types";
+    import type { Project, ReportEntry } from "$lib/types";
 
     type View = "vl" | "vw" | "vc";
     type Round = "1" | "5" | "15";
 
     let projects: Project[] = $state([]);
+    let entries: ReportEntry[] = $state([]);
+    let colorMap: Map<number, string> = $state(new Map());
+    let loading: boolean = $state(true);
+
     let selectedRange: string = $state("7");
     let customStart: string = $state("");
     let customEnd: string = $state("");
     let selectedProjects: string[] = $state([]);
     let view: View = $state("vl");
     let roundTo: Round = $state("1");
+
+    let editOpen: boolean = $state(false);
+    let editEntry: ReportEntry | null = $state(null);
+    let deleteOpen: boolean = $state(false);
+    let deleteTarget: ReportEntry | null = $state(null);
 
     const rangeOptions = [
         { value: "7", label: "Last 7 days" },
@@ -44,28 +66,97 @@
         { value: "15", label: "15 min" },
     ];
 
-    const viewLabel: Record<View, string> = {
-        vl: "List view",
-        vw: "Week view",
-        vc: "Calendar view",
-    };
-
     let projectOptions: Array<{ value: string; label: string }> = $derived(
         projects.map(p => ({ value: String(p.id), label: p.name }))
     );
+
+    let roundMinutes: number = $derived(parseInt(roundTo));
+
+    let filteredEntries: ReportEntry[] = $derived.by(() => {
+        if (selectedProjects.length === 0) return entries;
+        const ids = new Set(selectedProjects.map(v => parseInt(v)));
+        return entries.filter(e => ids.has(e.project_id));
+    });
+
+    function getDateRange(): { start: string; end: string } | null {
+        const today = new Date();
+        const end = formatDateISO(today);
+
+        if (selectedRange === "custom") {
+            if (!customStart || !customEnd) return null;
+            return { start: customStart, end: customEnd };
+        }
+        if (selectedRange === "all") {
+            return { start: "2000-01-01", end };
+        }
+        const days = parseInt(selectedRange);
+        const start = new Date(today);
+        start.setDate(today.getDate() - days + 1);
+        return { start: formatDateISO(start), end };
+    }
+
+    async function loadEntries(): Promise<void> {
+        const range = getDateRange();
+        if (!range) return;
+        loading = true;
+        entries = await getReportEntries(range.start, range.end);
+        loading = false;
+    }
+
+    function openEdit(entry: ReportEntry): void {
+        editEntry = entry;
+        editOpen = true;
+    }
+
+    function requestDelete(entry: ReportEntry): void {
+        deleteTarget = entry;
+        deleteOpen = true;
+    }
+
+    async function handleSave(data: {
+        entryId: number;
+        timerId: number;
+        projectId: number;
+        title: string | null;
+        summary: string | null;
+        start: string;
+        end: string;
+        reason: string | null;
+    }): Promise<void> {
+        await updateEntry(data.entryId, data.projectId, data.title, data.summary, data.reason);
+        await updateEntryTimes(data.timerId, data.start, data.end);
+        editOpen = false;
+        editEntry = null;
+        await loadEntries();
+    }
+
+    async function confirmDelete(): Promise<void> {
+        if (!deleteTarget) return;
+        await deleteEntry(deleteTarget.entry_id, deleteTarget.timer_id);
+        deleteOpen = false;
+        deleteTarget = null;
+        await loadEntries();
+    }
+
+    function cancelDelete(): void {
+        deleteOpen = false;
+        deleteTarget = null;
+    }
+
+    function handleExport(): void {
+        // export pipeline pending
+    }
 
     onMount(() => {
         const teardown = enableScroll();
         (async () => {
             await resizeWindow(400, 700);
             projects = await getProjects();
+            colorMap = buildProjectColorMap(projects);
+            await loadEntries();
         })();
         return teardown;
     });
-
-    function handleExport(): void {
-        // export pipeline pending
-    }
 </script>
 
 <main>
@@ -84,6 +175,7 @@
                 nullable={false}
                 searchable={false}
                 bind:value={selectedRange}
+                onchange={loadEntries}
             />
         </div>
         <div class="filter-cell">
@@ -95,7 +187,8 @@
                 searchable={false}
                 placeholder="All projects"
                 multipleLabel={(n) => `${n} projects`}
-                bind:values={selectedProjects}
+                values={selectedProjects}
+                onchangemultiple={(v) => (selectedProjects = v)}
             />
         </div>
         <SegmentedControl
@@ -107,9 +200,9 @@
 
     {#if selectedRange === "custom"}
         <div class="custom-range">
-            <input type="date" bind:value={customStart} />
+            <input type="date" bind:value={customStart} onchange={loadEntries} />
             <span class="range-sep">to</span>
-            <input type="date" bind:value={customEnd} />
+            <input type="date" bind:value={customEnd} onchange={loadEntries} />
         </div>
     {/if}
 
@@ -122,10 +215,40 @@
         />
     </div>
 
-    <div class="view-pane">
-        {viewLabel[view]} selected
-    </div>
+    {#if loading}
+        <p class="empty">Loading...</p>
+    {:else if view === "vl"}
+        <ListView
+            entries={filteredEntries}
+            {colorMap}
+            {roundMinutes}
+            onedit={openEdit}
+            ondelete={requestDelete}
+        />
+    {:else if view === "vw"}
+        <WeekView />
+    {:else}
+        <CalendarView />
+    {/if}
 </main>
+
+<DialogEditEntry
+    open={editOpen}
+    entry={editEntry}
+    {projects}
+    onsave={handleSave}
+    onclose={() => { editOpen = false; editEntry = null; }}
+/>
+
+<DialogConfirm
+    open={deleteOpen}
+    title="Delete Entry"
+    message={`Delete "${deleteTarget?.title || "Untitled"}"? This cannot be undone.`}
+    confirmLabel="Delete"
+    cancelLabel="Cancel"
+    onconfirm={confirmDelete}
+    oncancel={cancelDelete}
+/>
 
 <style>
     .filter-row {
@@ -181,15 +304,10 @@
         color: var(--gray-20);
     }
 
-    .view-pane {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 200px;
-        background: var(--gray-90);
-        border: 1px solid var(--gray-70);
-        border-radius: 6px;
-        color: var(--gray-30);
-        font-size: 0.875rem;
+    .empty {
+        text-align: center;
+        color: var(--gray-40);
+        font-size: 0.85rem;
+        margin-top: 40px;
     }
 </style>

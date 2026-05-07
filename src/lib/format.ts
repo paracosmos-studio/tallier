@@ -56,6 +56,15 @@ function formatDateShort(dateStr: string): string {
     return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
 }
 
+/**
+ * Rounds a duration in seconds to the nearest `minutes` step.
+ */
+function roundSeconds(seconds: number, minutes: number): number {
+    if (minutes <= 0) return seconds;
+    const step: number = minutes * 60;
+    return Math.round(seconds / step) * step;
+}
+
 export {
     MONTHS,
     DAYS,
@@ -64,4 +73,5 @@ export {
     formatDateISO,
     formatDateLong,
     formatDateShort,
+    roundSeconds,
 };
