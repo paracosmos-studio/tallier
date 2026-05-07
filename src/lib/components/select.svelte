@@ -3,54 +3,67 @@
     Custom select dropdown with search functionality.
 
     @param {Array<{value: string, label: string}>} options The selectable options.
-    @param {string} [value] The currently selected value (bindable).
+    @param {string} [value] The currently selected value (bindable, single-select).
+    @param {string[]} [values] The currently selected values (bindable, multi-select).
+    @param {boolean} [multiple=false] Enable multi-selection mode.
     @param {string} [placeholder="Select an option"] Placeholder text when no option is selected.
-    @param {boolean} [nullable=false] Allow clearing selection to null/empty value.
+    @param {boolean} [nullable=false] Allow clearing selection to null/empty value (single-select only).
     @param {boolean} [searchable=true] Enable search functionality within the dropdown.
     @param {boolean} [disabled=false] Disable the select component, preventing interaction.
     @param {'sm' | 'md' | 'lg'} [size="md"] Size of the select component.
+    @param {(count: number) => string} [multipleLabel] Trigger label formatter when 2+ options selected (multi mode).
     @param {() => void} [onopen] Callback when dropdown opens.
     @param {() => void} [onclose] Callback when dropdown closes.
-    @param {(value: string) => void} [onchange] Callback when selection changes.
+    @param {(value: string) => void} [onchange] Callback when selection changes (single-select).
+    @param {(values: string[]) => void} [onchangemultiple] Callback when selection changes (multi-select).
 -->
 
 <script lang="ts">
     import Icon from './icon.svelte';
-    import { ArrowDropdown, Search, Close } from '$lib/icons';
+    import { ArrowDropdown, Search, Close, Check } from '$lib/icons';
 
     interface Props {
         options: Array<{ value: string; label: string }>;
         value?: string;
+        values?: string[];
+        multiple?: boolean;
         placeholder?: string;
         nullable?: boolean;
         searchable?: boolean;
         disabled?: boolean;
         size?: 'sm' | 'md' | 'lg';
+        multipleLabel?: (count: number) => string;
         onopen?: () => void;
         onclose?: () => void;
         onchange?: (value: string) => void;
+        onchangemultiple?: (values: string[]) => void;
     }
 
     let {
         options = [],
         value = $bindable(''),
+        values = $bindable([]),
+        multiple = false,
         placeholder = 'Select an option',
         nullable = false,
         searchable = true,
         disabled = false,
         size = 'md',
+        multipleLabel = (n: number) => `${n} selected`,
         onopen,
         onclose,
-        onchange
+        onchange,
+        onchangemultiple,
     }: Props = $props();
 
-    let isOpen = $state(false);
-    let searchQuery = $state('');
+    let isOpen: boolean = $state(false);
+    let searchQuery: string = $state('');
     let searchInputRef: HTMLInputElement | undefined = $state();
-    let iconSizeMap = {
+    const iconSizeMap = {
         close: { sm: "11", md: "13", lg: "16" },
         dropdown: { sm: "16", md: "20", lg: "20" },
-        search: { sm: "15", md: "15", lg: "18" }
+        search: { sm: "15", md: "15", lg: "18" },
+        check: { sm: "14", md: "16", lg: "18" }
     };
 
     const filteredOptions = $derived(
@@ -59,9 +72,22 @@
         )
     );
 
-    const selectedLabel = $derived(
-        options.find(opt => opt.value === value)?.label || placeholder
-    );
+    const selectedLabel = $derived.by(() => {
+        if (multiple) {
+            if (values.length === 0) return placeholder;
+            if (values.length === 1) {
+                return options.find(o => o.value === values[0])?.label ?? placeholder;
+            }
+            return multipleLabel(values.length);
+        }
+        return options.find(opt => opt.value === value)?.label || placeholder;
+    });
+
+    const hasSelection = $derived(multiple ? values.length > 0 : !!value);
+
+    function isSelected(optValue: string): boolean {
+        return multiple ? values.includes(optValue) : optValue === value;
+    }
 
     function toggleDropdown() {
         if (disabled) return;
@@ -76,16 +102,30 @@
     }
 
     function selectOption(optionValue: string) {
-        value = optionValue;
-        isOpen = false;
-        searchQuery = '';
-        onchange?.(optionValue);
+        if (multiple) {
+            const next = values.includes(optionValue)
+                ? values.filter(v => v !== optionValue)
+                : [...values, optionValue];
+            values = next;
+            onchangemultiple?.(next);
+            setTimeout(() => searchInputRef?.focus(), 0);
+        } else {
+            value = optionValue;
+            isOpen = false;
+            searchQuery = '';
+            onchange?.(optionValue);
+        }
     }
 
     function clearSelection(event: MouseEvent | KeyboardEvent) {
         event.stopPropagation();
-        value = '';
-        onchange?.('');
+        if (multiple) {
+            values = [];
+            onchangemultiple?.([]);
+        } else {
+            value = '';
+            onchange?.('');
+        }
     }
 
     function handleClickOutside(event: MouseEvent) {
@@ -120,7 +160,7 @@
     >
         {#if !isOpen}
             <span class="selected-value">{selectedLabel}</span>
-            {#if nullable && value}
+            {#if nullable && hasSelection}
                 <span
                     role="button"
                     tabindex="0"
@@ -153,7 +193,7 @@
 
     {#if isOpen}
         <ul class="dropdown-menu">
-            {#if nullable && !searchQuery}
+            {#if !multiple && nullable && !searchQuery}
                 <li>
                     <button
                         type="button"
@@ -170,10 +210,13 @@
                     <button
                         type="button"
                         class={`option ${size}`}
-                        class:selected={option.value === value}
+                        class:selected={isSelected(option.value)}
                         onclick={() => selectOption(option.value)}
                     >
-                        {option.label}
+                        <span class="option-label">{option.label}</span>
+                        {#if multiple && isSelected(option.value)}
+                            <Icon path={Check} size={iconSizeMap.check[size]} fill="var(--green)" />
+                        {/if}
                     </button>
                 </li>
             {:else}
@@ -242,6 +285,9 @@
         text-align: left;
         color: var(--color-text);
         pointer-events: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .search-wrapper {
@@ -319,7 +365,10 @@
 
     .option {
         width: 100%;
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
         background: transparent;
         border: none;
         border-radius: 0px;
@@ -329,6 +378,13 @@
         cursor: pointer;
         transition: all 0.1s ease;
         outline: none;
+    }
+
+    .option-label {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .option.sm {

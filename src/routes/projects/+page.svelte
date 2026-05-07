@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import type { Project, ProjectLimits } from "$lib/types";
+    import { Add } from "$lib/icons";
+    import Icon from "$lib/components/icon.svelte";
     import { enableScroll } from "$lib/window";
     import { getProjects, createProject, updateProject, updateProjectName, deleteProject, reorderProjects } from "$lib/db";
     import Button from "$lib/components/button.svelte";
@@ -85,7 +87,8 @@
     <PageNavigation previousPage="/settings">
         {#if view === "list"}
             <Button size="xs" title="Add New Project" onclick={showAdd}>
-                + Add New
+                <Icon path={Add} size="14" />
+                <span>Add Project</span>
             </Button>
         {:else}
             <div class="actions">
