@@ -65,6 +65,15 @@ function roundSeconds(seconds: number, minutes: number): number {
     return Math.round(seconds / step) * step;
 }
 
+/**
+ * Parses an "HH:MM" or "HH:MM:SS" string into seconds since midnight.
+ */
+function timeToSeconds(hhmmss: string): number {
+    if (!hhmmss) return 0;
+    const [h, m, s] = hhmmss.split(":").map(Number);
+    return (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+}
+
 export {
     MONTHS,
     DAYS,
@@ -74,4 +83,5 @@ export {
     formatDateLong,
     formatDateShort,
     roundSeconds,
+    timeToSeconds,
 };

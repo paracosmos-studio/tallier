@@ -1,15 +1,18 @@
 <!--
     @component
-    Display-only entry row with edit and delete action buttons.
+    Display-only entry row with edit and optional delete/hide action buttons.
+    Each action button only renders when its callback is provided.
 
     @param {ReportEntry} entry - the entry data to display.
     @param {Map<number, string>} colorMap - project ID to color mapping.
     @param {() => void} onedit - callback to open edit dialog.
-    @param {() => void} ondelete - callback to trigger delete confirmation.
+    @param {() => void} [ondelete] - callback to trigger delete confirmation.
+    @param {boolean} [hidden=false] - whether the entry is currently hidden from totals.
+    @param {() => void} [onhide] - callback to toggle the hidden state.
 -->
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
-    import { Edit, Delete } from "$lib/icons";
+    import { Edit, Delete, VisibilityOff } from "$lib/icons";
     import { formatDuration, formatTimeOfDay } from "$lib/format";
     import type { ReportEntry } from "$lib/types";
 
@@ -17,13 +20,15 @@
         entry: ReportEntry;
         colorMap: Map<number, string>;
         onedit: () => void;
-        ondelete: () => void;
+        ondelete?: () => void;
+        hidden?: boolean;
+        onhide?: () => void;
     };
 
-    let { entry, colorMap, onedit, ondelete }: Props = $props();
+    let { entry, colorMap, onedit, ondelete, hidden = false, onhide }: Props = $props();
 </script>
 
-<div class="row">
+<div class="row" class:hidden>
     <span class="info">
         <span class="time-line">
             <span class="range">
@@ -40,9 +45,21 @@
         <button class="act edit" title="Edit entry" onclick={onedit}>
             <Icon path={Edit} size="13" fill="currentColor" />
         </button>
-        <button class="act del" title="Delete entry" onclick={ondelete}>
-            <Icon path={Delete} size="13" fill="currentColor" />
-        </button>
+        {#if onhide}
+            <button
+                class="act hide"
+                class:on={hidden}
+                title={hidden ? "Include in totals" : "Exclude from totals"}
+                onclick={onhide}
+            >
+                <Icon path={VisibilityOff} size="13" fill="currentColor" />
+            </button>
+        {/if}
+        {#if ondelete}
+            <button class="act del" title="Delete entry" onclick={ondelete}>
+                <Icon path={Delete} size="13" fill="currentColor" />
+            </button>
+        {/if}
     </span>
 </div>
 
@@ -52,6 +69,13 @@
         align-items: center;
         gap: 8px;
         padding: 6px 8px;
+        transition: opacity 0.15s ease;
+    }
+
+    .row.hidden .info {
+        opacity: 0.4;
+        text-decoration: line-through;
+        text-decoration-color: var(--gray-40);
     }
 
     .info {
@@ -112,5 +136,10 @@
 
     .act.del:hover {
         color: var(--red);
+    }
+
+    .act.hide:hover,
+    .act.hide.on {
+        color: var(--gray-10);
     }
 </style>

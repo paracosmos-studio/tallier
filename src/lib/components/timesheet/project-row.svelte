@@ -11,10 +11,11 @@
     @param {Map<number, string>} colorMap - project ID to color map for entry rows.
     @param {boolean} expanded - whether the row shows individual entries.
     @param {string} notes - current notes subtext value.
+    @param {Set<number>} hiddenIds - entry IDs excluded from totals.
     @param {(value: string) => void} onnotes - notes change callback.
     @param {() => void} ontoggle - toggle expand/collapse callback.
+    @param {(entryId: number) => void} onhide - toggle hidden state for an entry.
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
-    @param {(entry: ReportEntry) => void} ondelete - trigger delete for an entry.
 -->
 <script lang="ts">
     import EntryRow from "$lib/components/reports/entry-row.svelte";
@@ -31,10 +32,11 @@
         colorMap: Map<number, string>;
         expanded: boolean;
         notes: string;
+        hiddenIds: Set<number>;
         onnotes: (value: string) => void;
         ontoggle: () => void;
+        onhide: (entryId: number) => void;
         onedit: (entry: ReportEntry) => void;
-        ondelete: (entry: ReportEntry) => void;
     };
 
     let {
@@ -45,10 +47,11 @@
         colorMap,
         expanded,
         notes,
+        hiddenIds,
         onnotes,
         ontoggle,
+        onhide,
         onedit,
-        ondelete,
     }: Props = $props();
 </script>
 
@@ -76,8 +79,9 @@
                 <EntryRow
                     {entry}
                     {colorMap}
+                    hidden={hiddenIds.has(entry.entry_id)}
                     onedit={() => onedit(entry)}
-                    ondelete={() => ondelete(entry)}
+                    onhide={() => onhide(entry.entry_id)}
                 />
             {/each}
         </div>

@@ -7,11 +7,14 @@
     @param {Project[]} projects - all projects for the dropdown.
     @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; start: string; end: string; reason: string | null }) => void} onsave - save callback.
     @param {() => void} onclose - close callback.
+    @param {string} [notice] - optional info banner shown above the form (e.g. for view-only edits).
+    @param {boolean} [showReason=true] - whether to show the "Reason for edit" input.
 -->
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
+    import { timeToSeconds } from "$lib/format";
     import type { ReportEntry, Project } from "$lib/types";
 
     type Props = {
@@ -29,9 +32,11 @@
             reason: string | null;
         }) => void;
         onclose: () => void;
+        notice?: string;
+        showReason?: boolean;
     };
 
-    let { open, entry, projects, onsave, onclose }: Props = $props();
+    let { open, entry, projects, onsave, onclose, notice, showReason = true }: Props = $props();
 
     let editProjectId: string = $state("");
     let editTitle: string = $state("");
@@ -61,11 +66,6 @@
         if (!val) return "00:00:00";
         const parts = val.split(":");
         return `${parts[0]}:${parts[1]}:${parts[2] ?? "00"}`;
-    }
-
-    function timeToSeconds(hhmmss: string): number {
-        const [h, m, s] = hhmmss.split(":").map(Number);
-        return h * 3600 + m * 60 + (s || 0);
     }
 
     let timeError: string | null = $derived.by(() => {
@@ -99,6 +99,9 @@
 <Dialog {open} title="Edit Log" {onclose}>
     {#if entry}
         <div class="form">
+            {#if notice}
+                <p class="notice">{notice}</p>
+            {/if}
             <div class="field">
                 <label for="edit-project">Project</label>
                 <Select
@@ -153,16 +156,18 @@
             {#if timeError}
                 <p class="error">{timeError}</p>
             {/if}
-            <div class="field">
-                <label for="edit-reason">Reason for edit</label>
-                <input
-                    id="edit-reason"
-                    type="text"
-                    bind:value={editReason}
-                    maxlength={200}
-                    placeholder="Optional"
-                />
-            </div>
+            {#if showReason}
+                <div class="field">
+                    <label for="edit-reason">Reason for edit</label>
+                    <input
+                        id="edit-reason"
+                        type="text"
+                        bind:value={editReason}
+                        maxlength={200}
+                        placeholder="Optional"
+                    />
+                </div>
+            {/if}
         </div>
     {/if}
     {#snippet footer()}
@@ -228,5 +233,15 @@
         margin: 0;
         font-size: 0.7rem;
         color: var(--red);
+    }
+
+    .notice {
+        margin: 0 0 4px 0;
+        padding: 8px 10px;
+        background: color-mix(in srgb, var(--yellow) 10%, transparent);
+        border-radius: 4px;
+        color: var(--gray-10);
+        font-size: 0.72rem;
+        line-height: 1.4;
     }
 </style>

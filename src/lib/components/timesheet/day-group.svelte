@@ -9,10 +9,11 @@
     @param {Map<number, string>} colorMap - project ID to color map.
     @param {Set<string>} expanded - set of expanded "date|projectId" keys.
     @param {Map<string, string>} notes - notes by "date|projectId" key.
+    @param {Set<number>} hiddenIds - entry IDs excluded from totals.
     @param {(projectId: number) => void} ontoggle - toggle a project row's expanded state.
     @param {(projectId: number, value: string) => void} onnotes - notes change callback.
+    @param {(entryId: number) => void} onhide - toggle hidden state for an entry.
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
-    @param {(entry: ReportEntry) => void} ondelete - trigger delete for an entry.
 -->
 <script lang="ts">
     import ProjectRow from "./project-row.svelte";
@@ -28,10 +29,11 @@
         colorMap: Map<number, string>;
         expanded: Set<string>;
         notes: Map<string, string>;
+        hiddenIds: Set<number>;
         ontoggle: (projectId: number) => void;
         onnotes: (projectId: number, value: string) => void;
+        onhide: (entryId: number) => void;
         onedit: (entry: ReportEntry) => void;
-        ondelete: (entry: ReportEntry) => void;
     };
 
     let {
@@ -41,10 +43,11 @@
         colorMap,
         expanded,
         notes,
+        hiddenIds,
         ontoggle,
         onnotes,
+        onhide,
         onedit,
-        ondelete,
     }: Props = $props();
 </script>
 
@@ -64,10 +67,11 @@
                 {colorMap}
                 expanded={expanded.has(k)}
                 notes={notes.get(k) ?? ""}
+                {hiddenIds}
                 onnotes={(v) => onnotes(pg.projectId, v)}
                 ontoggle={() => ontoggle(pg.projectId)}
+                {onhide}
                 {onedit}
-                {ondelete}
             />
         {/each}
     </div>

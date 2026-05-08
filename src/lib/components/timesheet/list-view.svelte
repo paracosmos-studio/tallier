@@ -1,36 +1,49 @@
 <!--
     @component
     Timesheet list view: per-day groups of project rows with rounded totals,
-    plus a grand-total card at the bottom. Edit/delete bubble up to the page.
+    plus a grand-total card at the bottom. Edits and hide/include actions
+    only affect the local view — no database writes.
 
     @param {ReportEntry[]} entries - entries already filtered by range and projects.
+    @param {Project[]} projects - all projects, for the edit dialog's project picker.
     @param {Map<number, string>} colorMap - project ID to color map.
     @param {number} roundMinutes - round each entry duration to this many minutes.
-    @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
-    @param {(entry: ReportEntry) => void} ondelete - trigger delete for an entry.
 -->
 <script lang="ts">
     import DayGroup from "./day-group.svelte";
+    import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
     import { formatDuration } from "$lib/format";
     import { buildDayGroups, projectKey } from "$lib/timesheet";
-    import type { ReportEntry } from "$lib/types";
-    import type { TimesheetDayGroup } from "$lib/timesheet";
+    import type { ReportEntry, Project } from "$lib/types";
+    import type { TimesheetDayGroup, EntryOverride } from "$lib/timesheet";
 
     type Props = {
         entries: ReportEntry[];
+        projects: Project[];
         colorMap: Map<number, string>;
         roundMinutes: number;
-        onedit: (entry: ReportEntry) => void;
-        ondelete: (entry: ReportEntry) => void;
     };
 
-    let { entries, colorMap, roundMinutes, onedit, ondelete }: Props = $props();
+    let { entries, projects, colorMap, roundMinutes }: Props = $props();
 
     let expanded: Set<string> = $state(new Set());
     let notes: Map<string, string> = $state(new Map());
+    let hiddenIds: Set<number> = $state(new Set());
+    let overrides: Map<number, EntryOverride> = $state(new Map());
+
+    let editOpen: boolean = $state(false);
+    let editEntry: ReportEntry | null = $state(null);
+
+    let projectNames: Map<number, string> = $derived.by(() => {
+        const m = new Map<number, string>();
+        for (const p of projects) {
+            if (p.id != null) m.set(p.id, p.name);
+        }
+        return m;
+    });
 
     let dayGroups: TimesheetDayGroup[] = $derived(
-        buildDayGroups(entries, roundMinutes)
+        buildDayGroups(entries, roundMinutes, hiddenIds, overrides, projectNames)
     );
 
     let grandTotal: number = $derived(
@@ -50,6 +63,44 @@
         next.set(projectKey(date, projectId), value);
         notes = next;
     }
+
+    function toggleHide(entryId: number): void {
+        const next = new Set(hiddenIds);
+        if (next.has(entryId)) next.delete(entryId);
+        else next.add(entryId);
+        hiddenIds = next;
+    }
+
+    function openEdit(entry: ReportEntry): void {
+        editEntry = entry;
+        editOpen = true;
+    }
+
+    function handleSave(data: {
+        entryId: number;
+        projectId: number;
+        title: string | null;
+        summary: string | null;
+        start: string;
+        end: string;
+    }): void {
+        const next = new Map(overrides);
+        next.set(data.entryId, {
+            projectId: data.projectId,
+            title: data.title,
+            summary: data.summary,
+            start: data.start,
+            end: data.end,
+        });
+        overrides = next;
+        editOpen = false;
+        editEntry = null;
+    }
+
+    function closeEdit(): void {
+        editOpen = false;
+        editEntry = null;
+    }
 </script>
 
 {#if dayGroups.length === 0}
@@ -64,10 +115,11 @@
                 {colorMap}
                 {expanded}
                 {notes}
+                {hiddenIds}
                 ontoggle={(pid) => toggle(dg.date, pid)}
                 onnotes={(pid, v) => setNote(dg.date, pid, v)}
-                {onedit}
-                {ondelete}
+                onhide={toggleHide}
+                onedit={openEdit}
             />
         {/each}
     </div>
@@ -76,6 +128,16 @@
         <span class="value">{formatDuration(grandTotal)}</span>
     </div>
 {/if}
+
+<DialogEditEntry
+    open={editOpen}
+    entry={editEntry}
+    {projects}
+    showReason={false}
+    notice="Edits here only affect this timesheet view. The original log in the database is unchanged."
+    onsave={handleSave}
+    onclose={closeEdit}
+/>
 
 <style>
     .days {

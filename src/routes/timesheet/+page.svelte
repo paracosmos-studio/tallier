@@ -1,13 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { resizeWindow, enableScroll } from "$lib/window";
-    import {
-        getProjects,
-        getReportEntries,
-        updateEntry,
-        updateEntryTimes,
-        deleteEntry,
-    } from "$lib/db";
+    import { getProjects, getReportEntries } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDateISO } from "$lib/format";
     import PageNavigation from "$lib/components/page-navigation.svelte";
@@ -18,8 +12,6 @@
     import ListView from "$lib/components/timesheet/list-view.svelte";
     import WeekView from "$lib/components/timesheet/week-view.svelte";
     import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
-    import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
-    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import { Download, ViewList, ViewWeek, CalendarMonth } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
 
@@ -37,11 +29,6 @@
     let selectedProjects: string[] = $state([]);
     let view: View = $state("vl");
     let roundTo: Round = $state("1");
-
-    let editOpen: boolean = $state(false);
-    let editEntry: ReportEntry | null = $state(null);
-    let deleteOpen: boolean = $state(false);
-    let deleteTarget: ReportEntry | null = $state(null);
 
     const rangeOptions = [
         { value: "7", label: "Last 7 days" },
@@ -101,46 +88,6 @@
         loading = true;
         entries = await getReportEntries(range.start, range.end);
         loading = false;
-    }
-
-    function openEdit(entry: ReportEntry): void {
-        editEntry = entry;
-        editOpen = true;
-    }
-
-    function requestDelete(entry: ReportEntry): void {
-        deleteTarget = entry;
-        deleteOpen = true;
-    }
-
-    async function handleSave(data: {
-        entryId: number;
-        timerId: number;
-        projectId: number;
-        title: string | null;
-        summary: string | null;
-        start: string;
-        end: string;
-        reason: string | null;
-    }): Promise<void> {
-        await updateEntry(data.entryId, data.projectId, data.title, data.summary, data.reason);
-        await updateEntryTimes(data.timerId, data.start, data.end);
-        editOpen = false;
-        editEntry = null;
-        await loadEntries();
-    }
-
-    async function confirmDelete(): Promise<void> {
-        if (!deleteTarget) return;
-        await deleteEntry(deleteTarget.entry_id, deleteTarget.timer_id);
-        deleteOpen = false;
-        deleteTarget = null;
-        await loadEntries();
-    }
-
-    function cancelDelete(): void {
-        deleteOpen = false;
-        deleteTarget = null;
     }
 
     function handleExport(): void {
@@ -220,10 +167,9 @@
     {:else if view === "vl"}
         <ListView
             entries={filteredEntries}
+            {projects}
             {colorMap}
             {roundMinutes}
-            onedit={openEdit}
-            ondelete={requestDelete}
         />
     {:else if view === "vw"}
         <WeekView />
@@ -231,24 +177,6 @@
         <CalendarView />
     {/if}
 </main>
-
-<DialogEditEntry
-    open={editOpen}
-    entry={editEntry}
-    {projects}
-    onsave={handleSave}
-    onclose={() => { editOpen = false; editEntry = null; }}
-/>
-
-<DialogConfirm
-    open={deleteOpen}
-    title="Delete Entry"
-    message={`Delete "${deleteTarget?.title || "Untitled"}"? This cannot be undone.`}
-    confirmLabel="Delete"
-    cancelLabel="Cancel"
-    onconfirm={confirmDelete}
-    oncancel={cancelDelete}
-/>
 
 <style>
     .filter-row {
