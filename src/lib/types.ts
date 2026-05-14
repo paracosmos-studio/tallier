@@ -50,6 +50,10 @@ export interface ReportEntry {
   start: string;
   end: string | null;
   total: number;
+  segment?: "full" | "first" | "second";
+  source_start?: string;
+  source_end?: string;
+  source_date?: string;
 }
 
 export interface DailyProjectTotal {

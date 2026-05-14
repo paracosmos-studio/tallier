@@ -81,6 +81,7 @@
         projectId: number;
         title: string | null;
         summary: string | null;
+        date: string;
         start: string;
         end: string;
     }): void {
@@ -89,6 +90,7 @@
             projectId: data.projectId,
             title: data.title,
             summary: data.summary,
+            date: data.date,
             start: data.start,
             end: data.end,
         });

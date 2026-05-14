@@ -1,4 +1,5 @@
-import { roundSeconds, timeToSeconds } from "./format";
+import { computeDuration, roundSeconds } from "./format";
+import { splitCrossMidnight } from "./cross-midnight";
 import type { ReportEntry } from "./types";
 
 export interface TimesheetProjectGroup {
@@ -24,6 +25,7 @@ export interface EntryOverride {
     projectId: number;
     title: string | null;
     summary: string | null;
+    date: string;
     start: string;
     end: string;
 }
@@ -33,16 +35,21 @@ function applyOverride(
     override: EntryOverride,
     projectNames: ReadonlyMap<number, string>,
 ): ReportEntry {
-    const total = Math.max(0, timeToSeconds(override.end) - timeToSeconds(override.start));
+    const total: number = computeDuration(override.start, override.end);
     return {
         ...entry,
         project_id: override.projectId,
         project_name: projectNames.get(override.projectId) ?? entry.project_name,
         title: override.title,
         summary: override.summary,
+        date: override.date,
         start: override.start,
         end: override.end,
         total,
+        segment: "full",
+        source_start: undefined,
+        source_end: undefined,
+        source_date: undefined,
     };
 }
 
@@ -64,30 +71,46 @@ export function buildDayGroups(
     const days: Map<string, Map<number, TimesheetProjectGroup>> = new Map();
     const names = projectNames ?? new Map<number, string>();
 
-    for (const raw of entries) {
-        const ov = overrides?.get(raw.entry_id);
-        const e = ov ? applyOverride(raw, ov, names) : raw;
-
-        let dayMap = days.get(e.date);
+    const emit = (entry: ReportEntry): void => {
+        let dayMap = days.get(entry.date);
         if (!dayMap) {
             dayMap = new Map();
-            days.set(e.date, dayMap);
+            days.set(entry.date, dayMap);
         }
-        let group = dayMap.get(e.project_id);
+        let group = dayMap.get(entry.project_id);
         if (!group) {
             group = {
-                projectId: e.project_id,
-                projectName: e.project_name,
+                projectId: entry.project_id,
+                projectName: entry.project_name,
                 entries: [],
                 total: 0,
                 totalRounded: 0,
             };
-            dayMap.set(e.project_id, group);
+            dayMap.set(entry.project_id, group);
         }
-        group.entries.push(e);
-        if (!hiddenIds?.has(e.entry_id)) {
-            group.total += e.total;
-            group.totalRounded += roundSeconds(e.total, roundMinutes);
+        group.entries.push(entry);
+        if (!hiddenIds?.has(entry.entry_id)) {
+            group.total += entry.total;
+            group.totalRounded += roundSeconds(entry.total, roundMinutes);
+        }
+    };
+
+    for (const raw of entries) {
+        const ov = overrides?.get(raw.entry_id);
+        if (!ov) {
+            emit(raw);
+            continue;
+        }
+
+        // collapse pre-split entries so the override applies once; the
+        // first segment carries the override, the second is dropped.
+        if (raw.segment === "second") continue;
+
+        const whole: ReportEntry = applyOverride(raw, ov, names);
+
+        // re-split if the new times cross midnight
+        for (const part of splitCrossMidnight([whole])) {
+            emit(part);
         }
     }
 

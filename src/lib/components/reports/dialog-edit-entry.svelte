@@ -1,11 +1,11 @@
 <!--
     @component
-    Dialog for editing an existing log's project, title, summary, times, and reason.
+    Dialog for editing an existing log's project, title, summary, date, times, and reason.
 
     @param {boolean} open - controls dialog visibility.
     @param {ReportEntry | null} entry - the log being edited.
     @param {Project[]} projects - all projects for the dropdown.
-    @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; start: string; end: string; reason: string | null }) => void} onsave - save callback.
+    @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; date: string; start: string; end: string; reason: string | null }) => void} onsave - save callback.
     @param {() => void} onclose - close callback.
     @param {string} [notice] - optional info banner shown above the form (e.g. for view-only edits).
     @param {boolean} [showReason=true] - whether to show the "Reason for edit" input.
@@ -14,7 +14,7 @@
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
-    import { timeToSeconds } from "$lib/format";
+    import { computeDuration, formatDuration, timeToSeconds } from "$lib/format";
     import type { ReportEntry, Project } from "$lib/types";
 
     type Props = {
@@ -27,6 +27,7 @@
             projectId: number;
             title: string | null;
             summary: string | null;
+            date: string;
             start: string;
             end: string;
             reason: string | null;
@@ -41,6 +42,7 @@
     let editProjectId: string = $state("");
     let editTitle: string = $state("");
     let editSummary: string = $state("");
+    let editDate: string = $state("");
     let editStart: string = $state("");
     let editEnd: string = $state("");
     let editReason: string = $state("");
@@ -50,8 +52,11 @@
             editProjectId = String(entry.project_id);
             editTitle = entry.title ?? "";
             editSummary = entry.summary ?? "";
-            editStart = toTimeInputValue(entry.start);
-            editEnd = toTimeInputValue(entry.end ?? "");
+
+            // for cross-midnight split segments, edit against the source row
+            editDate = entry.source_date ?? entry.date;
+            editStart = toTimeInputValue(entry.source_start ?? entry.start);
+            editEnd = toTimeInputValue(entry.source_end ?? entry.end ?? "");
             editReason = "";
         }
     });
@@ -71,20 +76,30 @@
     let timeError: string | null = $derived.by(() => {
         const s = toHHMMSS(editStart);
         const e = toHHMMSS(editEnd);
-        if (timeToSeconds(e) <= timeToSeconds(s)) {
-            return "End time must be after start time.";
+        if (timeToSeconds(s) === timeToSeconds(e)) {
+            return "Start and end cannot be the same.";
         }
         return null;
     });
 
+    let crossesMidnight: boolean = $derived(
+        !timeError && timeToSeconds(toHHMMSS(editEnd)) < timeToSeconds(toHHMMSS(editStart))
+    );
+
+    let durationLabel: string = $derived.by(() => {
+        if (timeError) return "";
+        return formatDuration(computeDuration(toHHMMSS(editStart), toHHMMSS(editEnd)));
+    });
+
     function handleSave() {
-        if (!entry || timeError) return;
+        if (!entry || timeError || !editDate) return;
         onsave({
             entryId: entry.entry_id,
             timerId: entry.timer_id,
             projectId: parseInt(editProjectId),
             title: editTitle.trim() || null,
             summary: editSummary.trim() || null,
+            date: editDate,
             start: toHHMMSS(editStart),
             end: toHHMMSS(editEnd),
             reason: editReason.trim() || null,
@@ -132,6 +147,14 @@
                     placeholder="Summary notes"
                 ></textarea>
             </div>
+            <div class="field">
+                <label for="edit-date">Start date</label>
+                <input
+                    id="edit-date"
+                    type="date"
+                    bind:value={editDate}
+                />
+            </div>
             <div class="times">
                 <div class="field">
                     <label for="edit-start">Start</label>
@@ -143,7 +166,9 @@
                     />
                 </div>
                 <div class="field">
-                    <label for="edit-end">End</label>
+                    <label for="edit-end">
+                        End {#if crossesMidnight}<span class="next-day">next day</span>{/if}
+                    </label>
                     <input
                         id="edit-end"
                         type="time"
@@ -155,6 +180,8 @@
             </div>
             {#if timeError}
                 <p class="error">{timeError}</p>
+            {:else if durationLabel}
+                <p class="duration">Duration: {durationLabel}</p>
             {/if}
             {#if showReason}
                 <div class="field">
@@ -209,7 +236,8 @@
         resize: none;
     }
 
-    .field input[type="time"] {
+    .field input[type="time"],
+    .field input[type="date"] {
         color-scheme: dark;
     }
 
@@ -233,6 +261,24 @@
         margin: 0;
         font-size: 0.7rem;
         color: var(--red);
+    }
+
+    .duration {
+        margin: 0;
+        font-size: 0.7rem;
+        color: var(--gray-30);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .next-day {
+        margin-left: 4px;
+        padding: 1px 5px;
+        background: color-mix(in srgb, var(--yellow) 18%, transparent);
+        color: var(--gray-10);
+        border-radius: 3px;
+        font-size: 0.6rem;
+        letter-spacing: 0.02em;
+        text-transform: none;
     }
 
     .notice {

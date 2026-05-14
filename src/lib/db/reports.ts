@@ -1,4 +1,6 @@
 import { getDB } from "./connection";
+import { computeDuration } from "$lib/format";
+import { splitCrossMidnight } from "$lib/cross-midnight";
 import type { ReportEntry, DailyProjectTotal, ProjectTotal } from "$lib/types";
 
 
@@ -12,7 +14,14 @@ export async function getReportEntries(
     endDate: string
 ): Promise<ReportEntry[]> {
     const database = getDB();
-    return database.select<ReportEntry[]>(
+
+    // widen the lower bound by one day so a session that started the
+    // day before `startDate` and crossed into it is still picked up.
+    const lower: Date = new Date(startDate + "T00:00:00");
+    lower.setDate(lower.getDate() - 1);
+    const lowerISO: string = `${lower.getFullYear()}-${String(lower.getMonth() + 1).padStart(2, "0")}-${String(lower.getDate()).padStart(2, "0")}`;
+
+    const rows = await database.select<ReportEntry[]>(
         `SELECT e.id as entry_id, e.timer_id, e.project_id, p.name as project_name,
                 e.title, e.summary, t.date, t.start, t.end, t.total
          FROM entries e
@@ -21,8 +30,17 @@ export async function getReportEntries(
          WHERE t.status = 'stopped'
            AND t.date >= $1 AND t.date <= $2
          ORDER BY t.date DESC, t.start DESC`,
-        [startDate, endDate]
+        [lowerISO, endDate]
     );
+
+    const split: ReportEntry[] = splitCrossMidnight(rows);
+
+    return split
+        .filter(r => r.date >= startDate && r.date <= endDate)
+        .sort((a, b) => {
+            if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+            return a.start < b.start ? 1 : -1;
+        });
 }
 
 
@@ -36,17 +54,42 @@ export async function getDailyProjectTotals(
     endDate: string
 ): Promise<DailyProjectTotal[]> {
     const database = getDB();
-    return database.select<DailyProjectTotal[]>(
-        `SELECT t.date, e.project_id, p.name as project_name,
-                SUM(t.total) as total_seconds
+    const lower: Date = new Date(startDate + "T00:00:00");
+    lower.setDate(lower.getDate() - 1);
+    const lowerISO: string = `${lower.getFullYear()}-${String(lower.getMonth() + 1).padStart(2, "0")}-${String(lower.getDate()).padStart(2, "0")}`;
+
+    const rows = await database.select<ReportEntry[]>(
+        `SELECT e.id as entry_id, e.timer_id, e.project_id, p.name as project_name,
+                e.title, e.summary, t.date, t.start, t.end, t.total
          FROM entries e
          JOIN timers t ON t.id = e.timer_id
          JOIN projects p ON p.id = e.project_id
          WHERE t.status = 'stopped'
-           AND t.date >= $1 AND t.date <= $2
-         GROUP BY t.date, e.project_id
-         ORDER BY t.date ASC`,
-        [startDate, endDate]
+           AND t.date >= $1 AND t.date <= $2`,
+        [lowerISO, endDate]
+    );
+
+    const split: ReportEntry[] = splitCrossMidnight(rows);
+    const acc: Map<string, DailyProjectTotal> = new Map();
+
+    for (const r of split) {
+        if (r.date < startDate || r.date > endDate) continue;
+        const key: string = `${r.date}|${r.project_id}`;
+        const cur: DailyProjectTotal | undefined = acc.get(key);
+        if (cur) {
+            cur.total_seconds += r.total;
+        } else {
+            acc.set(key, {
+                date: r.date,
+                project_id: r.project_id,
+                project_name: r.project_name,
+                total_seconds: r.total,
+            });
+        }
+    }
+
+    return Array.from(acc.values()).sort((a, b) =>
+        a.date < b.date ? -1 : a.date > b.date ? 1 : 0
     );
 }
 
@@ -133,13 +176,11 @@ export async function createManualEntry(
     summary: string | null,
 ): Promise<void> {
     const database = getDB();
-    const [sh, sm, ss] = start.split(":").map(Number);
-    const [eh, em, es] = end.split(":").map(Number);
-    const total = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+    const total: number = computeDuration(start, end);
 
     const timerResult = await database.execute(
         "INSERT INTO timers (status, date, start, \"end\", total) VALUES ($1, $2, $3, $4, $5)",
-        ["stopped", date, start, end, Math.max(0, total)]
+        ["stopped", date, start, end, total]
     );
     const timerId = timerResult.lastInsertId as number;
 
@@ -158,16 +199,15 @@ export async function createManualEntry(
  */
 export async function updateEntryTimes(
     timerId: number,
+    date: string,
     start: string,
     end: string
 ): Promise<void> {
     const database = getDB();
-    const [sh, sm, ss] = start.split(":").map(Number);
-    const [eh, em, es] = end.split(":").map(Number);
-    const total = (eh * 3600 + em * 60 + es) - (sh * 3600 + sm * 60 + ss);
+    const total: number = computeDuration(start, end);
 
     await database.execute(
-        "UPDATE timers SET start = $1, \"end\" = $2, total = $3 WHERE id = $4",
-        [start, end, Math.max(0, total), timerId]
+        "UPDATE timers SET date = $1, start = $2, \"end\" = $3, total = $4 WHERE id = $5",
+        [date, start, end, total, timerId]
     );
 }

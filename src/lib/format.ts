@@ -7,6 +7,8 @@ const DAYS: readonly string[] = [
     "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
 ];
 
+const SECONDS_PER_DAY: number = 86400;
+
 /**
  * Formats a duration in seconds as a human-readable string.
  * Examples: 3725 -> "1h 2m"; 65 -> "1m" (or "1m 5s" with includeSeconds);
@@ -27,7 +29,7 @@ function formatDuration(seconds: number, includeSeconds: boolean = false): strin
 function formatTimeOfDay(time: string): string {
     if (!time) return "";
     const [h, m] = time.split(":");
-    const hour: number = parseInt(h, 10);
+    const hour: number = parseInt(h, 10) % 24;
     const suffix: string = hour >= 12 ? "pm" : "am";
     const display: number = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
     return `${display}:${m}${suffix}`;
@@ -74,9 +76,29 @@ function timeToSeconds(hhmmss: string): number {
     return (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
 }
 
+/**
+ * Returns the duration in seconds between two "HH:MM:SS" times.
+ * If `end` is at or before `start`, treats `end` as the next day.
+ */
+function computeDuration(start: string, end: string): number {
+    const s: number = timeToSeconds(start);
+    const e: number = timeToSeconds(end);
+    return e > s ? e - s : e + SECONDS_PER_DAY - s;
+}
+
+/**
+ * Returns the next day's "YYYY-MM-DD" for a given ISO date string.
+ */
+function nextDateISO(dateStr: string): string {
+    const d: Date = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate() + 1);
+    return formatDateISO(d);
+}
+
 export {
     MONTHS,
     DAYS,
+    SECONDS_PER_DAY,
     formatDuration,
     formatTimeOfDay,
     formatDateISO,
@@ -84,4 +106,6 @@ export {
     formatDateShort,
     roundSeconds,
     timeToSeconds,
+    computeDuration,
+    nextDateISO,
 };

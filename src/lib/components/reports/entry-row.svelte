@@ -34,6 +34,11 @@
             <span class="range">
                 {formatTimeOfDay(entry.start)}{entry.end ? ` - ${formatTimeOfDay(entry.end)}` : ""}
             </span>
+            {#if entry.segment === "first"}
+                <span class="cont">continues</span>
+            {:else if entry.segment === "second"}
+                <span class="cont">continued</span>
+            {/if}
             <span class="sep">·</span>
             <span class="duration">{formatDuration(entry.total)}</span>
         </span>
@@ -97,6 +102,16 @@
 
     .duration {
         color: var(--gray-20);
+    }
+
+    .cont {
+        margin-left: 4px;
+        padding: 1px 5px;
+        background: color-mix(in srgb, var(--yellow) 18%, transparent);
+        color: var(--gray-10);
+        border-radius: 3px;
+        font-size: 0.62rem;
+        letter-spacing: 0.02em;
     }
 
     .sep {

@@ -11,7 +11,7 @@
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
-    import { formatDateISO } from "$lib/format";
+    import { computeDuration, formatDateISO, formatDuration, timeToSeconds } from "$lib/format";
     import type { Project } from "$lib/types";
 
     type Props = {
@@ -54,18 +54,22 @@
         return `${parts[0]}:${parts[1]}:${parts[2] ?? "00"}`;
     }
 
-    function timeToSeconds(hhmmss: string): number {
-        const [h, m, s] = hhmmss.split(":").map(Number);
-        return h * 3600 + m * 60 + (s || 0);
-    }
-
     let timeError: string | null = $derived.by(() => {
         const s = toHHMMSS(start);
         const e = toHHMMSS(end);
-        if (timeToSeconds(e) <= timeToSeconds(s)) {
-            return "End time must be after start time.";
+        if (timeToSeconds(s) === timeToSeconds(e)) {
+            return "Start and end cannot be the same.";
         }
         return null;
+    });
+
+    let crossesMidnight: boolean = $derived(
+        !timeError && timeToSeconds(toHHMMSS(end)) < timeToSeconds(toHHMMSS(start))
+    );
+
+    let durationLabel: string = $derived.by(() => {
+        if (timeError) return "";
+        return formatDuration(computeDuration(toHHMMSS(start), toHHMMSS(end)));
     });
 
     let canSave: boolean = $derived(!!projectId && !!date && !timeError);
@@ -138,7 +142,9 @@
                 />
             </div>
             <div class="field">
-                <label for="add-end">End</label>
+                <label for="add-end">
+                    End {#if crossesMidnight}<span class="next-day">next day</span>{/if}
+                </label>
                 <input
                     id="add-end"
                     type="time"
@@ -150,6 +156,8 @@
         </div>
         {#if timeError}
             <p class="error">{timeError}</p>
+        {:else if durationLabel}
+            <p class="duration">Duration: {durationLabel}</p>
         {/if}
     </div>
     {#snippet footer()}
@@ -216,5 +224,23 @@
         margin: 0;
         font-size: 0.7rem;
         color: var(--red);
+    }
+
+    .duration {
+        margin: 0;
+        font-size: 0.7rem;
+        color: var(--gray-30);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .next-day {
+        margin-left: 4px;
+        padding: 1px 5px;
+        background: color-mix(in srgb, var(--yellow) 18%, transparent);
+        color: var(--gray-10);
+        border-radius: 3px;
+        font-size: 0.6rem;
+        letter-spacing: 0.02em;
+        text-transform: none;
     }
 </style>

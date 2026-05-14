@@ -98,12 +98,13 @@
         projectId: number;
         title: string | null;
         summary: string | null;
+        date: string;
         start: string;
         end: string;
         reason: string | null;
     }) {
         await updateEntry(data.entryId, data.projectId, data.title, data.summary, data.reason);
-        await updateEntryTimes(data.timerId, data.start, data.end);
+        await updateEntryTimes(data.timerId, data.date, data.start, data.end);
 
         editOpen = false;
         editEntry = null;
