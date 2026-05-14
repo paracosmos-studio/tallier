@@ -105,9 +105,7 @@
     }
 </script>
 
-{#if dayGroups.length === 0}
-    <p class="empty">No entries for the selected filters.</p>
-{:else}
+{#if dayGroups.length > 0}
     <div class="days">
         {#each dayGroups as dg (dg.date)}
             <DayGroup
@@ -145,13 +143,6 @@
     .days {
         display: flex;
         flex-direction: column;
-    }
-
-    .empty {
-        text-align: center;
-        color: var(--gray-40);
-        font-size: 0.85rem;
-        margin-top: 40px;
     }
 
     .grand {

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
     import { resizeWindow, enableScroll } from "$lib/window";
     import { getProjects, getReportEntries } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
@@ -9,10 +10,11 @@
     import Select from "$lib/components/select.svelte";
     import SegmentedControl from "$lib/components/segmented-control.svelte";
     import Icon from "$lib/components/icon.svelte";
+    import EmptyState from "$lib/components/empty-state.svelte";
     import ListView from "$lib/components/timesheet/list-view.svelte";
     import WeekView from "$lib/components/timesheet/week-view.svelte";
     import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
-    import { Download, ViewList, ViewWeek, CalendarMonth } from "$lib/icons";
+    import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
 
     type View = "vl" | "vw" | "vc";
@@ -164,6 +166,15 @@
 
     {#if loading}
         <p class="empty">Loading...</p>
+    {:else if filteredEntries.length === 0}
+        <EmptyState
+            icon={Receipt}
+            title="No time tracked yet"
+            description="Start a timer from the Timer screen and your entries will appear here, ready to compile into a timesheet."
+            actionLabel="Go to Timer"
+            actionIcon={Alarm}
+            onaction={() => goto("/")}
+        />
     {:else if view === "vl"}
         <ListView
             entries={filteredEntries}
