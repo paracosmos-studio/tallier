@@ -149,7 +149,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 6px;
+        margin: 6px 0 20px 0;
         padding: 12px 14px;
         background: var(--gray-90);
         border: 1px solid var(--gray-70);

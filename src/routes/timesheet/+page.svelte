@@ -183,7 +183,12 @@
             {roundMinutes}
         />
     {:else if view === "vw"}
-        <WeekView />
+        <WeekView
+            entries={filteredEntries}
+            {projects}
+            {colorMap}
+            {roundMinutes}
+        />
     {:else}
         <CalendarView />
     {/if}

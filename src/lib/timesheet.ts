@@ -1,4 +1,4 @@
-import { computeDuration, roundSeconds } from "./format";
+import { computeDuration, formatDateISO, roundSeconds } from "./format";
 import { splitCrossMidnight } from "./cross-midnight";
 import type { ReportEntry } from "./types";
 
@@ -17,10 +17,28 @@ export interface TimesheetDayGroup {
     totalRounded: number;
 }
 
-/**
- * Per-entry overrides applied locally for the timesheet view only;
- * the underlying database row is never mutated.
- */
+export interface WeekCell {
+    seconds: number;
+    entries: ReportEntry[];
+}
+
+export interface WeekRow {
+    projectId: number;
+    projectName: string;
+    cells: WeekCell[];
+    total: number;
+}
+
+export interface WeekSection {
+    weekStart: string;
+    weekEnd: string;
+    days: string[];
+    dayNumbers: string[];
+    rows: WeekRow[];
+    dailyTotals: number[];
+    weekTotal: number;
+}
+
 export interface EntryOverride {
     projectId: number;
     title: string | null;
@@ -128,4 +146,83 @@ export function buildDayGroups(
 
 export function projectKey(date: string, projectId: number): string {
     return `${date}|${projectId}`;
+}
+
+function mondayOf(dateStr: string): Date {
+    const d: Date = new Date(dateStr + "T00:00:00");
+    const dow: number = d.getDay();
+    const diff: number = dow === 0 ? -6 : 1 - dow;
+    d.setDate(d.getDate() + diff);
+    return d;
+}
+
+function addDays(d: Date, n: number): Date {
+    const r: Date = new Date(d);
+    r.setDate(d.getDate() + n);
+    return r;
+}
+
+/**
+ * Re-buckets the per-day timesheet groups into Monday-anchored weeks.
+ * Each cell holds the rounded seconds for that (project, day) and a
+ * reference to the underlying entries so the edit dialog can target them.
+ */
+export function buildWeeks(dayGroups: TimesheetDayGroup[]): WeekSection[] {
+    const byDate: Map<string, TimesheetDayGroup> = new Map();
+    for (const g of dayGroups) byDate.set(g.date, g);
+
+    const weekStarts: Set<string> = new Set();
+    for (const g of dayGroups) {
+        weekStarts.add(formatDateISO(mondayOf(g.date)));
+    }
+
+    return Array.from(weekStarts)
+        .sort((a, b) => (a < b ? 1 : -1))
+        .map((weekStart): WeekSection => {
+            const mon: Date = new Date(weekStart + "T00:00:00");
+            const days: string[] = Array.from({ length: 7 }, (_, i) =>
+                formatDateISO(addDays(mon, i))
+            );
+            const dayNumbers: string[] = days.map(d =>
+                String(new Date(d + "T00:00:00").getDate())
+            );
+            const rowMap: Map<number, WeekRow> = new Map();
+            const dailyTotals: number[] = new Array(7).fill(0);
+
+            days.forEach((d, idx) => {
+                const dg = byDate.get(d);
+                if (!dg) return;
+                for (const pg of dg.projects) {
+                    let row = rowMap.get(pg.projectId);
+                    if (!row) {
+                        row = {
+                            projectId: pg.projectId,
+                            projectName: pg.projectName,
+                            cells: Array.from({ length: 7 }, () => ({ seconds: 0, entries: [] })),
+                            total: 0,
+                        };
+                        rowMap.set(pg.projectId, row);
+                    }
+                    row.cells[idx].seconds += pg.totalRounded;
+                    row.cells[idx].entries.push(...pg.entries);
+                    row.total += pg.totalRounded;
+                    dailyTotals[idx] += pg.totalRounded;
+                }
+            });
+
+            const rows: WeekRow[] = Array.from(rowMap.values()).sort(
+                (a, b) => b.total - a.total
+            );
+            const weekTotal: number = dailyTotals.reduce((s, x) => s + x, 0);
+
+            return {
+                weekStart,
+                weekEnd: days[6],
+                days,
+                dayNumbers,
+                rows,
+                dailyTotals,
+                weekTotal,
+            };
+        });
 }
