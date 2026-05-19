@@ -10,7 +10,7 @@
 
     const TitleMap: Record<string, TitleInfo> = {
         '/': {
-            title: 'Tally'
+            title: 'Tallier'
         },
         '/projects': {
             title: 'Projects',
@@ -40,7 +40,7 @@
 
     const pageTitle = $derived(() => {
         const path = page.url.pathname;
-        return TitleMap[path]?.title || 'Tally';
+        return TitleMap[path]?.title || 'Tallier';
     });
 
     const pageIcon = $derived(() => {

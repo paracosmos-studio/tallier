@@ -1,6 +1,6 @@
 # Database Migrations
 
-This directory contains SQL migration files for the Tally application.
+This directory contains SQL migration files for the Tallier application.
 
 ## Naming Convention
 

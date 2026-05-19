@@ -8,7 +8,7 @@
 
 <footer>
     <div>
-        <p>Tally (v{settings.version})</p>
+        <p>Tallier (v{settings.version})</p>
         <p>
             © {Math.max(currentYear, settings.releaseYear)}
             <a

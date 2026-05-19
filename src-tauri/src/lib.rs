@@ -202,7 +202,7 @@ fn build_menu(
     let open = IconMenuItem::with_id(
         app,
         "tray_open",
-        "Open Tally",
+        "Open Tallier",
         true,
         Some(open_icon),
         None::<&str>
@@ -295,7 +295,7 @@ fn set_tray_timer(
     let mut builder = TrayIconBuilder::new()
         .icon(tray_icon)
         .icon_as_template(true)
-        .tooltip("Tally")
+        .tooltip("Tallier")
         .menu(&menu)
         .show_menu_on_left_click(true);
 
@@ -422,7 +422,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:tally.db", load_migrations())
+                .add_migrations("sqlite:tallier.db", load_migrations())
                 .build()
         )
         .invoke_handler(tauri::generate_handler![set_tray_timer, set_tray_show_title])

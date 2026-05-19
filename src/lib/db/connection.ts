@@ -8,7 +8,7 @@ let db: Database | null = null;
  */
 export async function initDB(): Promise<Database> {
     if (db) return db;
-    db = await Database.load("sqlite:tally.db");
+    db = await Database.load("sqlite:tallier.db");
     return db;
 }
 

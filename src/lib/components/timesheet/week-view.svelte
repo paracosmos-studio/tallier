@@ -2,7 +2,7 @@
     @component
     Timesheet week view: per-week tables of project rows with decimal-hour
     cells across Monday-Sunday and a daily Total footer. The Project and Sum
-    columns stay pinned while the weekday columns scroll horizontally.
+    columns stay pinned while the weekday columns scroll horizontallier.
     Tapping a non-empty cell opens the edit dialog on the entry behind it.
 
     @param {ReportEntry[]} entries - entries already filtered by range and projects.

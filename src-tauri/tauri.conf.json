@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tally",
+  "productName": "tallier",
   "version": "0.1.0",
-  "identifier": "com.paracosmos.tally",
+  "identifier": "com.paracosmos.tallier",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [{
       "label": "main",
-      "title": "Tally",
+      "title": "Tallier",
       "width": 400,
       "height": 250,
       "minHeight": 250,
