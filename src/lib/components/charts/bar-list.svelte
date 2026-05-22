@@ -5,6 +5,7 @@
 
     @param {BarListItem[]} items - the data rows to render.
     @param {string} [title] - optional section heading rendered above the list.
+    @param {'left' | 'right'} [titleAlign='left'] - alignment of the title.
     @param {number} [total] - explicit denominator for percentages; defaults to sum of values.
     @param {(value: number) => string} [formatValue] - value formatter shown beside each label.
 -->
@@ -14,6 +15,7 @@
     type Props = {
         items: BarListItem[];
         title?: string;
+        titleAlign?: 'left' | 'right';
         total?: number;
         formatValue?: (value: number) => string;
     };
@@ -21,6 +23,7 @@
     let {
         items,
         title,
+        titleAlign = 'left',
         total,
         formatValue = (v: number) => String(v),
     }: Props = $props();
@@ -37,29 +40,49 @@
 {#if items.length > 0}
     <section class="bar-list">
         {#if title}
-            <h3>{title}</h3>
+            <header class:right={titleAlign === 'right'}>
+                <h3>{title}</h3>
+            </header>
         {/if}
-        {#each items as item (item.key)}
-            <div class="row">
-                <div class="info">
-                    <span class="name">{item.label}</span>
-                    <span class="value">{formatValue(item.value)}</span>
+        <div class="rows">
+            {#each items as item (item.key)}
+                <div class="row">
+                    <div class="info">
+                        <span class="name">{item.label}</span>
+                        <span class="value">{formatValue(item.value)}</span>
+                    </div>
+                    <div class="track">
+                        <div
+                            class="fill"
+                            style:width="{pct(item.value)}%"
+                            style:background-color={item.color}
+                        ></div>
+                    </div>
                 </div>
-                <div class="track">
-                    <div
-                        class="fill"
-                        style:width="{pct(item.value)}%"
-                        style:background-color={item.color}
-                    ></div>
-                </div>
-            </div>
-        {/each}
+            {/each}
+        </div>
     </section>
 {/if}
 
 <style>
     .bar-list {
-        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 14px;
+        background: var(--gray-80);
+        border-radius: 6px;
+        min-height: 0;
+        box-sizing: border-box;
+    }
+
+    header {
+        display: flex;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+    }
+
+    header.right {
+        justify-content: flex-end;
     }
 
     h3 {
@@ -68,11 +91,38 @@
         color: var(--gray-30);
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        margin: 0 0 8px 0;
+        margin: 0;
+    }
+
+    .rows {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .rows::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .rows::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .rows::-webkit-scrollbar-thumb {
+        background: var(--gray-60);
+        border-radius: 3px;
+    }
+
+    .rows::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-50);
     }
 
     .row {
         margin-bottom: 8px;
+    }
+
+    .row:last-child {
+        margin-bottom: 0;
     }
 
     .info {
@@ -99,7 +149,7 @@
 
     .track {
         height: 6px;
-        background: var(--gray-80);
+        background: rgba(0, 0, 0, 0.3);
         border-radius: 3px;
         overflow: hidden;
     }

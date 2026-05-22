@@ -5,6 +5,7 @@
 
     @param {StackedBarColumn[]} columns - the data columns to render.
     @param {string} [title] - optional section heading rendered above the chart.
+    @param {string} [rangeLabel] - optional right-aligned label rendered in the title row.
     @param {(value: number) => string} [formatValue] - tooltip value formatter.
     @param {number} [maxBarHeight=120] - maximum bar height in pixels.
 -->
@@ -14,6 +15,7 @@
     type Props = {
         columns: StackedBarColumn[];
         title?: string;
+        rangeLabel?: string;
         formatValue?: (value: number) => string;
         maxBarHeight?: number;
     };
@@ -21,6 +23,7 @@
     let {
         columns,
         title,
+        rangeLabel,
         formatValue = (v: number) => String(v),
         maxBarHeight = 120,
     }: Props = $props();
@@ -81,10 +84,13 @@
 
 {#if columns.length > 0}
     <section class="chart-section">
-        {#if title}
-            <h3>{title}</h3>
+        {#if title || rangeLabel}
+            <header>
+                {#if title}<h3>{title}</h3>{/if}
+                {#if rangeLabel}<span class="range">{rangeLabel}</span>{/if}
+            </header>
         {/if}
-        <div class="chart" style:height="{maxBarHeight + 28}px">
+        <div class="chart" style:height="{maxBarHeight + 36}px">
             {#each columns as col, i (col.id)}
                 <div
                     class="col"
@@ -142,7 +148,17 @@
 
 <style>
     .chart-section {
-        margin-bottom: 16px;
+        padding: 12px 14px;
+        background: var(--gray-80);
+        border-radius: 6px;
+    }
+
+    header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
     }
 
     h3 {
@@ -151,7 +167,14 @@
         color: var(--gray-30);
         text-transform: uppercase;
         letter-spacing: 0.03em;
-        margin: 0 0 8px 0;
+        margin: 0;
+    }
+
+    .range {
+        font-size: 0.7rem;
+        color: var(--gray-30);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
     }
 
     .chart {
@@ -159,7 +182,25 @@
         align-items: flex-end;
         gap: 2px;
         overflow-x: auto;
+        overflow-y: hidden;
         padding-bottom: 2px;
+    }
+
+    .chart::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .chart::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chart::-webkit-scrollbar-thumb {
+        background: var(--gray-60);
+        border-radius: 3px;
+    }
+
+    .chart::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-50);
     }
 
     .col {

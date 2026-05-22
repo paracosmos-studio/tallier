@@ -52,7 +52,7 @@
         margin-bottom: 16px;
     }
 
-    @container app (min-width: 720px) {
+    @container app (min-width: 600px) {
         .stats {
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }

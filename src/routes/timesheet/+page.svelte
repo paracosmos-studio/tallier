@@ -34,7 +34,7 @@
     const rangeOptions = [
         { value: "7", label: "Last 7 days" },
         { value: "14", label: "Last 14 days" },
-        { value: "30", label: "Last Month" },
+        { value: "30", label: "Last 30 days" },
         { value: "90", label: "Last 3 Months" },
         { value: "180", label: "Last 6 Months" },
         { value: "365", label: "Last Year" },

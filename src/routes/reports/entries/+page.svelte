@@ -164,51 +164,51 @@
 
 <main>
     <PageNavigation previousPage="/reports">
-        <Button
-            size="xs"
-            title="Add Log"
-            onclick={() => (addOpen = true)}
-        >
-            <Icon path={Add} size="14" />
-            <span>Add Log</span>
-        </Button>
-    </PageNavigation>
-
-    <div class="sel">
-        <Select
-            options={[
-                { value: "7", label: "Last 7 days" },
-                { value: "14", label: "Last 14 days" },
-                { value: "30", label: "Last Month" },
-                { value: "90", label: "Last 3 Months" },
-                { value: "180", label: "Last 6 Months" },
-                { value: "365", label: "Last Year" },
-                { value: "all", label: "All Time" },
-                { value: "custom", label: "Custom Range" },
-            ]}
-            size="md"
-            nullable={false}
-            searchable={false}
-            bind:value={selectedRange}
-            onchange={handleRangeChange}
-        />
-    </div>
-
-    {#if selectedRange === "custom"}
-        <div class="custom-range">
-            <input
-                type="date"
-                bind:value={customStart}
-                onchange={handleRangeChange}
-            />
-            <span class="range-sep">to</span>
-            <input
-                type="date"
-                bind:value={customEnd}
-                onchange={handleRangeChange}
-            />
+        <div class="nav-actions">
+            {#if selectedRange === "custom"}
+                <div class="custom-range">
+                    <input
+                        type="date"
+                        bind:value={customStart}
+                        onchange={handleRangeChange}
+                    />
+                    <span class="range-sep">to</span>
+                    <input
+                        type="date"
+                        bind:value={customEnd}
+                        onchange={handleRangeChange}
+                    />
+                </div>
+            {/if}
+            <div class="range-select">
+                <Select
+                    options={[
+                        { value: "7", label: "Last 7 days" },
+                        { value: "14", label: "Last 14 days" },
+                        { value: "30", label: "Last 30 days" },
+                        { value: "90", label: "Last 3 Months" },
+                        { value: "180", label: "Last 6 Months" },
+                        { value: "365", label: "Last Year" },
+                        { value: "all", label: "All Time" },
+                        { value: "custom", label: "Custom Range" },
+                    ]}
+                    size="sm"
+                    nullable={false}
+                    searchable={false}
+                    bind:value={selectedRange}
+                    onchange={handleRangeChange}
+                />
+            </div>
+            <Button
+                size="xs"
+                title="Add Log"
+                onclick={() => (addOpen = true)}
+            >
+                <Icon path={Add} size="14" />
+                <span>Add Log</span>
+            </Button>
         </div>
-    {/if}
+    </PageNavigation>
 
     {#if loading}
         <p class="empty">Loading...</p>
@@ -257,26 +257,30 @@
 />
 
 <style>
-    .sel {
-        margin-bottom: 10px;
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .range-select {
+        width: 160px;
     }
 
     .custom-range {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
+        gap: 6px;
     }
 
     .custom-range input {
-        flex: 1;
         background: var(--gray-80);
         border: 1px solid var(--gray-60);
         border-radius: 4px;
         color: var(--gray-10);
         color-scheme: dark;
         font-size: 0.8rem;
-        padding: 6px 8px;
+        padding: 4px 6px;
         font-family: inherit;
     }
 

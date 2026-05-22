@@ -59,6 +59,14 @@ function formatDateShort(dateStr: string): string {
 }
 
 /**
+ * "YYYY-MM-DD" -> "Jan 5, 2026".
+ */
+function formatDateMedium(dateStr: string): string {
+    const d: Date = new Date(dateStr + "T00:00:00");
+    return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+/**
  * Rounds a duration in seconds to the nearest `minutes` step.
  */
 function roundSeconds(seconds: number, minutes: number): number {
@@ -104,6 +112,7 @@ export {
     formatDateISO,
     formatDateLong,
     formatDateShort,
+    formatDateMedium,
     roundSeconds,
     timeToSeconds,
     computeDuration,

@@ -11,7 +11,7 @@
     import { goto } from "$app/navigation";
     import { getProjects, getDailyProjectTotals, getProjectTotals } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
-    import { formatDuration, formatDateISO, formatDateShort } from "$lib/format";
+    import { formatDuration, formatDateISO, formatDateShort, formatDateMedium } from "$lib/format";
     import { loadRangeState, saveRangeState } from "$lib/range-storage";
     import type { Project, ProjectTotal, DailyProjectTotal, StackedBarColumn, BarListItem } from "$lib/types";
 
@@ -107,6 +107,19 @@
         }))
     );
 
+    // for "all", clamp displayed start to earliest data point
+    let rangeLabel: string = $derived.by(() => {
+        if (!activeRange.start || !activeRange.end) return "";
+        let startStr: string = activeRange.start;
+        if (selectedRange === "all" && dailyTotals.length > 0) {
+            startStr = dailyTotals.reduce(
+                (min, t) => (t.date < min ? t.date : min),
+                dailyTotals[0].date
+            );
+        }
+        return `${formatDateMedium(startStr)} - ${formatDateMedium(activeRange.end)}`;
+    });
+
     const formatTooltip = (v: number): string => formatDuration(v, true);
 
     async function loadData() {
@@ -138,51 +151,51 @@
 
 <main>
     <PageNavigation previousPage="/">
-        <Button
-            size="xs"
-            title="View Detailed Logs"
-            onclick={() => goto("/reports/entries")}
-        >
-            <Icon path={Menu} size="16" />
-            <span>View Logs</span>
-        </Button>
-    </PageNavigation>
-
-    <div class="sel">
-        <Select
-            options={[
-                { value: "7", label: "Last 7 days" },
-                { value: "14", label: "Last 14 days" },
-                { value: "30", label: "Last Month" },
-                { value: "90", label: "Last 3 Months" },
-                { value: "180", label: "Last 6 Months" },
-                { value: "365", label: "Last Year" },
-                { value: "all", label: "All Time" },
-                { value: "custom", label: "Custom Range" },
-            ]}
-            size="md"
-            nullable={false}
-            searchable={false}
-            bind:value={selectedRange}
-            onchange={handleRangeChange}
-        />
-    </div>
-
-    {#if selectedRange === "custom"}
-        <div class="custom-range">
-            <input
-                type="date"
-                bind:value={customStart}
-                onchange={handleRangeChange}
-            />
-            <span class="range-sep">to</span>
-            <input
-                type="date"
-                bind:value={customEnd}
-                onchange={handleRangeChange}
-            />
+        <div class="nav-actions">
+            {#if selectedRange === "custom"}
+                <div class="custom-range">
+                    <input
+                        type="date"
+                        bind:value={customStart}
+                        onchange={handleRangeChange}
+                    />
+                    <span class="range-sep">to</span>
+                    <input
+                        type="date"
+                        bind:value={customEnd}
+                        onchange={handleRangeChange}
+                    />
+                </div>
+            {/if}
+            <div class="range-select">
+                <Select
+                    options={[
+                        { value: "7", label: "Last 7 days" },
+                        { value: "14", label: "Last 14 days" },
+                        { value: "30", label: "Last 30 days" },
+                        { value: "90", label: "Last 3 Months" },
+                        { value: "180", label: "Last 6 Months" },
+                        { value: "365", label: "Last Year" },
+                        { value: "all", label: "All Time" },
+                        { value: "custom", label: "Custom Range" },
+                    ]}
+                    size="sm"
+                    nullable={false}
+                    searchable={false}
+                    bind:value={selectedRange}
+                    onchange={handleRangeChange}
+                />
+            </div>
+            <Button
+                size="xs"
+                title="View Detailed Logs"
+                onclick={() => goto("/reports/entries")}
+            >
+                <Icon path={Menu} size="16" />
+                <span>View Logs</span>
+            </Button>
         </div>
-    {/if}
+    </PageNavigation>
 
     {#if loading}
         <p class="empty">Loading...</p>
@@ -191,40 +204,49 @@
         <p class="empty">No data for the selected range.</p>
 
     {:else}
-    <div class="content">
+        <div class="content">
             <SummaryStats
                 {totalSeconds}
                 {avgDailySeconds}
                 {mostActiveProject}
                 totalDays={uniqueDays}
             />
-            <StackedBarChart columns={dailyColumns} formatValue={formatTooltip} />
+            <StackedBarChart
+                title="Daily Activities"
+                {rangeLabel}
+                columns={dailyColumns}
+                formatValue={formatTooltip}
+            />
             <BarList items={projectItems} formatValue={formatTooltip} />
         </div>
     {/if}
 </main>
 
 <style>
-    .sel {
-        margin-bottom: 10px;
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .range-select {
+        width: 160px;
     }
 
     .custom-range {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
+        gap: 6px;
     }
 
     .custom-range input {
-        flex: 1;
         background: var(--gray-80);
         border: 1px solid var(--gray-60);
         border-radius: 4px;
         color: var(--gray-10);
         color-scheme: dark;
         font-size: 0.8rem;
-        padding: 6px 8px;
+        padding: 4px 6px;
         font-family: inherit;
     }
 
@@ -248,17 +270,18 @@
     .content {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
     }
 
-    @container app (min-width: 720px) {
+    @container app (min-width: 600px) {
         .content {
             display: grid;
             grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            grid-template-rows: auto var(--chart-h);
             grid-template-areas:
                 "stats stats"
                 "chart bars";
-            align-items: start;
+            gap: 12px;
         }
 
         .content :global(.stats) {
@@ -272,6 +295,13 @@
 
         .content :global(.bar-list) {
             grid-area: bars;
+            min-height: 0;
         }
+    }
+
+    .content {
+        /* canonical height for the chart + by-projects row.
+           covers header + 120px bars + label gutter + card padding. */
+        --chart-h: 208px;
     }
 </style>
