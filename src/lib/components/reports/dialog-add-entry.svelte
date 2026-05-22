@@ -142,7 +142,7 @@
                     type="text"
                     bind:value={title}
                     maxlength={100}
-                    placeholder="Entry title"
+                    placeholder="entry title"
                 />
             </div>
             <div class="field">
@@ -152,7 +152,7 @@
                     bind:value={summary}
                     maxlength={500}
                     rows={2}
-                    placeholder="Summary notes"
+                    placeholder="summary notes"
                 ></textarea>
             </div>
         </div>

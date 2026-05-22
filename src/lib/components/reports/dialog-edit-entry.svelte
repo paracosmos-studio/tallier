@@ -166,7 +166,7 @@
                         type="text"
                         bind:value={editTitle}
                         maxlength={100}
-                        placeholder="Entry title"
+                        placeholder="entry title"
                     />
                 </div>
                 <div class="field">
@@ -176,7 +176,7 @@
                         bind:value={editSummary}
                         maxlength={500}
                         rows={2}
-                        placeholder="Summary notes"
+                        placeholder="summary notes"
                     ></textarea>
                 </div>
             </div>
@@ -193,7 +193,7 @@
                         type="text"
                         bind:value={editReason}
                         maxlength={200}
-                        placeholder="Optional"
+                        placeholder="optional"
                     />
                 </div>
             {/if}

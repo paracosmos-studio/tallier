@@ -69,7 +69,7 @@
         <input
             type="text"
             name="pr-name"
-            placeholder="Title"
+            placeholder="title"
             maxlength="30"
             bind:value={name}
             onkeydown={(e: KeyboardEvent) => {
