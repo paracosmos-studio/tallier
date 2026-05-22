@@ -300,8 +300,6 @@
     }
 
     .content {
-        /* canonical height for the chart + by-projects row.
-           covers header + 120px bars + label gutter + card padding. */
-        --chart-h: 208px;
+        --chart-h: 250px;
     }
 </style>

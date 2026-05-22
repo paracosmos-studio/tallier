@@ -148,9 +148,12 @@
 
 <style>
     .chart-section {
+        display: flex;
+        flex-direction: column;
         padding: 12px 14px;
         background: var(--gray-80);
         border-radius: 6px;
+        box-sizing: border-box;
     }
 
     header {
@@ -159,6 +162,7 @@
         justify-content: space-between;
         gap: 12px;
         margin-bottom: 10px;
+        flex-shrink: 0;
     }
 
     h3 {
@@ -184,6 +188,7 @@
         overflow-x: auto;
         overflow-y: hidden;
         padding-bottom: 2px;
+        margin-top: auto;
     }
 
     .chart::-webkit-scrollbar {

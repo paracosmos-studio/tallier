@@ -111,7 +111,7 @@
     );
 </script>
 
-<Dialog {open} title="Edit Log" {onclose}>
+<Dialog {open} title="Edit Log" width="520px" {onclose}>
     {#if entry}
         <div class="form">
             {#if notice}
@@ -122,40 +122,20 @@
                 <Select
                     options={projectOptions}
                     bind:value={editProjectId}
-                    size="sm"
+                    size="md"
                     nullable={false}
                     searchable={false}
                 />
             </div>
-            <div class="field">
-                <label for="edit-title">Title</label>
-                <input
-                    id="edit-title"
-                    type="text"
-                    bind:value={editTitle}
-                    maxlength={100}
-                    placeholder="Entry title"
-                />
-            </div>
-            <div class="field">
-                <label for="edit-summary">Summary</label>
-                <textarea
-                    id="edit-summary"
-                    bind:value={editSummary}
-                    maxlength={500}
-                    rows={2}
-                    placeholder="Summary notes"
-                ></textarea>
-            </div>
-            <div class="field">
-                <label for="edit-date">Start date</label>
-                <input
-                    id="edit-date"
-                    type="date"
-                    bind:value={editDate}
-                />
-            </div>
-            <div class="times">
+            <div class="row-3">
+                <div class="field">
+                    <label for="edit-date">Date</label>
+                    <input
+                        id="edit-date"
+                        type="date"
+                        bind:value={editDate}
+                    />
+                </div>
                 <div class="field">
                     <label for="edit-start">Start</label>
                     <input
@@ -176,6 +156,28 @@
                         bind:value={editEnd}
                         class:invalid={timeError}
                     />
+                </div>
+            </div>
+            <div class="row-title-summary">
+                <div class="field">
+                    <label for="edit-title">Title</label>
+                    <input
+                        id="edit-title"
+                        type="text"
+                        bind:value={editTitle}
+                        maxlength={100}
+                        placeholder="Entry title"
+                    />
+                </div>
+                <div class="field">
+                    <label for="edit-summary">Summary</label>
+                    <textarea
+                        id="edit-summary"
+                        bind:value={editSummary}
+                        maxlength={500}
+                        rows={2}
+                        placeholder="Summary notes"
+                    ></textarea>
                 </div>
             </div>
             {#if timeError}
@@ -215,6 +217,7 @@
         display: flex;
         flex-direction: column;
         gap: 3px;
+        min-width: 0;
     }
 
     .field label {
@@ -226,6 +229,7 @@
 
     .field input,
     .field textarea {
+        width: 100%;
         background: var(--gray-90);
         border: 1px solid var(--gray-60);
         border-radius: 4px;
@@ -234,6 +238,7 @@
         padding: 6px 8px;
         font-family: inherit;
         resize: none;
+        box-sizing: border-box;
     }
 
     .field input[type="time"],
@@ -247,10 +252,17 @@
         border-color: var(--gray-40);
     }
 
-    .times {
+    .row-3 {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 8px;
+    }
+
+    .row-title-summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        gap: 8px;
+        align-items: start;
     }
 
     .field input.invalid {

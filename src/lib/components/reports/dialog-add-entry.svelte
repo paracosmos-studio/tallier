@@ -91,47 +91,27 @@
     );
 </script>
 
-<Dialog {open} title="Add Log" {onclose}>
+<Dialog {open} title="Add Log" width="520px" {onclose}>
     <div class="form">
         <div class="field">
             <label for="add-project">Project</label>
             <Select
                 options={projectOptions}
                 bind:value={projectId}
-                size="sm"
+                size="md"
                 nullable={false}
                 searchable={false}
             />
         </div>
-        <div class="field">
-            <label for="add-date">Date</label>
-            <input
-                id="add-date"
-                type="date"
-                bind:value={date}
-            />
-        </div>
-        <div class="field">
-            <label for="add-title">Title</label>
-            <input
-                id="add-title"
-                type="text"
-                bind:value={title}
-                maxlength={100}
-                placeholder="Entry title"
-            />
-        </div>
-        <div class="field">
-            <label for="add-summary">Summary</label>
-            <textarea
-                id="add-summary"
-                bind:value={summary}
-                maxlength={500}
-                rows={2}
-                placeholder="Summary notes"
-            ></textarea>
-        </div>
-        <div class="times">
+        <div class="row-3">
+            <div class="field">
+                <label for="add-date">Date</label>
+                <input
+                    id="add-date"
+                    type="date"
+                    bind:value={date}
+                />
+            </div>
             <div class="field">
                 <label for="add-start">Start</label>
                 <input
@@ -152,6 +132,28 @@
                     bind:value={end}
                     class:invalid={timeError}
                 />
+            </div>
+        </div>
+        <div class="row-title-summary">
+            <div class="field">
+                <label for="add-title">Title</label>
+                <input
+                    id="add-title"
+                    type="text"
+                    bind:value={title}
+                    maxlength={100}
+                    placeholder="Entry title"
+                />
+            </div>
+            <div class="field">
+                <label for="add-summary">Summary</label>
+                <textarea
+                    id="add-summary"
+                    bind:value={summary}
+                    maxlength={500}
+                    rows={2}
+                    placeholder="Summary notes"
+                ></textarea>
             </div>
         </div>
         {#if timeError}
@@ -178,6 +180,7 @@
         display: flex;
         flex-direction: column;
         gap: 3px;
+        min-width: 0;
     }
 
     .field label {
@@ -189,6 +192,7 @@
 
     .field input,
     .field textarea {
+        width: 100%;
         background: var(--gray-90);
         border: 1px solid var(--gray-60);
         border-radius: 4px;
@@ -197,6 +201,7 @@
         padding: 6px 8px;
         font-family: inherit;
         resize: none;
+        box-sizing: border-box;
     }
 
     .field input[type="time"],
@@ -210,10 +215,17 @@
         border-color: var(--gray-40);
     }
 
-    .times {
+    .row-3 {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 8px;
+    }
+
+    .row-title-summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        gap: 8px;
+        align-items: start;
     }
 
     .field input.invalid {

@@ -5,6 +5,7 @@
     @param {boolean} open - Controls dialog visibility.
     @param {string} [title=""] - Header title text.
     @param {boolean} [dismissible=true] - Whether the dialog can be closed via close icon, Escape, or backdrop click.
+    @param {string} [width] - Optional preferred width (e.g. "520px"). Capped by 90vw.
     @param {() => void} onclose - Callback when dialog is closed.
 -->
 
@@ -18,10 +19,11 @@
         open: boolean;
         title?: string;
         dismissible?: boolean;
+        width?: string;
         onclose: () => void;
     };
 
-    let { children, footer, open, title = "", dismissible = true, onclose }: Props = $props();
+    let { children, footer, open, title = "", dismissible = true, width, onclose }: Props = $props();
 
     let dialogEl: HTMLDialogElement | undefined = $state(undefined);
 
@@ -50,7 +52,7 @@
     onclick={handleBackdropClick}
     aria-label={title || "Dialog"}
 >
-    <div class="dialog-inner">
+    <div class="dialog-inner" style:width={width ?? ""}>
         <header>
             {#if title}
                 <h2>{title}</h2>
@@ -77,7 +79,6 @@
         padding: 0;
         background: transparent;
         max-width: 90vw;
-        max-height: 80vh;
         overflow: visible;
         border: none;
     }
@@ -91,10 +92,13 @@
         background: var(--gray-80);
         border: 1px solid var(--gray-60);
         border-radius: 10px;
-        min-width: 300px;
+        min-width: 380px;
+        max-width: 90vw;
+        max-height: 85vh;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        box-sizing: border-box;
     }
 
     header {
@@ -103,6 +107,7 @@
         justify-content: space-between;
         padding: 12px 16px;
         border-radius: 8px;
+        flex-shrink: 0;
     }
 
     header h2 {
@@ -131,9 +136,28 @@
 
     .body {
         padding: 0 16px;
+        flex: 0 1 auto;
+        min-height: 0;
         overflow-y: auto;
         color: var(--gray-10);
         font-size: 14px;
+    }
+
+    .body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .body::-webkit-scrollbar-thumb {
+        background: var(--gray-60);
+        border-radius: 3px;
+    }
+
+    .body::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-50);
     }
 
     footer {
@@ -141,5 +165,6 @@
         justify-content: flex-end;
         gap: 8px;
         padding: 16px;
+        flex-shrink: 0;
     }
 </style>
