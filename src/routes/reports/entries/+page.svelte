@@ -9,7 +9,6 @@
     import DialogAddEntry from "$lib/components/reports/dialog-add-entry.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import { onMount } from "svelte";
-    import { resizeWindow, enableScroll } from "$lib/window";
     import {
         getProjects,
         getReportEntries,
@@ -156,15 +155,10 @@
         expandedDays = next;
     }
 
-    onMount(() => {
-        const teardown = enableScroll();
-        (async () => {
-            await resizeWindow(400, 700);
-            projects = await getProjects();
-            colorMap = buildProjectColorMap(projects);
-            await loadEntries();
-        })();
-        return teardown;
+    onMount(async () => {
+        projects = await getProjects();
+        colorMap = buildProjectColorMap(projects);
+        await loadEntries();
     });
 </script>
 

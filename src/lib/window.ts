@@ -1,35 +1,21 @@
-import { getCurrentWindow, LogicalSize, PhysicalSize } from '@tauri-apps/api/window';
+import { invoke } from '@tauri-apps/api/core';
 
-const appWindow = getCurrentWindow();
-
+export type WindowProfile = 'compact' | 'wide';
 
 /**
- * Sets the current window size to the specified width and height
- *
- * @param {number} width The desired width of the window
- * @param {number} height The desired height of the window
+ * Applies a named window profile (size, bounds, resizable) in a single
+ * atomic Rust call. Owned by the layout, never by individual pages.
  */
-async function resizeWindow(width: number, height: number): Promise<void> {
-    const physicalSize: PhysicalSize = await appWindow.innerSize();
-    const scaleFactor = await appWindow.scaleFactor();
-    const currentWindowSize = physicalSize.toLogical(scaleFactor);
-
-    if (currentWindowSize && currentWindowSize.width <= width) {
-        await appWindow.setSize(new LogicalSize(width, height));
-    }
+async function applyWindowProfile(name: WindowProfile): Promise<void> {
+    await invoke('set_window_profile', { name });
 }
 
 /**
- * Enables vertical scrolling on the current page. Pages opt in because the
- * default app shell has overflow hidden. Returns a teardown to restore the
- * default — pass it from `onMount` so SvelteKit calls it on unmount.
- *
- * @example
- *   onMount(() => enableScroll());
+ * Adjusts the height of the compact window (e.g. when a dropdown grows).
+ * No-op if the active profile is not compact.
  */
-function enableScroll(): () => void {
-    document.body.classList.add('scrollable');
-    return () => document.body.classList.remove('scrollable');
+async function setCompactHeight(px: number): Promise<void> {
+    await invoke('set_compact_height', { px });
 }
 
-export { resizeWindow, enableScroll };
+export { applyWindowProfile, setCompactHeight };

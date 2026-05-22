@@ -1,24 +1,49 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, untrack } from 'svelte';
     import { getCurrentWindow } from '@tauri-apps/api/window';
     import { listen } from '@tauri-apps/api/event';
     import WindowControls from '$lib/components/window-controls.svelte';
     import WindowTitle from '$lib/components/window-title.svelte';
     import DialogConfirm from '$lib/components/dialogs/dialog-confirm.svelte';
-    import { goto } from '$app/navigation';
+    import { beforeNavigate, goto } from '$app/navigation';
     import { initDB, getRunningTimer, stopTimer } from '$lib/db';
     import { page } from '$app/state';
+    import { applyWindowProfile, type WindowProfile } from '$lib/window';
 
     import "$lib/styles/fonts.css";
     import "$lib/styles/global.css";
 
     let { children } = $props();
     let dbReady: boolean = $state(false);
+    let rendering: boolean = $state(true);
     let showCloseConfirm: boolean = $state(false);
     let unlisten: (() => void) | undefined;
     let unlistenTray: (() => void) | undefined;
+    let unlistenResize: (() => void) | undefined;
 
     const appWindow = getCurrentWindow();
+
+    let activeProfile: WindowProfile = $derived((page.data.window ?? 'wide') as WindowProfile);
+
+    $effect(() => {
+        const profile = activeProfile;
+        untrack(() => {
+            document.body.classList.toggle('mode-compact', profile === 'compact');
+            document.body.classList.toggle('mode-wide', profile === 'wide');
+            applyWindowProfile(profile)
+                .catch(() => {})
+                .finally(() => { rendering = true; });
+        });
+    });
+
+    beforeNavigate((nav) => {
+        const next = (nav.to?.route?.id ?? '') as string;
+        const nextProfile: WindowProfile = next === '/' ? 'compact' : 'wide';
+
+        if (nextProfile !== activeProfile) {
+            rendering = false;
+        }
+    });
 
     onMount(() => {
         initDB().then(() => dbReady = true);
@@ -30,6 +55,15 @@
                 showCloseConfirm = true;
             }
         }).then((fn) => unlisten = fn);
+
+        const syncFullscreen = async () => {
+            try {
+                const fs = await appWindow.isFullscreen();
+                document.body.classList.toggle('is-fullscreen', fs);
+            } catch {}
+        };
+        syncFullscreen();
+        appWindow.onResized(syncFullscreen).then((fn) => unlistenResize = fn);
 
         listen<string>("tray-menu-action", async (event) => {
             const payload = event.payload;
@@ -55,6 +89,7 @@
         return () => {
             unlisten?.();
             unlistenTray?.();
+            unlistenResize?.();
         };
     });
 
@@ -72,9 +107,9 @@
     <WindowTitle />
 </div>
 
-<div class="app-content-wrapper" class:spacing={page.url.pathname !== "/"}>
+<div class="app-content-wrapper">
     <div class="app-content">
-        {#if dbReady}
+        {#if dbReady && rendering}
             {@render children()}
         {/if}
     </div>
@@ -123,30 +158,32 @@
         z-index: 1;
     }
 
-    /* used for setting paddings, and max-width on large window */
+    /* container query host so components can react to content width
+       independent of OS window width (better than viewport queries). */
     .app-content {
         margin: 0 auto;
         padding: 2rem 0.65rem 0.65rem;
         box-sizing: border-box;
+        container-type: inline-size;
+        container-name: app;
     }
 
-    .spacing {
-        padding: 0rem 0.35rem;
+    :global(body.mode-compact) .app-content {
+        max-width: 400px;
     }
 
-    @media screen and (min-width: 800px) {
-        .titlebar {
-            border: none;
-        }
+    :global(body.mode-wide) .app-content {
+        max-width: 1200px;
+        padding: 2rem 0.85rem 0.85rem;
+    }
 
-        .app-content-wrapper {
-            border: none;
-            border-radius: 0;
-        }
+    :global(body.is-fullscreen) .titlebar {
+        border: none;
+        border-radius: 0;
+    }
 
-        .app-content {
-            max-width: 400px;
-            margin: 0 auto;
-        }
+    :global(body.is-fullscreen) .app-content-wrapper {
+        border: none;
+        border-radius: 0;
     }
 </style>

@@ -9,7 +9,6 @@
     import { Menu } from "$lib/icons";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { resizeWindow, enableScroll } from "$lib/window";
     import { getProjects, getDailyProjectTotals, getProjectTotals } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDuration, formatDateISO, formatDateShort } from "$lib/format";
@@ -129,16 +128,11 @@
         loadData();
     }
 
-    onMount(() => {
-        const teardown = enableScroll();
-        (async () => {
-            await resizeWindow(400, 700);
-            saveRangeState({ selectedRange, customStart, customEnd });
-            projects = await getProjects();
-            colorMap = buildProjectColorMap(projects);
-            await loadData();
-        })();
-        return teardown;
+    onMount(async () => {
+        saveRangeState({ selectedRange, customStart, customEnd });
+        projects = await getProjects();
+        colorMap = buildProjectColorMap(projects);
+        await loadData();
     });
 </script>
 
@@ -254,5 +248,30 @@
     .content {
         display: flex;
         flex-direction: column;
+        gap: 16px;
+    }
+
+    @container app (min-width: 720px) {
+        .content {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            grid-template-areas:
+                "stats stats"
+                "chart bars";
+            align-items: start;
+        }
+
+        .content :global(.stats) {
+            grid-area: stats;
+            margin-bottom: 0;
+        }
+
+        .content :global(.chart-section) {
+            grid-area: chart;
+        }
+
+        .content :global(.bar-list) {
+            grid-area: bars;
+        }
     }
 </style>

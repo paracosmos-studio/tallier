@@ -1,6 +1,3 @@
-import type { PageLoad } from "./$types";
-import { resizeWindow } from "$lib/window";
+import type { PageLoad } from './$types';
 
-export const load: PageLoad = async () => {
-    return await resizeWindow(400, 250);
-};
+export const load: PageLoad = () => ({ window: 'compact' });

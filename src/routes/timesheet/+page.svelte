@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { resizeWindow, enableScroll } from "$lib/window";
     import { getProjects, getReportEntries } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDateISO } from "$lib/format";
@@ -96,15 +95,10 @@
         // export pipeline pending
     }
 
-    onMount(() => {
-        const teardown = enableScroll();
-        (async () => {
-            await resizeWindow(400, 700);
-            projects = await getProjects();
-            colorMap = buildProjectColorMap(projects);
-            await loadEntries();
-        })();
-        return teardown;
+    onMount(async () => {
+        projects = await getProjects();
+        colorMap = buildProjectColorMap(projects);
+        await loadEntries();
     });
 </script>
 

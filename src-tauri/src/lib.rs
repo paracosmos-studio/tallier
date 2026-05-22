@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{
-    AppHandle, Emitter, Manager, Wry,
+    AppHandle, Emitter, LogicalSize, Manager, Size, Wry,
     menu::{CheckMenuItem, IconMenuItem, Menu, PredefinedMenuItem, Submenu},
     tray::{TrayIcon, TrayIconBuilder},
 };
@@ -23,6 +23,79 @@ struct TrayInner {
 }
 
 struct TrayState(Mutex<Option<TrayInner>>);
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum WindowProfile {
+    Compact,
+    Wide,
+}
+
+impl WindowProfile {
+    fn parse(name: &str) -> Result<Self, String> {
+        match name {
+            "compact" => Ok(Self::Compact),
+            "wide" => Ok(Self::Wide),
+            other => Err(format!("unknown window profile: {}", other)),
+        }
+    }
+
+    // (default w, default h, min w, min h, max w, max h, resizable)
+    // max is None means no upper bound
+    fn bounds(self) -> (f64, f64, f64, f64, Option<(f64, f64)>, bool) {
+        match self {
+            Self::Compact => (400.0, 250.0, 400.0, 250.0, Some((400.0, 600.0)), false),
+            Self::Wide => (700.0, 440.0, 700.0, 440.0, Some((700.0, 440.0)), false),
+        }
+    }
+}
+
+struct WindowProfileState(Mutex<WindowProfile>);
+
+fn apply_window_profile(app: &AppHandle, profile: WindowProfile) -> Result<(), String> {
+    let win = app.get_webview_window("main").ok_or("main window missing")?;
+    let (w, h, min_w, min_h, max, resizable) = profile.bounds();
+
+    // sequence: clear max first so a shrinking profile can apply min/size,
+    // then set resizable, min, max, size in a single hop per call.
+    win.set_max_size(None::<Size>).map_err(|e| e.to_string())?;
+    win.set_resizable(resizable).map_err(|e| e.to_string())?;
+    win.set_min_size(Some(Size::Logical(LogicalSize::new(min_w, min_h))))
+        .map_err(|e| e.to_string())?;
+    if let Some((mw, mh)) = max {
+        win.set_max_size(Some(Size::Logical(LogicalSize::new(mw, mh))))
+            .map_err(|e| e.to_string())?;
+    }
+    win.set_size(Size::Logical(LogicalSize::new(w, h)))
+        .map_err(|e| e.to_string())?;
+
+    if let Some(state) = app.try_state::<WindowProfileState>() {
+        if let Ok(mut guard) = state.0.lock() {
+            *guard = profile;
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn set_window_profile(app: AppHandle, name: &str) -> Result<(), String> {
+    let profile = WindowProfile::parse(name)?;
+    apply_window_profile(&app, profile)
+}
+
+#[tauri::command]
+fn set_compact_height(app: AppHandle, px: u32) -> Result<(), String> {
+    let state = app.state::<WindowProfileState>();
+    let active = *state.0.lock().map_err(|e| e.to_string())?;
+    if active != WindowProfile::Compact {
+        return Ok(());
+    }
+    let (w, _, _, min_h, max, _) = WindowProfile::Compact.bounds();
+    let max_h = max.map(|m| m.1).unwrap_or(f64::MAX);
+    let clamped = (px as f64).clamp(min_h, max_h);
+    let win = app.get_webview_window("main").ok_or("main window missing")?;
+    win.set_size(Size::Logical(LogicalSize::new(w, clamped)))
+        .map_err(|e| e.to_string())
+}
 
 fn format_elapsed(total: u64) -> String {
     format!("{:02}:{:02}:{:02}", total / 3600, (total % 3600) / 60, total % 60)
@@ -417,6 +490,7 @@ fn load_migrations() -> Vec<Migration> {
 pub fn run() {
     tauri::Builder::default()
         .manage(TrayState(Mutex::new(None)))
+        .manage(WindowProfileState(Mutex::new(WindowProfile::Compact)))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
@@ -425,7 +499,18 @@ pub fn run() {
                 .add_migrations("sqlite:tallier.db", load_migrations())
                 .build()
         )
-        .invoke_handler(tauri::generate_handler![set_tray_timer, set_tray_show_title])
+        .setup(|app| {
+            // source of truth for window bounds lives in WindowProfile.
+            // re-apply at boot so tauri.conf.json drift cannot desync.
+            let _ = apply_window_profile(&app.handle(), WindowProfile::Compact);
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            set_tray_timer,
+            set_tray_show_title,
+            set_window_profile,
+            set_compact_height
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

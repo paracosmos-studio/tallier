@@ -3,7 +3,6 @@
     import type { Project, ProjectLimits } from "$lib/types";
     import { Add } from "$lib/icons";
     import Icon from "$lib/components/icon.svelte";
-    import { enableScroll } from "$lib/window";
     import { getProjects, createProject, updateProject, updateProjectName, deleteProject, reorderProjects } from "$lib/db";
     import Button from "$lib/components/button.svelte";
     import PageNavigation from "$lib/components/page-navigation.svelte";
@@ -20,9 +19,7 @@
     let deleteTarget: Project | undefined = $state(undefined);
 
     onMount(() => {
-        const teardown = enableScroll();
         loadProjects();
-        return teardown;
     });
 
     async function loadProjects() {

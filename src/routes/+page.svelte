@@ -10,7 +10,7 @@
     import Menu from "$lib/components/menu.svelte";
     import Timer from "$lib/components/timer.svelte";
     import DialogSummary from "$lib/components/dialogs/dialog-summary.svelte";
-    import { resizeWindow } from "$lib/window";
+    import { setCompactHeight } from "$lib/window";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
@@ -259,7 +259,6 @@
         await refreshTodayTotal();
         await refreshWeekTotal();
         syncTray();
-        await resizeWindow(400, 300);
         stoppedTimerId = timerId;
         if (showWindow) {
             const w = getCurrentWindow();
@@ -281,12 +280,10 @@
             await updateEntrySummary(stoppedTimerId, title, summary);
         }
         stoppedTimerId = null;
-        await resizeWindow(400, 250);
     }
 
     async function handleSkipSummary() {
         stoppedTimerId = null;
-        await resizeWindow(400, 250);
     }
 </script>
 
@@ -308,20 +305,18 @@
             await refreshTodayTotal();
             await refreshWeekTotal();
             syncTray();
-            await resizeWindow(400, 250);
         }}
         size="lg"
         onopen={async () => {
-            let height =
+            const height =
                 projectOptions.length > 4 ? 343 :
                     projectOptions.length === 4 ? 339 :
                         projectOptions.length === 3 ? 303 :
                             projectOptions.length === 2 ? 266 : 250;
-
-            await resizeWindow(400, height);
+            await setCompactHeight(height);
         }}
         onclose={async () => {
-            await resizeWindow(400, 250);
+            await setCompactHeight(250);
         }}
     />
     <Menu />

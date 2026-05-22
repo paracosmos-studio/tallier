@@ -6,7 +6,6 @@
     import SelectDirectory from "$lib/components/select-directory.svelte";
     import Toggle from "$lib/components/toggle.svelte";
 
-    import { resizeWindow } from "$lib/window";
     import { onMount } from "svelte";
     import { Play } from "$lib/icons";
     import { getSetting, setSetting } from "$lib/db";
@@ -29,7 +28,6 @@
     onMount(async () => {
         const stored = await getSetting("taskbarDisplay");
         if (stored !== null) settings.taskbarDisplay = stored === "true";
-        return await resizeWindow(400, 600);
     });
 
     async function handleTaskbarToggle(checked: boolean) {
