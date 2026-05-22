@@ -114,6 +114,7 @@
             isOpen = false;
             searchQuery = '';
             onchange?.(optionValue);
+            onclose?.();
         }
     }
 
