@@ -1,11 +1,13 @@
 <!--
     @component
-    Reusable modal dialog with header, body, and footer slots.
+    Reusable modal dialog with header, body, and footer slots. An optional
+    `headerExtras` snippet renders centered between the title and close icon.
 
     @param {boolean} open - Controls dialog visibility.
     @param {string} [title=""] - Header title text.
     @param {boolean} [dismissible=true] - Whether the dialog can be closed via close icon, Escape, or backdrop click.
     @param {string} [width] - Optional preferred width (e.g. "520px"). Capped by 90vw.
+    @param {() => any} [headerExtras] - Optional snippet rendered centered in the header (e.g. inline pagination).
     @param {() => void} onclose - Callback when dialog is closed.
 -->
 
@@ -16,6 +18,7 @@
     type Props = {
         children: () => any;
         footer?: () => any;
+        headerExtras?: () => any;
         open: boolean;
         title?: string;
         dismissible?: boolean;
@@ -23,14 +26,18 @@
         onclose: () => void;
     };
 
-    let { children, footer, open, title = "", dismissible = true, width, onclose }: Props = $props();
+    let { children, footer, headerExtras, open, title = "", dismissible = true, width, onclose }: Props = $props();
 
     let dialogEl: HTMLDialogElement | undefined = $state(undefined);
+    let innerEl: HTMLDivElement | undefined = $state(undefined);
 
     $effect(() => {
         if (!dialogEl) return;
         if (open && !dialogEl.open) {
             dialogEl.showModal();
+            // override the browser's auto-focus on the first focusable child
+            // (would highlight buttons like the pager arrow on open)
+            innerEl?.focus({ preventScroll: true });
         } else if (!open && dialogEl.open) {
             dialogEl.close();
         }
@@ -52,10 +59,15 @@
     onclick={handleBackdropClick}
     aria-label={title || "Dialog"}
 >
-    <div class="dialog-inner" style:width={width ?? ""}>
-        <header>
+    <div class="dialog-inner" bind:this={innerEl} tabindex="-1" style:width={width ?? ""}>
+        <header class:has-extras={!!headerExtras}>
             {#if title}
                 <h2>{title}</h2>
+            {/if}
+            {#if headerExtras}
+                <div class="header-extras">
+                    {@render headerExtras()}
+                </div>
             {/if}
             {#if dismissible}
                 <button class="close" title="Close" onclick={onclose}>
@@ -99,6 +111,7 @@
         flex-direction: column;
         overflow: hidden;
         box-sizing: border-box;
+        outline: none;
     }
 
     header {
@@ -110,11 +123,27 @@
         flex-shrink: 0;
     }
 
+    /* three-zone layout when an extras snippet is provided: title (left) /
+       extras (centered) / close (right) */
+    header.has-extras {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 8px;
+    }
+
     header h2 {
         font-size: 14px;
         font-weight: 600;
         color: var(--gray-10);
         margin: 0;
+    }
+
+    .header-extras {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
     }
 
     .close {

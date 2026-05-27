@@ -2,16 +2,19 @@
     @component
     Timesheet week view: per-week tables of project rows with decimal-hour
     cells across Monday-Sunday and a daily Total footer. The Project and Sum
-    columns stay pinned while the weekday columns scroll horizontallier.
-    Tapping a non-empty cell opens the edit dialog on the entry behind it.
+    columns stay pinned while the weekday columns scroll horizontally.
+    Tapping a non-empty cell asks the page to open the edit dialog on the
+    entry behind it.
 
     @param {ReportEntry[]} entries - entries already filtered by range and projects.
-    @param {Project[]} projects - all projects, for the edit dialog's project picker.
+    @param {Project[]} projects - all projects (used by the page-level edit dialog).
     @param {Map<number, string>} colorMap - project ID to color map.
     @param {number} roundMinutes - round each entry duration to this many minutes.
+    @param {Set<number>} hiddenIds - entry IDs currently excluded from totals.
+    @param {Map<number, EntryOverride>} overrides - view-only edits per entry.
+    @param {(entry: ReportEntry, siblings?: ReportEntry[]) => void} onedit - request to open the edit dialog; pass the full set of entries in the cell so the dialog can page through them.
 -->
 <script lang="ts">
-    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import { formatDateShort, formatDateISO, MONTHS } from "$lib/format";
     import { buildDayGroups, buildWeeks } from "$lib/timesheet";
     import type { ReportEntry, Project } from "$lib/types";
@@ -22,16 +25,22 @@
         projects: Project[];
         colorMap: Map<number, string>;
         roundMinutes: number;
+        hiddenIds: Set<number>;
+        overrides: Map<number, EntryOverride>;
+        onedit: (entry: ReportEntry, siblings?: ReportEntry[]) => void;
     };
 
-    let { entries, projects, colorMap, roundMinutes }: Props = $props();
+    let {
+        entries,
+        projects,
+        colorMap,
+        roundMinutes,
+        hiddenIds,
+        overrides,
+        onedit,
+    }: Props = $props();
 
     const DAY_LETTERS: readonly string[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-    let hiddenIds: Set<number> = $state(new Set());
-    let overrides: Map<number, EntryOverride> = $state(new Map());
-    let editOpen: boolean = $state(false);
-    let editEntry: ReportEntry | null = $state(null);
 
     let projectNames: Map<number, string> = $derived.by(() => {
         const m = new Map<number, string>();
@@ -60,38 +69,20 @@
         return `${formatDateShort(start)} – ${formatDateShort(end)}, ${e.getFullYear()}`;
     }
 
-    function openEdit(entries: ReportEntry[]): void {
-        if (entries.length === 0) return;
-        editEntry = entries[0];
-        editOpen = true;
-    }
-
-    function handleSave(data: {
-        entryId: number;
-        projectId: number;
-        title: string | null;
-        summary: string | null;
-        date: string;
-        start: string;
-        end: string;
-    }): void {
-        const next = new Map(overrides);
-        next.set(data.entryId, {
-            projectId: data.projectId,
-            title: data.title,
-            summary: data.summary,
-            date: data.date,
-            start: data.start,
-            end: data.end,
-        });
-        overrides = next;
-        editOpen = false;
-        editEntry = null;
-    }
-
-    function closeEdit(): void {
-        editOpen = false;
-        editEntry = null;
+    function openEdit(cellEntries: ReportEntry[]): void {
+        if (cellEntries.length === 0) return;
+        // dedupe cross-midnight splits so the dialog pager doesn't show the
+        // same source entry twice
+        const seen = new Set<number>();
+        const unique: ReportEntry[] = [];
+        for (const e of cellEntries) {
+            if (e.segment === "second") continue;
+            if (seen.has(e.entry_id)) continue;
+            seen.add(e.entry_id);
+            unique.push(e);
+        }
+        if (unique.length === 0) return;
+        onedit(unique[0], unique);
     }
 </script>
 
@@ -177,16 +168,6 @@
         </div>
     </section>
 {/each}
-
-<DialogEditEntry
-    open={editOpen}
-    entry={editEntry}
-    {projects}
-    showReason={false}
-    notice="Edits here only affect this timesheet view. The original log in the database is unchanged."
-    onsave={handleSave}
-    onclose={closeEdit}
-/>
 
 <style>
     .week {

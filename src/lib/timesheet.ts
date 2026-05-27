@@ -8,6 +8,9 @@ export interface TimesheetProjectGroup {
     entries: ReportEntry[];
     total: number;
     totalRounded: number;
+    /** raw total ignoring hidden state, used as a stable sort key so the
+     * project list doesn't reflow when entries are hidden/un-hidden. */
+    rankTotal: number;
 }
 
 export interface TimesheetDayGroup {
@@ -121,10 +124,12 @@ export function buildDayGroups(
                 entries: [],
                 total: 0,
                 totalRounded: 0,
+                rankTotal: 0,
             };
             dayMap.set(entry.project_id, group);
         }
         group.entries.push(entry);
+        group.rankTotal += entry.total;
         if (!hiddenIds?.has(entry.entry_id)) {
             group.total += entry.total;
             group.totalRounded += roundSeconds(entry.total, roundMinutes);
@@ -152,8 +157,9 @@ export function buildDayGroups(
 
     const result: TimesheetDayGroup[] = [];
     for (const [date, dayMap] of days) {
+        // sort by rankTotal so hidden entries don't shuffle the project order
         const projects = Array.from(dayMap.values()).sort(
-            (a, b) => b.totalRounded - a.totalRounded
+            (a, b) => b.rankTotal - a.rankTotal
         );
         const total = projects.reduce((s, p) => s + p.total, 0);
         const totalRounded = projects.reduce((s, p) => s + p.totalRounded, 0);

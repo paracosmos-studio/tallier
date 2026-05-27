@@ -8,16 +8,18 @@
     dialog (view-only override, like the week view).
 
     @param {ReportEntry[]} entries - entries already filtered by range and projects.
-    @param {Project[]} projects - all projects, for the edit dialog's project picker.
+    @param {Project[]} projects - all projects (used by the page-level edit dialog).
     @param {Map<number, string>} colorMap - project ID to color map.
     @param {number} roundMinutes - round each entry duration to this many minutes.
     @param {string} start - active range start (YYYY-MM-DD).
     @param {string} end - active range end (YYYY-MM-DD).
+    @param {Set<number>} hiddenIds - entry IDs currently excluded from totals.
+    @param {Map<number, EntryOverride>} overrides - view-only edits per entry.
+    @param {(entry: ReportEntry) => void} onedit - request to open the edit dialog.
 -->
 <script lang="ts">
-    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import Icon from "$lib/components/icon.svelte";
-    import { ArrowBack, ArrowForward } from "$lib/icons";
+    import { ArrowBack, ArrowForward, VisibilityOff } from "$lib/icons";
     import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/format";
     import { buildCalendarDays } from "$lib/timesheet";
     import type { ReportEntry, Project } from "$lib/types";
@@ -30,9 +32,22 @@
         roundMinutes: number;
         start: string;
         end: string;
+        hiddenIds: Set<number>;
+        overrides: Map<number, EntryOverride>;
+        onedit: (entry: ReportEntry) => void;
     };
 
-    let { entries, projects, colorMap, roundMinutes, start, end }: Props = $props();
+    let {
+        entries,
+        projects,
+        colorMap,
+        roundMinutes,
+        start,
+        end,
+        hiddenIds,
+        overrides,
+        onedit,
+    }: Props = $props();
 
     const HOURS: readonly number[] = Array.from({ length: 24 }, (_, i) => i);
     const SECONDS_PER_HOUR: number = 3600;
@@ -49,10 +64,6 @@
         return `${h - 12}pm`;
     }
 
-    let hiddenIds: Set<number> = $state(new Set());
-    let overrides: Map<number, EntryOverride> = $state(new Map());
-    let editOpen: boolean = $state(false);
-    let editEntry: ReportEntry | null = $state(null);
     let weekIdx: number = $state(0);
     let scrollerEl: HTMLDivElement | undefined = $state();
 
@@ -152,36 +163,7 @@
     }
 
     function openEdit(entry: ReportEntry): void {
-        editEntry = entry;
-        editOpen = true;
-    }
-
-    function handleSave(data: {
-        entryId: number;
-        projectId: number;
-        title: string | null;
-        summary: string | null;
-        date: string;
-        start: string;
-        end: string;
-    }): void {
-        const next = new Map(overrides);
-        next.set(data.entryId, {
-            projectId: data.projectId,
-            title: data.title,
-            summary: data.summary,
-            date: data.date,
-            start: data.start,
-            end: data.end,
-        });
-        overrides = next;
-        editOpen = false;
-        editEntry = null;
-    }
-
-    function closeEdit(): void {
-        editOpen = false;
-        editEntry = null;
+        onedit(entry);
     }
 </script>
 
@@ -250,17 +232,24 @@
                         {#if d}
                             {#each d.blocks as b (b.entryId + "-" + b.start)}
                                 {@const color = colorMap.get(b.projectId) ?? "var(--gray-40)"}
+                                {@const isHidden = hiddenIds.has(b.entryId)}
                                 <button
                                     type="button"
                                     class="block"
+                                    class:hidden-entry={isHidden}
                                     style:--start={b.startSeconds / SECONDS_PER_HOUR}
                                     style:--dur={b.durationSeconds / SECONDS_PER_HOUR}
                                     style:--project-color={color}
-                                    title={`${b.projectName} - ${formatTimeOfDay(b.start)} to ${formatTimeOfDay(b.end)}`}
+                                    title={`${b.projectName} - ${formatTimeOfDay(b.start)} to ${formatTimeOfDay(b.end)}${isHidden ? " (hidden)" : ""}`}
                                     onclick={() => openEdit(b.entry)}
                                 >
                                     <span class="pname">{b.projectName}</span>
                                     <span class="time">{o0(`${formatTimeOfDay(b.start)} - ${formatTimeOfDay(b.end)}`)}</span>
+                                    {#if isHidden}
+                                        <span class="hidden-mark" aria-label="Hidden from totals">
+                                            <Icon path={VisibilityOff} size="11" fill="currentColor" />
+                                        </span>
+                                    {/if}
                                 </button>
                             {/each}
                         {/if}
@@ -285,16 +274,6 @@
         </div>
     </div>
 {/if}
-
-<DialogEditEntry
-    open={editOpen}
-    entry={editEntry}
-    {projects}
-    showReason={false}
-    notice="Edits here only affect this timesheet view. The original log in the database is unchanged."
-    onsave={handleSave}
-    onclose={closeEdit}
-/>
 
 <style>
     .empty {
@@ -410,7 +389,7 @@
     }
 
     .day-head .label {
-        font-size: 0.78rem;
+        font-size: 0.66rem;
         font-weight: 500;
         color: var(--gray-20);
     }
@@ -418,7 +397,7 @@
     .day-head .dow {
         font-size: 0.6rem;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        font-weight: 600;
         color: var(--gray-40);
     }
 
@@ -536,6 +515,22 @@
         white-space: normal;
         word-break: break-word;
         line-height: 1.2;
+    }
+
+    .block .hidden-mark {
+        display: inline-flex;
+        margin-top: 2px;
+        color: var(--gray-30);
+    }
+
+    .block.hidden-entry {
+        opacity: 0.55;
+    }
+
+    .block.hidden-entry .pname,
+    .block.hidden-entry .time {
+        text-decoration: line-through;
+        text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
     }
 
     .foot-row {

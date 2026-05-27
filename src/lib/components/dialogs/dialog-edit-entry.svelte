@@ -1,19 +1,28 @@
 <!--
     @component
     Dialog for editing an existing log's project, title, summary, date, times, and reason.
+    Supports stepping through a related group of entries (`siblings`) so a single
+    open dialog can edit any entry in a multi-entry cell.
 
     @param {boolean} open - controls dialog visibility.
     @param {ReportEntry | null} entry - the log being edited.
     @param {Project[]} projects - all projects for the dropdown.
-    @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; date: string; start: string; end: string; reason: string | null }) => void} onsave - save callback.
+    @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; date: string; start: string; end: string; reason: string | null; hidden?: boolean }) => void} onsave - save callback; `hidden` is only present when `showHide` is true.
     @param {() => void} onclose - close callback.
     @param {string} [notice] - optional info banner shown above the form (e.g. for view-only edits).
     @param {boolean} [showReason=true] - whether to show the "Reason for edit" input.
+    @param {boolean} [showHide=false] - whether to show the "Hide entry" toggle (timesheet view-only).
+    @param {boolean} [initialHidden=false] - current hidden state, used to seed the toggle when `showHide` is true.
+    @param {ReportEntry[] | null} [siblings=null] - related entries reachable via prev/next pagination; when set and length > 1, navigation arrows appear at the top of the form. Unsaved changes are dropped on navigation.
+    @param {(entry: ReportEntry) => void} [onnavigate] - called with the sibling to switch to.
 -->
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
+    import Toggle from "$lib/components/toggle.svelte";
     import Button from "$lib/components/button.svelte";
+    import Icon from "$lib/components/icon.svelte";
+    import { ArrowBack, ArrowForward } from "$lib/icons";
     import { computeDuration, formatDuration, timeToSeconds } from "$lib/format";
     import type { ReportEntry, Project } from "$lib/types";
 
@@ -31,13 +40,50 @@
             start: string;
             end: string;
             reason: string | null;
+            hidden?: boolean;
         }) => void;
         onclose: () => void;
         notice?: string;
         showReason?: boolean;
+        showHide?: boolean;
+        initialHidden?: boolean;
+        siblings?: ReportEntry[] | null;
+        onnavigate?: (entry: ReportEntry) => void;
     };
 
-    let { open, entry, projects, onsave, onclose, notice, showReason = true }: Props = $props();
+    let {
+        open,
+        entry,
+        projects,
+        onsave,
+        onclose,
+        notice,
+        showReason = true,
+        showHide = false,
+        initialHidden = false,
+        siblings = null,
+        onnavigate,
+    }: Props = $props();
+
+    let pageCount: number = $derived(siblings?.length ?? 0);
+
+    let pageIndex: number = $derived.by(() => {
+        if (!siblings || !entry) return 0;
+        const i = siblings.findIndex((s) => s.entry_id === entry.entry_id);
+        return i < 0 ? 0 : i;
+    });
+
+    let showPager: boolean = $derived(pageCount > 1 && !!entry);
+
+    function goPrev(): void {
+        if (!siblings || !onnavigate || pageIndex <= 0) return;
+        onnavigate(siblings[pageIndex - 1]);
+    }
+
+    function goNext(): void {
+        if (!siblings || !onnavigate || pageIndex >= pageCount - 1) return;
+        onnavigate(siblings[pageIndex + 1]);
+    }
 
     let editProjectId: string = $state("");
     let editTitle: string = $state("");
@@ -46,6 +92,7 @@
     let editStart: string = $state("");
     let editEnd: string = $state("");
     let editReason: string = $state("");
+    let editHidden: boolean = $state(false);
 
     $effect(() => {
         if (open && entry) {
@@ -59,6 +106,14 @@
             editEnd = toTimeInputValue(entry.source_end ?? entry.end ?? "");
             editReason = "";
         }
+    });
+
+    // always mirror the upstream hidden state so the toggle stays in sync
+    // when the entry changes or its hide state changes elsewhere. the dialog
+    // mutates `editHidden` via the toggle binding (not `initialHidden`), so
+    // this effect won't overwrite in-progress toggles before save.
+    $effect(() => {
+        editHidden = initialHidden;
     });
 
     function toTimeInputValue(hhmmss: string): string {
@@ -103,6 +158,7 @@
             start: toHHMMSS(editStart),
             end: toHHMMSS(editEnd),
             reason: editReason.trim() || null,
+            ...(showHide ? { hidden: editHidden } : {}),
         });
     }
 
@@ -112,6 +168,29 @@
 </script>
 
 <Dialog {open} title="Edit Log" width="520px" {onclose}>
+    {#snippet headerExtras()}
+        {#if showPager}
+            <div class="pager">
+                <button
+                    class="page-btn"
+                    title="Previous entry"
+                    disabled={pageIndex === 0}
+                    onclick={goPrev}
+                >
+                    <Icon path={ArrowBack} size="14" fill="currentColor" />
+                </button>
+                <span class="page-counter">Entry {pageIndex + 1} of {pageCount}</span>
+                <button
+                    class="page-btn"
+                    title="Next entry"
+                    disabled={pageIndex >= pageCount - 1}
+                    onclick={goNext}
+                >
+                    <Icon path={ArrowForward} size="14" fill="currentColor" />
+                </button>
+            </div>
+        {/if}
+    {/snippet}
     {#if entry}
         <div class="form">
             {#if notice}
@@ -166,7 +245,7 @@
                         type="text"
                         bind:value={editTitle}
                         maxlength={100}
-                        placeholder="entry title"
+                        placeholder="what you worked on"
                     />
                 </div>
                 <div class="field">
@@ -176,7 +255,7 @@
                         bind:value={editSummary}
                         maxlength={500}
                         rows={2}
-                        placeholder="summary notes"
+                        placeholder="additional details"
                     ></textarea>
                 </div>
             </div>
@@ -184,6 +263,14 @@
                 <p class="error">{timeError}</p>
             {:else if durationLabel}
                 <p class="duration">Duration: {durationLabel}</p>
+            {/if}
+            {#if showHide}
+                <div class="hide-row">
+                    <div class="hide-text">
+                        <span class="hide-label">Hide entry</span>
+                    </div>
+                    <Toggle bind:checked={editHidden} />
+                </div>
             {/if}
             {#if showReason}
                 <div class="field">
@@ -293,6 +380,39 @@
         text-transform: none;
     }
 
+    .pager {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 0 2px;
+    }
+
+    .page-btn {
+        background: none;
+        border: none;
+        padding: 4px 0;
+        cursor: pointer;
+        color: var(--gray-10);
+        border-radius: 3px;
+        display: flex;
+        transition: color 0.15s ease;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        color: var(--green);
+    }
+
+    .page-btn:disabled {
+        color: var(--gray-50);
+        cursor: not-allowed;
+    }
+
+    .page-counter {
+        font-size: 0.7rem;
+        color: var(--gray-30);
+        margin: 0 6px;
+    }
+
     .notice {
         margin: 0 0 4px 0;
         padding: 8px 10px;
@@ -301,5 +421,25 @@
         color: var(--gray-10);
         font-size: 0.72rem;
         line-height: 1.4;
+    }
+
+    .hide-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0;
+    }
+
+    .hide-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .hide-label {
+        font-size: 0.8rem;
+        color: var(--gray-10);
     }
 </style>

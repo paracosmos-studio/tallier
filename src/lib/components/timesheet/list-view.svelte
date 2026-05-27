@@ -1,17 +1,20 @@
 <!--
     @component
     Timesheet list view: per-day groups of project rows with rounded totals,
-    plus a grand-total card at the bottom. Edits and hide/include actions
-    only affect the local view — no database writes.
+    plus a grand-total card at the bottom. Hidden and override state is owned
+    by the page so it stays in sync across views.
 
     @param {ReportEntry[]} entries - entries already filtered by range and projects.
-    @param {Project[]} projects - all projects, for the edit dialog's project picker.
+    @param {Project[]} projects - all projects (used by the page-level edit dialog).
     @param {Map<number, string>} colorMap - project ID to color map.
     @param {number} roundMinutes - round each entry duration to this many minutes.
+    @param {Set<number>} hiddenIds - entry IDs currently excluded from totals.
+    @param {Map<number, EntryOverride>} overrides - view-only edits per entry.
+    @param {(entry: ReportEntry) => void} onedit - request to open the edit dialog.
+    @param {(entryId: number) => void} onhide - request to toggle the hidden state for an entry.
 -->
 <script lang="ts">
     import DayGroup from "./day-group.svelte";
-    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import { formatDuration } from "$lib/format";
     import { buildDayGroups, projectKey } from "$lib/timesheet";
     import type { ReportEntry, Project } from "$lib/types";
@@ -22,16 +25,24 @@
         projects: Project[];
         colorMap: Map<number, string>;
         roundMinutes: number;
+        hiddenIds: Set<number>;
+        overrides: Map<number, EntryOverride>;
+        onedit: (entry: ReportEntry) => void;
+        onhide: (entryId: number) => void;
     };
 
-    let { entries, projects, colorMap, roundMinutes }: Props = $props();
+    let {
+        entries,
+        projects,
+        colorMap,
+        roundMinutes,
+        hiddenIds,
+        overrides,
+        onedit,
+        onhide,
+    }: Props = $props();
 
     let collapsed: Set<string> = $state(new Set());
-    let hiddenIds: Set<number> = $state(new Set());
-    let overrides: Map<number, EntryOverride> = $state(new Map());
-
-    let editOpen: boolean = $state(false);
-    let editEntry: ReportEntry | null = $state(null);
 
     let projectNames: Map<number, string> = $derived.by(() => {
         const m = new Map<number, string>();
@@ -56,46 +67,6 @@
         else next.add(k);
         collapsed = next;
     }
-
-    function toggleHide(entryId: number): void {
-        const next = new Set(hiddenIds);
-        if (next.has(entryId)) next.delete(entryId);
-        else next.add(entryId);
-        hiddenIds = next;
-    }
-
-    function openEdit(entry: ReportEntry): void {
-        editEntry = entry;
-        editOpen = true;
-    }
-
-    function handleSave(data: {
-        entryId: number;
-        projectId: number;
-        title: string | null;
-        summary: string | null;
-        date: string;
-        start: string;
-        end: string;
-    }): void {
-        const next = new Map(overrides);
-        next.set(data.entryId, {
-            projectId: data.projectId,
-            title: data.title,
-            summary: data.summary,
-            date: data.date,
-            start: data.start,
-            end: data.end,
-        });
-        overrides = next;
-        editOpen = false;
-        editEntry = null;
-    }
-
-    function closeEdit(): void {
-        editOpen = false;
-        editEntry = null;
-    }
 </script>
 
 {#if dayGroups.length > 0}
@@ -109,8 +80,8 @@
                 {collapsed}
                 {hiddenIds}
                 ontoggle={(pid) => toggle(dg.date, pid)}
-                onhide={toggleHide}
-                onedit={openEdit}
+                {onhide}
+                {onedit}
             />
         {/each}
     </div>
@@ -119,16 +90,6 @@
         <span class="value">{formatDuration(grandTotal)}</span>
     </div>
 {/if}
-
-<DialogEditEntry
-    open={editOpen}
-    entry={editEntry}
-    {projects}
-    showReason={false}
-    notice="Edits here only affect this timesheet view. The original log in the database is unchanged."
-    onsave={handleSave}
-    onclose={closeEdit}
-/>
 
 <style>
     .days {

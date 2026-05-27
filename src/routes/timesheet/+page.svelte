@@ -16,12 +16,14 @@
     import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import DialogFullscreen from "$lib/components/dialogs/dialog-fullscreen.svelte";
+    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import FlyingAirplaneSuccess from "$lib/animations/flying-airplane-success.svelte";
     import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/export-timesheet";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
     import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
+    import type { EntryOverride } from "$lib/timesheet";
 
     type View = "vl" | "vw" | "vc";
     type Round = "1" | "5" | "15";
@@ -31,6 +33,13 @@
     let colorMap: Map<number, string> = $state(new Map());
     let loading: boolean = $state(true);
     let activeRange: { start: string; end: string } = $state({ start: "", end: "" });
+
+    // shared across all three views so edits/hides persist when switching views
+    let hiddenIds: Set<number> = $state(new Set());
+    let overrides: Map<number, EntryOverride> = $state(new Map());
+    let editOpen: boolean = $state(false);
+    let editEntry: ReportEntry | null = $state(null);
+    let editSiblings: ReportEntry[] | null = $state(null);
 
     let selectedRange: string = $state("7");
     let customStart: string = $state("");
@@ -127,8 +136,9 @@
     }
 
     async function runExport(p: PendingExport): Promise<void> {
+        const visibleEntries = filteredEntries.filter((e) => !hiddenIds.has(e.entry_id));
         const path = await exportTimesheet({
-            entries: filteredEntries,
+            entries: visibleEntries,
             range: activeRange,
             format: p.format,
             includeNotes: p.includeNotes,
@@ -175,6 +185,60 @@
     function handleOverwriteCancel(): void {
         overwriteOpen = false;
         pendingExport = null;
+    }
+
+    function openEdit(entry: ReportEntry, siblings?: ReportEntry[] | null): void {
+        editEntry = entry;
+        editSiblings = siblings && siblings.length > 1 ? siblings : null;
+        editOpen = true;
+    }
+
+    function closeEdit(): void {
+        editOpen = false;
+        editEntry = null;
+        editSiblings = null;
+    }
+
+    function handleEditNavigate(next: ReportEntry): void {
+        editEntry = next;
+    }
+
+    function toggleHide(entryId: number): void {
+        const next = new Set(hiddenIds);
+        if (next.has(entryId)) next.delete(entryId);
+        else next.add(entryId);
+        hiddenIds = next;
+    }
+
+    function handleEditSave(data: {
+        entryId: number;
+        projectId: number;
+        title: string | null;
+        summary: string | null;
+        date: string;
+        start: string;
+        end: string;
+        hidden?: boolean;
+    }): void {
+        const nextOverrides = new Map(overrides);
+        nextOverrides.set(data.entryId, {
+            projectId: data.projectId,
+            title: data.title,
+            summary: data.summary,
+            date: data.date,
+            start: data.start,
+            end: data.end,
+        });
+        overrides = nextOverrides;
+
+        if (data.hidden !== undefined) {
+            const nextHidden = new Set(hiddenIds);
+            if (data.hidden) nextHidden.add(data.entryId);
+            else nextHidden.delete(data.entryId);
+            hiddenIds = nextHidden;
+        }
+
+        closeEdit();
     }
 
     onMount(async () => {
@@ -257,6 +321,10 @@
             {projects}
             {colorMap}
             {roundMinutes}
+            {hiddenIds}
+            {overrides}
+            onedit={openEdit}
+            onhide={toggleHide}
         />
     {:else if view === "vw"}
         <WeekView
@@ -264,6 +332,9 @@
             {projects}
             {colorMap}
             {roundMinutes}
+            {hiddenIds}
+            {overrides}
+            onedit={openEdit}
         />
     {:else}
         <CalendarView
@@ -273,9 +344,26 @@
             {roundMinutes}
             start={activeRange.start}
             end={activeRange.end}
+            {hiddenIds}
+            {overrides}
+            onedit={openEdit}
         />
     {/if}
 </main>
+
+<DialogEditEntry
+    open={editOpen}
+    entry={editEntry}
+    {projects}
+    showReason={false}
+    showHide={true}
+    initialHidden={editEntry ? hiddenIds.has(editEntry.entry_id) : false}
+    siblings={editSiblings}
+    notice="Edits here only affect this timesheet view. The original log in the database is unchanged."
+    onsave={handleEditSave}
+    onnavigate={handleEditNavigate}
+    onclose={closeEdit}
+/>
 
 <DialogExport
     open={exportOpen}
