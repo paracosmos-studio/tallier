@@ -19,6 +19,24 @@
     let selectedRange: string = $state(persisted.selectedRange ?? "7");
     let customStart: string = $state(persisted.customStart ?? "");
     let customEnd: string = $state(persisted.customEnd ?? "");
+
+    let prevNumericRange: string = $state(
+        persisted.selectedRange && persisted.selectedRange !== "custom"
+            ? persisted.selectedRange
+            : "7"
+    );
+
+    function ensureCustomDates(): void {
+        if (selectedRange !== "custom") return;
+        if (customStart && customEnd) return;
+        const today = new Date();
+        const parsed = parseInt(prevNumericRange);
+        const days = Number.isFinite(parsed) && parsed > 0 ? parsed : 7;
+        const start = new Date(today);
+        start.setDate(today.getDate() - days + 1);
+        customStart = formatDateISO(start);
+        customEnd = formatDateISO(today);
+    }
     let projects: Project[] = $state([]);
     let projectTotals: ProjectTotal[] = $state([]);
     let dailyTotals: DailyProjectTotal[] = $state([]);
@@ -137,11 +155,14 @@
     }
 
     function handleRangeChange() {
+        if (selectedRange !== "custom") prevNumericRange = selectedRange;
+        ensureCustomDates();
         saveRangeState({ selectedRange, customStart, customEnd });
         loadData();
     }
 
     onMount(async () => {
+        ensureCustomDates();
         saveRangeState({ selectedRange, customStart, customEnd });
         projects = await getProjects();
         colorMap = buildProjectColorMap(projects);
@@ -216,6 +237,7 @@
                 {rangeLabel}
                 columns={dailyColumns}
                 formatValue={formatTooltip}
+                maxBarHeight={200}
             />
             <BarList items={projectItems} formatValue={formatTooltip} />
         </div>

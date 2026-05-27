@@ -42,8 +42,44 @@
         return 14;
     });
 
+    const NICE_STEPS_SEC: readonly number[] = [
+        60, 2 * 60, 5 * 60, 10 * 60, 15 * 60, 20 * 60, 30 * 60,
+        3600, 2 * 3600, 3 * 3600, 4 * 3600, 6 * 3600, 8 * 3600, 12 * 3600,
+        24 * 3600, 48 * 3600, 7 * 24 * 3600,
+    ];
+
+    function pickStepSeconds(maxSec: number, targetTicks: number): number {
+        const rough = maxSec / targetTicks;
+        for (const s of NICE_STEPS_SEC) if (s >= rough) return s;
+        return NICE_STEPS_SEC[NICE_STEPS_SEC.length - 1];
+    }
+
+    function formatTick(sec: number): string {
+        if (sec === 0) return "0";
+        if (sec < 3600) return `${Math.round(sec / 60)}m`;
+        const h = sec / 3600;
+        if (h < 24) return Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+        const d = h / 24;
+        return Number.isInteger(d) ? `${d}d` : `${d.toFixed(1)}d`;
+    }
+
+    let yStep: number = $derived(pickStepSeconds(maxTotal, 5));
+    let dataMaxTicks: number = $derived(Math.max(1, Math.ceil(maxTotal / yStep)));
+    let chartMaxSeconds: number = $derived((dataMaxTicks + 1) * yStep);
+
+    type Tick = { value: number; label: string };
+    let ticks: Tick[] = $derived.by(() => {
+        const count = dataMaxTicks + 1;
+        const out: Tick[] = new Array(count + 1);
+        for (let i = 0; i <= count; i++) {
+            const v = i * yStep;
+            out[i] = { value: v, label: formatTick(v) };
+        }
+        return out;
+    });
+
     function barHeight(total: number): number {
-        return (total / maxTotal) * maxBarHeight;
+        return (total / chartMaxSeconds) * maxBarHeight;
     }
 
     function segmentHeight(value: number, total: number): number {
@@ -90,34 +126,52 @@
                 {#if rangeLabel}<span class="range">{rangeLabel}</span>{/if}
             </header>
         {/if}
-        <div class="chart" style:height="{maxBarHeight + 36}px">
-            {#each columns as col, i (col.id)}
-                <div
-                    class="col"
-                    role="img"
-                    aria-label={ariaLabel(col, totals[i])}
-                    onmouseenter={(e) => showTooltip(col, totals[i], e)}
-                    onmousemove={moveTooltip}
-                    onmouseleave={hideTooltip}
-                    onfocus={(e) => showTooltip(col, totals[i], e as unknown as MouseEvent)}
-                    onblur={hideTooltip}
-                >
-                    <div class="stack" style:height="{barHeight(totals[i])}px">
-                        {#each col.segments as seg (seg.key)}
-                            <div
-                                class="seg"
-                                style:height="{segmentHeight(seg.value, totals[i])}px"
-                                style:background-color={seg.color}
-                            ></div>
-                        {/each}
-                    </div>
-                    {#if i % labelStep === 0}
-                        <span class="lbl">{col.label}</span>
-                    {:else}
-                        <span class="lbl"></span>
-                    {/if}
+        <div class="plot">
+            <div class="y-axis" style:height="{maxBarHeight}px">
+                {#each ticks as t (t.value)}
+                    <span
+                        class="y-tick"
+                        style:bottom="{(t.value / chartMaxSeconds) * maxBarHeight}px"
+                    >{t.label}</span>
+                {/each}
+            </div>
+            <div class="chart" class:spread={columns.length < 12} style:height="{maxBarHeight + 36}px">
+                <div class="gridlines" style:height="{maxBarHeight}px">
+                    {#each ticks as t (t.value)}
+                        <div
+                            class="gridline"
+                            style:bottom="{(t.value / chartMaxSeconds) * maxBarHeight}px"
+                        ></div>
+                    {/each}
                 </div>
-            {/each}
+                {#each columns as col, i (col.id)}
+                    <div
+                        class="col"
+                        role="img"
+                        aria-label={ariaLabel(col, totals[i])}
+                        onmouseenter={(e) => showTooltip(col, totals[i], e)}
+                        onmousemove={moveTooltip}
+                        onmouseleave={hideTooltip}
+                        onfocus={(e) => showTooltip(col, totals[i], e as unknown as MouseEvent)}
+                        onblur={hideTooltip}
+                    >
+                        <div class="stack" style:height="{barHeight(totals[i])}px">
+                            {#each col.segments as seg (seg.key)}
+                                <div
+                                    class="seg"
+                                    style:height="{segmentHeight(seg.value, totals[i])}px"
+                                    style:background-color={seg.color}
+                                ></div>
+                            {/each}
+                        </div>
+                        {#if i % labelStep === 0}
+                            <span class="lbl">{col.label}</span>
+                        {:else}
+                            <span class="lbl"></span>
+                        {/if}
+                    </div>
+                {/each}
+            </div>
         </div>
     </section>
 
@@ -181,14 +235,64 @@
         white-space: nowrap;
     }
 
+    .plot {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        min-width: 0;
+        margin-top: auto;
+    }
+
+    .y-axis {
+        position: relative;
+        flex-shrink: 0;
+        width: 18px;
+        margin-bottom: 20px;
+        margin-right: 4px;
+    }
+
+    .y-tick {
+        position: absolute;
+        right: 0;
+        transform: translateY(50%);
+        font-size: 0.6rem;
+        color: var(--gray-40);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
     .chart {
+        position: relative;
+        flex: 1;
+        min-width: 0;
         display: flex;
         align-items: flex-end;
         gap: 2px;
         overflow-x: auto;
         overflow-y: hidden;
         padding-bottom: 2px;
-        margin-top: auto;
+    }
+
+    .chart.spread {
+        justify-content: space-evenly;
+    }
+
+    .gridlines {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 20px;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .gridline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 0;
+        border-top: 1px dashed color-mix(in srgb, var(--gray-60) 55%, transparent);
     }
 
     .chart::-webkit-scrollbar {
@@ -209,6 +313,8 @@
     }
 
     .col {
+        position: relative;
+        z-index: 1;
         display: flex;
         flex-direction: column;
         align-items: center;

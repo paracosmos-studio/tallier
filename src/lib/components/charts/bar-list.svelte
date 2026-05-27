@@ -68,7 +68,7 @@
     .bar-list {
         display: flex;
         flex-direction: column;
-        padding: 12px 14px;
+        padding: 12px 0 12px 14px;
         background: var(--gray-80);
         border-radius: 6px;
         min-height: 0;
@@ -78,6 +78,7 @@
     header {
         display: flex;
         margin-bottom: 10px;
+        padding-right: 14px;
         flex-shrink: 0;
     }
 
@@ -98,6 +99,7 @@
         flex: 1;
         min-height: 0;
         overflow-y: auto;
+        padding-right: 8px;
     }
 
     .rows::-webkit-scrollbar {

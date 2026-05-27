@@ -27,6 +27,23 @@
     let selectedRange: string = $state(persisted.selectedRange ?? "30");
     let customStart: string = $state(persisted.customStart ?? "");
     let customEnd: string = $state(persisted.customEnd ?? "");
+    let prevNumericRange: string = $state(
+        persisted.selectedRange && persisted.selectedRange !== "custom"
+            ? persisted.selectedRange
+            : "7"
+    );
+
+    function ensureCustomDates(): void {
+        if (selectedRange !== "custom") return;
+        if (customStart && customEnd) return;
+        const today = new Date();
+        const parsed = parseInt(prevNumericRange);
+        const days = Number.isFinite(parsed) && parsed > 0 ? parsed : 7;
+        const start = new Date(today);
+        start.setDate(today.getDate() - days + 1);
+        customStart = formatDateISO(start);
+        customEnd = formatDateISO(today);
+    }
     let projects: Project[] = $state([]);
     let entries: ReportEntry[] = $state([]);
     let colorMap: Map<number, string> = $state(new Map());
@@ -98,6 +115,8 @@
     }
 
     function handleRangeChange() {
+        if (selectedRange !== "custom") prevNumericRange = selectedRange;
+        ensureCustomDates();
         saveRangeState({ selectedRange, customStart, customEnd });
         loadEntries();
     }
@@ -165,6 +184,8 @@
     }
 
     onMount(async () => {
+        ensureCustomDates();
+        saveRangeState({ selectedRange, customStart, customEnd });
         projects = await getProjects();
         colorMap = buildProjectColorMap(projects);
         await loadEntries();
