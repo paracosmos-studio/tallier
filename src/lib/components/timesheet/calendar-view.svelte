@@ -246,6 +246,7 @@
                     <div
                         class="day-col"
                         class:weekend={h.dow === 0 || h.dow === 6}
+                        class:today={date === today}
                         class:out={!h.inRange}
                     >
                         {#each HOURS as hr (hr)}
@@ -468,6 +469,10 @@
 
     .day-col.weekend {
         background: color-mix(in srgb, var(--gray-80) 22%, transparent);
+    }
+
+    .day-col.today {
+        background: color-mix(in srgb, var(--green) 6%, transparent);
     }
 
     .day-col.out {
