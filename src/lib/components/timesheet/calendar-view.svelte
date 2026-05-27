@@ -344,6 +344,7 @@
         font-size: 0.7rem;
         color: var(--gray-30);
         margin: 0 6px;
+        text-transform: uppercase;
     }
 
     .pager .counter {

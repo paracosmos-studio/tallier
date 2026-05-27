@@ -21,7 +21,7 @@ impl WindowProfile {
     fn bounds(self) -> (f64, f64, f64, f64, Option<(f64, f64)>, bool) {
         match self {
             Self::Compact => (400.0, 250.0, 400.0, 250.0, Some((400.0, 600.0)), false),
-            Self::Wide => (700.0, 440.0, 700.0, 440.0, Some((700.0, 440.0)), false),
+            Self::Wide => (700.0, 480.0, 700.0, 480.0, Some((700.0, 480.0)), false),
         }
     }
 }

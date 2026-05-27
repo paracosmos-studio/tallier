@@ -300,6 +300,6 @@
     }
 
     .content {
-        --chart-h: 250px;
+        --chart-h: 300px;
     }
 </style>

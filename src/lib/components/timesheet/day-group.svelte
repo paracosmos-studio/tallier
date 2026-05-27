@@ -7,11 +7,9 @@
     @param {TimesheetProjectGroup[]} projects - per-project aggregations for this day.
     @param {number} dayTotal - sum of rounded project totals for this day (seconds).
     @param {Map<number, string>} colorMap - project ID to color map.
-    @param {Set<string>} expanded - set of expanded "date|projectId" keys.
-    @param {Map<string, string>} notes - notes by "date|projectId" key.
+    @param {Set<string>} collapsed - set of collapsed "date|projectId" keys (default state is expanded).
     @param {Set<number>} hiddenIds - entry IDs excluded from totals.
     @param {(projectId: number) => void} ontoggle - toggle a project row's expanded state.
-    @param {(projectId: number, value: string) => void} onnotes - notes change callback.
     @param {(entryId: number) => void} onhide - toggle hidden state for an entry.
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
 -->
@@ -27,11 +25,9 @@
         projects: TimesheetProjectGroup[];
         dayTotal: number;
         colorMap: Map<number, string>;
-        expanded: Set<string>;
-        notes: Map<string, string>;
+        collapsed: Set<string>;
         hiddenIds: Set<number>;
         ontoggle: (projectId: number) => void;
-        onnotes: (projectId: number, value: string) => void;
         onhide: (entryId: number) => void;
         onedit: (entry: ReportEntry) => void;
     };
@@ -41,11 +37,9 @@
         projects,
         dayTotal,
         colorMap,
-        expanded,
-        notes,
+        collapsed,
         hiddenIds,
         ontoggle,
-        onnotes,
         onhide,
         onedit,
     }: Props = $props();
@@ -65,10 +59,8 @@
                 entries={pg.entries}
                 color={colorMap.get(pg.projectId) ?? "var(--gray-40)"}
                 {colorMap}
-                expanded={expanded.has(k)}
-                notes={notes.get(k) ?? ""}
+                expanded={!collapsed.has(k)}
                 {hiddenIds}
-                onnotes={(v) => onnotes(pg.projectId, v)}
                 ontoggle={() => ontoggle(pg.projectId)}
                 {onhide}
                 {onedit}
@@ -95,8 +87,8 @@
 
     .date {
         font-size: 0.78rem;
-        font-weight: 500;
-        color: var(--gray-10);
+        font-weight: 400;
+        color: var(--gray-20);
     }
 
     .total {

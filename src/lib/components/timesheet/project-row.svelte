@@ -1,8 +1,8 @@
 <!--
     @component
-    Project row inside a timesheet day. Collapsed view shows project name,
-    rounded total, and an inline editable notes field. Expanded view appends
-    individual entry rows with edit/delete actions.
+    Project row inside a timesheet day. Collapsed view shows project name and
+    rounded total. Expanded view appends individual entry rows with edit/hide
+    actions.
 
     @param {string} projectName - display name of the project.
     @param {number} totalRounded - sum of rounded entry durations (seconds).
@@ -10,9 +10,7 @@
     @param {string} color - the project's color.
     @param {Map<number, string>} colorMap - project ID to color map for entry rows.
     @param {boolean} expanded - whether the row shows individual entries.
-    @param {string} notes - current notes subtext value.
     @param {Set<number>} hiddenIds - entry IDs excluded from totals.
-    @param {(value: string) => void} onnotes - notes change callback.
     @param {() => void} ontoggle - toggle expand/collapse callback.
     @param {(entryId: number) => void} onhide - toggle hidden state for an entry.
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
@@ -31,9 +29,7 @@
         color: string;
         colorMap: Map<number, string>;
         expanded: boolean;
-        notes: string;
         hiddenIds: Set<number>;
-        onnotes: (value: string) => void;
         ontoggle: () => void;
         onhide: (entryId: number) => void;
         onedit: (entry: ReportEntry) => void;
@@ -46,9 +42,7 @@
         color,
         colorMap,
         expanded,
-        notes,
         hiddenIds,
-        onnotes,
         ontoggle,
         onhide,
         onedit,
@@ -65,14 +59,6 @@
             fill="var(--gray-40)"
         />
     </button>
-    <input
-        class="subtext"
-        type="text"
-        value={notes}
-        oninput={(e) => onnotes(e.currentTarget.value)}
-        placeholder="Add notes..."
-        maxlength={200}
-    />
     {#if expanded}
         <div class="entries">
             {#each entries as entry (entry.entry_id)}
@@ -107,7 +93,7 @@
         font-family: inherit;
         text-align: left;
         cursor: pointer;
-        transition: background 0.12s ease;
+        transition: all 0.12s ease;
     }
 
     .head:hover {
@@ -128,28 +114,6 @@
         font-size: 0.75rem;
         color: color-mix(in srgb, var(--project-color) 70%, var(--gray-20));
         font-variant-numeric: tabular-nums;
-    }
-
-    .subtext {
-        display: block;
-        width: 100%;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: var(--gray-20);
-        font-family: inherit;
-        font-size: 0.72rem;
-        padding: 4px 10px;
-        box-sizing: border-box;
-    }
-
-    .subtext::placeholder {
-        color: var(--gray-40);
-        font-style: italic;
-    }
-
-    .subtext:focus::placeholder {
-        color: var(--gray-30);
     }
 
     .entries {

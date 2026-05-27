@@ -26,8 +26,7 @@
 
     let { entries, projects, colorMap, roundMinutes }: Props = $props();
 
-    let expanded: Set<string> = $state(new Set());
-    let notes: Map<string, string> = $state(new Map());
+    let collapsed: Set<string> = $state(new Set());
     let hiddenIds: Set<number> = $state(new Set());
     let overrides: Map<number, EntryOverride> = $state(new Map());
 
@@ -52,16 +51,10 @@
 
     function toggle(date: string, projectId: number): void {
         const k = projectKey(date, projectId);
-        const next = new Set(expanded);
+        const next = new Set(collapsed);
         if (next.has(k)) next.delete(k);
         else next.add(k);
-        expanded = next;
-    }
-
-    function setNote(date: string, projectId: number, value: string): void {
-        const next = new Map(notes);
-        next.set(projectKey(date, projectId), value);
-        notes = next;
+        collapsed = next;
     }
 
     function toggleHide(entryId: number): void {
@@ -113,11 +106,9 @@
                 projects={dg.projects}
                 dayTotal={dg.totalRounded}
                 {colorMap}
-                {expanded}
-                {notes}
+                {collapsed}
                 {hiddenIds}
                 ontoggle={(pid) => toggle(dg.date, pid)}
-                onnotes={(pid, v) => setNote(dg.date, pid, v)}
                 onhide={toggleHide}
                 onedit={openEdit}
             />
