@@ -85,6 +85,18 @@
         onnavigate(siblings[pageIndex + 1]);
     }
 
+    // arrow-key pagination across siblings, skipped while focus is in a form
+    // control so cursor movement in inputs is preserved
+    function handleKeydown(e: KeyboardEvent): void {
+        if (!open || !showPager) return;
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        const t = e.target as HTMLElement | null;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+        e.preventDefault();
+        if (e.key === "ArrowLeft") goPrev();
+        else goNext();
+    }
+
     let editProjectId: string = $state("");
     let editTitle: string = $state("");
     let editSummary: string = $state("");
@@ -166,6 +178,8 @@
         projects.map(p => ({ value: String(p.id), label: p.name }))
     );
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <Dialog {open} title="Edit Log" width="520px" {onclose}>
     {#snippet headerExtras()}

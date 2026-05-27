@@ -252,12 +252,7 @@
         animation: fly var(--dur) var(--ease-fly) forwards;
     }
     @keyframes fly {
-        0%,
-        14% {
-            offset-distance: 0%;
-            transform: scale(0.5);
-        }
-        20% {
+        0% {
             offset-distance: 0%;
             transform: scale(0.5);
         }
@@ -363,14 +358,13 @@
         animation: glowLife var(--dur) var(--ease) forwards;
     }
     @keyframes glowLife {
-        0%,
-        22% {
+        0% {
             opacity: 0;
         }
-        40% {
+        20% {
             opacity: 0.18;
         }
-        70% {
+        60% {
             opacity: 0.22;
         }
         80%,

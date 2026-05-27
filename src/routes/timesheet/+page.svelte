@@ -376,7 +376,7 @@
     open={overwriteOpen}
     title="File already exists"
     message={pendingExport
-        ? `${pendingExport.path} already exists. Replace it?`
+        ? `${pendingExport.path.split('/').pop()} already exists. Replace it?`
         : ""}
     confirmLabel="Replace"
     onconfirm={handleOverwriteConfirm}

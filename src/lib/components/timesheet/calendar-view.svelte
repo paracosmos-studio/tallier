@@ -165,7 +165,30 @@
     function openEdit(entry: ReportEntry): void {
         onedit(entry);
     }
+
+    function goPrevWeek(): void {
+        if (weekIdx > 0) weekIdx--;
+    }
+
+    function goNextWeek(): void {
+        if (weekIdx < weekStarts.length - 1) weekIdx++;
+    }
+
+    // arrow-key week pagination, suppressed when a dialog is open or focus
+    // is on a form control so it doesn't fight cursor movement
+    function handleKeydown(e: KeyboardEvent): void {
+        if (weekStarts.length <= 1) return;
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        const t = e.target as HTMLElement | null;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+        if (document.querySelector("dialog[open]")) return;
+        e.preventDefault();
+        if (e.key === "ArrowLeft") goPrevWeek();
+        else goNextWeek();
+    }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 {#if weekDates.length === 0}
     <p class="empty">No entries to display.</p>
@@ -177,7 +200,7 @@
                     class="page-btn"
                     title="Previous week"
                     disabled={weekIdx === 0}
-                    onclick={() => (weekIdx = Math.max(0, weekIdx - 1))}
+                    onclick={goPrevWeek}
                 >
                     <Icon path={ArrowBack} size="14" fill="currentColor" />
                 </button>
@@ -186,7 +209,7 @@
                     class="page-btn"
                     title="Next week"
                     disabled={weekIdx >= weekStarts.length - 1}
-                    onclick={() => (weekIdx = Math.min(weekStarts.length - 1, weekIdx + 1))}
+                    onclick={goNextWeek}
                 >
                     <Icon path={ArrowForward} size="14" fill="currentColor" />
                 </button>
@@ -223,7 +246,6 @@
                     <div
                         class="day-col"
                         class:weekend={h.dow === 0 || h.dow === 6}
-                        class:today={date === today}
                         class:out={!h.inRange}
                     >
                         {#each HOURS as hr (hr)}
@@ -446,10 +468,6 @@
 
     .day-col.weekend {
         background: color-mix(in srgb, var(--gray-80) 22%, transparent);
-    }
-
-    .day-col.today {
-        background: color-mix(in srgb, var(--green) 6%, transparent);
     }
 
     .day-col.out {
