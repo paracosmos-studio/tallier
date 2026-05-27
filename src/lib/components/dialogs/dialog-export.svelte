@@ -1,12 +1,14 @@
 <!--
     @component
     Dialog for exporting the current timesheet view. Collects format, an
-    "include notes" toggle, and a save location. UI only; the actual export
-    pipeline is wired up by the caller.
+    "include notes" toggle, and a save location. The caller wires the actual
+    export pipeline via `onexport` and may pass an `error` message back to
+    surface failures inline.
 
     @param {boolean} open - controls dialog visibility.
     @param {(data: { format: string; includeNotes: boolean; location: string }) => void} onexport - export callback.
     @param {() => void} onclose - close callback.
+    @param {string | null} [error] - error message to display under the form.
 -->
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
@@ -19,16 +21,17 @@
         open: boolean;
         onexport: (data: { format: string; includeNotes: boolean; location: string }) => void;
         onclose: () => void;
+        error?: string | null;
     };
 
-    let { open, onexport, onclose }: Props = $props();
+    let { open, onexport, onclose, error = null }: Props = $props();
 
     const DEFAULT_LOCATION: string = "~/Desktop";
 
     const formatOptions = [
         { value: "csv", label: "CSV" },
         { value: "json", label: "JSON" },
-        { value: "pdf", label: "PDF" },
+        { value: "pdf", label: "PDF", disabled: true },
     ];
 
     let format: string = $state("csv");
@@ -76,6 +79,9 @@
                 onselect={(path) => (location = path)}
             />
         </div>
+        {#if error}
+            <p class="error">{error}</p>
+        {/if}
     </div>
     {#snippet footer()}
         <Button size="xs" onclick={onclose} bgColor="var(--gray-60)" fgColor="var(--gray-10)">Cancel</Button>
@@ -108,6 +114,8 @@
     .form :global(.sel-dir-path),
     .form :global(.sel-dir-action) {
         background-color: var(--gray-90);
+        border: 1px solid var(--gray-60);
+        margin: 0;
     }
 
     .toggle-row {
@@ -121,5 +129,11 @@
     .toggle-label {
         font-size: 0.8rem;
         color: var(--gray-10);
+    }
+
+    .error {
+        margin: 0;
+        font-size: 0.7rem;
+        color: var(--red);
     }
 </style>

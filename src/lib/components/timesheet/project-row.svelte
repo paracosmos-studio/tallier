@@ -117,7 +117,7 @@
     }
 
     .entries {
-        padding: 2px 0 6px 8px;
+        padding: 6px 0 6px 10px;
         border-top: 1px solid color-mix(in srgb, var(--project-color) 15%, transparent);
     }
 </style>

@@ -1,3 +1,4 @@
+mod files;
 mod migrations;
 mod tray;
 mod util;
@@ -31,6 +32,8 @@ pub fn run() {
             tray::set_tray_show_title,
             window::set_window_profile,
             window::set_compact_height,
+            files::path_exists,
+            files::write_text_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

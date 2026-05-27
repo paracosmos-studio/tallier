@@ -82,7 +82,6 @@
         align-items: baseline;
         justify-content: space-between;
         padding: 4px 2px;
-        border-bottom: 1px solid var(--gray-80);
     }
 
     .date {

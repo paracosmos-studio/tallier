@@ -61,7 +61,7 @@
         align-items: center;
         justify-content: flex-start;
         gap: 0.5rem;
-        margin: 10px 0;
+        margin: 5px 0;
         width: 100%;
     }
 
@@ -99,5 +99,9 @@
         text-overflow: ellipsis;
         direction: rtl;
         text-align: left;
+    }
+
+    .trimmed::before {
+        content: "\200E";
     }
 </style>

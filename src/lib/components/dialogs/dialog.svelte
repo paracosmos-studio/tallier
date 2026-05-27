@@ -92,7 +92,7 @@
         background: var(--gray-80);
         border: 1px solid var(--gray-60);
         border-radius: 10px;
-        min-width: 380px;
+        min-width: min(380px, 90vw);
         max-width: 90vw;
         max-height: 85vh;
         display: flex;

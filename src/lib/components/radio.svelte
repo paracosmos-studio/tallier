@@ -111,6 +111,10 @@
         border-color: var(--gray-30);
     }
 
+    .radio:hover:not(.disabled) input:checked + .indicator {
+        border-color: var(--green);
+    }
+
     input:focus-visible + .indicator {
         outline: 2px solid var(--green);
         outline-offset: 2px;

@@ -14,6 +14,10 @@
     import WeekView from "$lib/components/timesheet/week-view.svelte";
     import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
     import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
+    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
+    import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/export-timesheet";
+    import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
+    import { invoke } from "@tauri-apps/api/core";
     import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
 
@@ -94,15 +98,79 @@
         loading = false;
     }
 
+    type PendingExport = {
+        format: ExportFormat;
+        includeNotes: boolean;
+        location: string;
+        path: string;
+    };
+
     let exportOpen: boolean = $state(false);
+    let exportError: string | null = $state(null);
+    let overwriteOpen: boolean = $state(false);
+    let pendingExport: PendingExport | null = $state(null);
 
     function handleExport(): void {
+        exportError = null;
         exportOpen = true;
     }
 
-    function handleExportConfirm(_data: { format: string; includeNotes: boolean; location: string }): void {
-        // export pipeline pending
+    async function notify(title: string, body: string): Promise<void> {
+        let granted = await isPermissionGranted();
+        if (!granted) granted = (await requestPermission()) === "granted";
+        if (granted) {
+            await invoke("plugin:notification|notify", { options: { title, body } });
+        }
+    }
+
+    async function runExport(p: PendingExport): Promise<void> {
+        const path = await exportTimesheet({
+            entries: filteredEntries,
+            range: activeRange,
+            format: p.format,
+            includeNotes: p.includeNotes,
+            location: p.location,
+            roundMinutes,
+        });
         exportOpen = false;
+        overwriteOpen = false;
+        pendingExport = null;
+        await notify("Export complete", path);
+    }
+
+    async function handleExportConfirm(data: { format: string; includeNotes: boolean; location: string }): Promise<void> {
+        if (data.format !== "csv" && data.format !== "json") return;
+        const pending: PendingExport = {
+            format: data.format as ExportFormat,
+            includeNotes: data.includeNotes,
+            location: data.location,
+            path: targetPath(data.location, activeRange, data.format as ExportFormat),
+        };
+        try {
+            if (await pathExists(pending.path)) {
+                pendingExport = pending;
+                overwriteOpen = true;
+                return;
+            }
+            await runExport(pending);
+        } catch (err) {
+            exportError = err instanceof Error ? err.message : String(err);
+        }
+    }
+
+    async function handleOverwriteConfirm(): Promise<void> {
+        if (!pendingExport) return;
+        try {
+            await runExport(pendingExport);
+        } catch (err) {
+            overwriteOpen = false;
+            exportError = err instanceof Error ? err.message : String(err);
+        }
+    }
+
+    function handleOverwriteCancel(): void {
+        overwriteOpen = false;
+        pendingExport = null;
     }
 
     onMount(async () => {
@@ -207,8 +275,20 @@
 
 <DialogExport
     open={exportOpen}
+    error={exportError}
     onexport={handleExportConfirm}
     onclose={() => (exportOpen = false)}
+/>
+
+<DialogConfirm
+    open={overwriteOpen}
+    title="File already exists"
+    message={pendingExport
+        ? `${pendingExport.path} already exists. Replace it?`
+        : ""}
+    confirmLabel="Replace"
+    onconfirm={handleOverwriteConfirm}
+    oncancel={handleOverwriteCancel}
 />
 
 <style>
