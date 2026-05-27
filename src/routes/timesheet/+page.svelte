@@ -23,6 +23,7 @@
     let entries: ReportEntry[] = $state([]);
     let colorMap: Map<number, string> = $state(new Map());
     let loading: boolean = $state(true);
+    let activeRange: { start: string; end: string } = $state({ start: "", end: "" });
 
     let selectedRange: string = $state("7");
     let customStart: string = $state("");
@@ -88,6 +89,7 @@
         if (!range) return;
         loading = true;
         entries = await getReportEntries(range.start, range.end);
+        activeRange = range;
         loading = false;
     }
 
@@ -104,23 +106,32 @@
 
 <main>
     <PageNavigation previousPage="/">
-        <Button size="xs" title="Export timesheet" onclick={handleExport}>
-            <Icon path={Download} size="16" />
-            <span>Export</span>
-        </Button>
+        <div class="nav-actions">
+            {#if selectedRange === "custom"}
+                <div class="custom-range">
+                    <input type="date" bind:value={customStart} onchange={loadEntries} />
+                    <span class="range-sep">to</span>
+                    <input type="date" bind:value={customEnd} onchange={loadEntries} />
+                </div>
+            {/if}
+            <div class="range-select">
+                <Select
+                    options={rangeOptions}
+                    size="sm"
+                    nullable={false}
+                    searchable={false}
+                    bind:value={selectedRange}
+                    onchange={loadEntries}
+                />
+            </div>
+            <Button size="xs" title="Export timesheet" onclick={handleExport}>
+                <Icon path={Download} size="16" />
+                <span>Export</span>
+            </Button>
+        </div>
     </PageNavigation>
 
     <div class="filter-row">
-        <div class="filter-cell">
-            <Select
-                options={rangeOptions}
-                size="sm"
-                nullable={false}
-                searchable={false}
-                bind:value={selectedRange}
-                onchange={loadEntries}
-            />
-        </div>
         <div class="filter-cell">
             <Select
                 options={projectOptions}
@@ -134,27 +145,18 @@
                 onchangemultiple={(v) => (selectedProjects = v)}
             />
         </div>
+        <div class="round-group">
+            <span class="round-label">Round to</span>
+            <SegmentedControl
+                options={roundOptions}
+                size="sm"
+                bind:value={roundTo}
+            />
+        </div>
         <SegmentedControl
             options={viewOptions}
             size="sm"
             bind:value={view}
-        />
-    </div>
-
-    {#if selectedRange === "custom"}
-        <div class="custom-range">
-            <input type="date" bind:value={customStart} onchange={loadEntries} />
-            <span class="range-sep">to</span>
-            <input type="date" bind:value={customEnd} onchange={loadEntries} />
-        </div>
-    {/if}
-
-    <div class="round-row">
-        <span class="round-label">Round to</span>
-        <SegmentedControl
-            options={roundOptions}
-            size="sm"
-            bind:value={roundTo}
         />
     </div>
 
@@ -184,11 +186,28 @@
             {roundMinutes}
         />
     {:else}
-        <CalendarView />
+        <CalendarView
+            entries={filteredEntries}
+            {projects}
+            {colorMap}
+            {roundMinutes}
+            start={activeRange.start}
+            end={activeRange.end}
+        />
     {/if}
 </main>
 
 <style>
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .range-select {
+        width: 160px;
+    }
+
     .filter-row {
         display: flex;
         align-items: center;
@@ -197,26 +216,24 @@
     }
 
     .filter-cell {
-        flex: 1;
+        width: 160px;
         min-width: 0;
     }
 
     .custom-range {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
+        gap: 6px;
     }
 
     .custom-range input {
-        flex: 1;
         background: var(--gray-80);
         border: 1px solid var(--gray-60);
         border-radius: 4px;
         color: var(--gray-10);
         color-scheme: dark;
         font-size: 0.8rem;
-        padding: 6px 8px;
+        padding: 4px 6px;
         font-family: inherit;
     }
 
@@ -230,14 +247,14 @@
         color: var(--gray-40);
     }
 
-    .round-row {
+    .round-group {
         display: flex;
         align-items: center;
-        margin-bottom: 16px;
+        gap: 6px;
+        margin-left: auto;
     }
 
     .round-label {
-        flex: 1;
         font-size: 0.875rem;
         color: var(--gray-20);
     }

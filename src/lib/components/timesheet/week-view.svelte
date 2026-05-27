@@ -190,6 +190,7 @@
 
 <style>
     .week {
+        margin-top: 15px;
         margin-bottom: 22px;
     }
 

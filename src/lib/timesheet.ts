@@ -1,4 +1,4 @@
-import { computeDuration, formatDateISO, roundSeconds } from "./format";
+import { computeDuration, formatDateISO, roundSeconds, timeToSeconds } from "./format";
 import { splitCrossMidnight } from "./cross-midnight";
 import type { ReportEntry } from "./types";
 
@@ -37,6 +37,24 @@ export interface WeekSection {
     rows: WeekRow[];
     dailyTotals: number[];
     weekTotal: number;
+}
+
+export interface CalendarBlock {
+    entryId: number;
+    projectId: number;
+    projectName: string;
+    start: string;
+    end: string;
+    startSeconds: number;
+    durationSeconds: number;
+    entry: ReportEntry;
+}
+
+export interface CalendarDay {
+    date: string;
+    blocks: CalendarBlock[];
+    total: number;
+    totalRounded: number;
 }
 
 export interface EntryOverride {
@@ -142,6 +160,69 @@ export function buildDayGroups(
         result.push({ date, projects, total, totalRounded });
     }
     return result.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/**
+ * Builds per-day blocks for the calendar view, anchored by start time.
+ * Applies the same override/split pipeline as buildDayGroups so cross-midnight
+ * entries become two blocks and overrides are honored. Blocks are sorted by
+ * start time within each day; days are sorted ascending.
+ */
+export function buildCalendarDays(
+    entries: ReportEntry[],
+    roundMinutes: number,
+    hiddenIds?: ReadonlySet<number>,
+    overrides?: ReadonlyMap<number, EntryOverride>,
+    projectNames?: ReadonlyMap<number, string>,
+): CalendarDay[] {
+    const days: Map<string, CalendarDay> = new Map();
+    const names = projectNames ?? new Map<number, string>();
+
+    const emit = (entry: ReportEntry): void => {
+        let day = days.get(entry.date);
+        if (!day) {
+            day = { date: entry.date, blocks: [], total: 0, totalRounded: 0 };
+            days.set(entry.date, day);
+        }
+        const startSeconds: number = timeToSeconds(entry.start);
+        const endSeconds: number = entry.end ? timeToSeconds(entry.end) : startSeconds;
+        const durationSeconds: number = Math.max(endSeconds - startSeconds, 0);
+        day.blocks.push({
+            entryId: entry.entry_id,
+            projectId: entry.project_id,
+            projectName: entry.project_name,
+            start: entry.start,
+            end: entry.end ?? entry.start,
+            startSeconds,
+            durationSeconds,
+            entry,
+        });
+        if (!hiddenIds?.has(entry.entry_id)) {
+            day.total += entry.total;
+            day.totalRounded += roundSeconds(entry.total, roundMinutes);
+        }
+    };
+
+    for (const raw of entries) {
+        const ov = overrides?.get(raw.entry_id);
+        if (!ov) {
+            emit(raw);
+            continue;
+        }
+        if (raw.segment === "second") continue;
+        const whole: ReportEntry = applyOverride(raw, ov, names);
+        for (const part of splitCrossMidnight([whole])) {
+            emit(part);
+        }
+    }
+
+    const result: CalendarDay[] = Array.from(days.values()).sort(
+        (a, b) => (a.date < b.date ? -1 : 1)
+    );
+    for (const d of result) {
+        d.blocks.sort((a, b) => a.startSeconds - b.startSeconds);
+    }
+    return result;
 }
 
 export function projectKey(date: string, projectId: number): string {

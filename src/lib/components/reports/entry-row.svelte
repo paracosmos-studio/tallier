@@ -73,7 +73,8 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 8px 6px 0px;
+        padding: 0;
+        padding-right: 8px;
         transition: opacity 0.15s ease;
     }
 
