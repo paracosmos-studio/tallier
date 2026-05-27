@@ -11,7 +11,7 @@
     @param {number} roundMinutes - round each entry duration to this many minutes.
 -->
 <script lang="ts">
-    import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
+    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import { formatDateShort, formatDateISO, MONTHS } from "$lib/format";
     import { buildDayGroups, buildWeeks } from "$lib/timesheet";
     import type { ReportEntry, Project } from "$lib/types";

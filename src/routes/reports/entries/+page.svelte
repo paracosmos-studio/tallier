@@ -6,8 +6,8 @@
     import { Add, CalendarMonth } from "$lib/icons";
     import DayDetail from "$lib/components/reports/day-detail.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
-    import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
-    import DialogAddEntry from "$lib/components/reports/dialog-add-entry.svelte";
+    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
+    import DialogAddEntry from "$lib/components/dialogs/dialog-add-entry.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import { onMount } from "svelte";
     import {

@@ -15,7 +15,7 @@
     @param {string} end - active range end (YYYY-MM-DD).
 -->
 <script lang="ts">
-    import DialogEditEntry from "$lib/components/reports/dialog-edit-entry.svelte";
+    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import Icon from "$lib/components/icon.svelte";
     import { ArrowBack, ArrowForward } from "$lib/icons";
     import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/format";

@@ -13,6 +13,7 @@
     import ListView from "$lib/components/timesheet/list-view.svelte";
     import WeekView from "$lib/components/timesheet/week-view.svelte";
     import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
+    import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
     import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
 
@@ -93,8 +94,15 @@
         loading = false;
     }
 
+    let exportOpen: boolean = $state(false);
+
     function handleExport(): void {
+        exportOpen = true;
+    }
+
+    function handleExportConfirm(_data: { format: string; includeNotes: boolean; location: string }): void {
         // export pipeline pending
+        exportOpen = false;
     }
 
     onMount(async () => {
@@ -196,6 +204,12 @@
         />
     {/if}
 </main>
+
+<DialogExport
+    open={exportOpen}
+    onexport={handleExportConfirm}
+    onclose={() => (exportOpen = false)}
+/>
 
 <style>
     .nav-actions {
