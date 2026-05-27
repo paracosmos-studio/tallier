@@ -15,6 +15,8 @@
     import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
     import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
+    import DialogFullscreen from "$lib/components/dialogs/dialog-fullscreen.svelte";
+    import FlyingAirplaneSuccess from "$lib/animations/flying-airplane-success.svelte";
     import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/export-timesheet";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
@@ -109,6 +111,7 @@
     let exportError: string | null = $state(null);
     let overwriteOpen: boolean = $state(false);
     let pendingExport: PendingExport | null = $state(null);
+    let successOpen: boolean = $state(false);
 
     function handleExport(): void {
         exportError = null;
@@ -135,6 +138,7 @@
         exportOpen = false;
         overwriteOpen = false;
         pendingExport = null;
+        successOpen = true;
         await notify("Export complete", path);
     }
 
@@ -291,6 +295,20 @@
     oncancel={handleOverwriteCancel}
 />
 
+<DialogFullscreen
+    open={successOpen}
+    showCloseIcon={false}
+    autoCloseMs={4500}
+    onclose={() => (successOpen = false)}
+>
+    <div class="export-success">
+        {#if successOpen}
+            <FlyingAirplaneSuccess size={220} />
+        {/if}
+        <p class="success-text">Exported Successfully!</p>
+    </div>
+</DialogFullscreen>
+
 <style>
     .nav-actions {
         display: flex;
@@ -358,5 +376,36 @@
         color: var(--gray-40);
         font-size: 0.85rem;
         margin-top: 40px;
+    }
+
+    .export-success {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .success-text {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 500;
+        color: var(--gray-10);
+        letter-spacing: 0.01em;
+        opacity: 0;
+        transform: translateY(4px);
+        animation: success-text-in 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+    }
+
+    /* matches the check-phase timing inside flying-airplane-success */
+    @keyframes success-text-in {
+        0%,
+        87% {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
