@@ -76,6 +76,22 @@ function roundSeconds(seconds: number, minutes: number): number {
 }
 
 /**
+ * Rounds a "HH:MM" or "HH:MM:SS" wall-clock time to the nearest `minutes`
+ * step and returns it as "HH:MM:SS". Returns the input unchanged when
+ * `minutes <= 1`. Preserves seconds beyond 24:00:00 if the rounded value
+ * exceeds a day boundary (used by the export pipeline).
+ */
+function roundTimeOfDay(time: string, minutes: number): string {
+    if (!time || minutes <= 1) return time;
+    const sec: number = roundSeconds(timeToSeconds(time), minutes);
+    const h: number = Math.floor(sec / 3600);
+    const m: number = Math.floor((sec % 3600) / 60);
+    const s: number = sec % 60;
+    const pad = (n: number): string => String(n).padStart(2, "0");
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+/**
  * Parses an "HH:MM" or "HH:MM:SS" string into seconds since midnight.
  */
 function timeToSeconds(hhmmss: string): number {
@@ -114,6 +130,7 @@ export {
     formatDateShort,
     formatDateMedium,
     roundSeconds,
+    roundTimeOfDay,
     timeToSeconds,
     computeDuration,
     nextDateISO,

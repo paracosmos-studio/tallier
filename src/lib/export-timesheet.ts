@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { formatDuration, roundSeconds, timeToSeconds } from "./format";
+import { formatDuration, roundTimeOfDay, timeToSeconds } from "./format";
 import type { ReportEntry } from "./types";
 
 export type ExportFormat = "csv" | "json";
@@ -22,18 +22,6 @@ interface ExportOptions {
     includeNotes: boolean;
     location: string;
     roundMinutes: number;
-}
-
-// rounds an "HH:MM:SS" time-of-day to the nearest `minutes` step;
-// preserves "24:00:00" rather than wrapping to "00:00:00"
-function roundTimeOfDay(time: string, minutes: number): string {
-    if (!time || minutes <= 1) return time;
-    const sec = roundSeconds(timeToSeconds(time), minutes);
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
 function buildRows(

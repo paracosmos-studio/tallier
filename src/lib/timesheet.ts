@@ -1,6 +1,7 @@
-import { computeDuration, formatDateISO, roundSeconds, timeToSeconds } from "./format";
+import { computeDuration, formatDateISO, roundSeconds, roundTimeOfDay, timeToSeconds } from "./format";
 import { splitCrossMidnight } from "./cross-midnight";
 import type { ReportEntry } from "./types";
+
 
 export interface TimesheetProjectGroup {
     projectId: number;
@@ -69,6 +70,21 @@ export interface EntryOverride {
     end: string;
 }
 
+/**
+ * Returns the entry with start/end rounded to `roundMinutes` and total
+ * recomputed as the difference of the rounded times.
+ */
+function withRoundedTimes(entry: ReportEntry, roundMinutes: number): ReportEntry {
+    if (roundMinutes <= 1) return entry;
+    const start: string = roundTimeOfDay(entry.start, roundMinutes);
+    const end: string | null = entry.end ? roundTimeOfDay(entry.end, roundMinutes) : entry.end;
+    const total: number = end
+        ? Math.max(timeToSeconds(end) - timeToSeconds(start), 0)
+        : entry.total;
+    return { ...entry, start, end, total };
+}
+
+
 function applyOverride(
     entry: ReportEntry,
     override: EntryOverride,
@@ -110,7 +126,8 @@ export function buildDayGroups(
     const days: Map<string, Map<number, TimesheetProjectGroup>> = new Map();
     const names = projectNames ?? new Map<number, string>();
 
-    const emit = (entry: ReportEntry): void => {
+    const emit = (raw: ReportEntry): void => {
+        const entry: ReportEntry = withRoundedTimes(raw, roundMinutes);
         let dayMap = days.get(entry.date);
         if (!dayMap) {
             dayMap = new Map();
@@ -184,7 +201,8 @@ export function buildCalendarDays(
     const days: Map<string, CalendarDay> = new Map();
     const names = projectNames ?? new Map<number, string>();
 
-    const emit = (entry: ReportEntry): void => {
+    const emit = (raw: ReportEntry): void => {
+        const entry: ReportEntry = withRoundedTimes(raw, roundMinutes);
         let day = days.get(entry.date);
         if (!day) {
             day = { date: entry.date, blocks: [], total: 0, totalRounded: 0 };
