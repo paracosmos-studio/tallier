@@ -13,6 +13,7 @@ export async function setTrayTimer(
     showTitle: boolean = true,
     maxSeconds?: number,
     limitReached: boolean = false,
+    autoPauseOnSleep: boolean = false,
 ): Promise<void> {
     await invoke("set_tray_timer", {
         baseElapsed,
@@ -22,9 +23,14 @@ export async function setTrayTimer(
         showTitle,
         maxSeconds: maxSeconds ?? null,
         limitReached,
+        autoPauseOnSleep,
     });
 }
 
 export async function setTrayShowTitle(show: boolean): Promise<void> {
     await invoke("set_tray_show_title", { show });
+}
+
+export async function setTrayAutoPause(enabled: boolean): Promise<void> {
+    await invoke("set_tray_auto_pause", { enabled });
 }

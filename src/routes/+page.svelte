@@ -4,7 +4,7 @@
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
     import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getSetting } from "$lib/db";
-    import { setTrayTimer } from "$lib/tray";
+    import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
     import Select from "$lib/components/select.svelte";
     import Menu from "$lib/components/menu.svelte";
@@ -36,6 +36,7 @@
     let weekTotal = $state(0);
     let stoppedTimerId: number | null = $state(null);
     let showTrayTitle: boolean = $state(false);
+    let autoPauseOnSleep: boolean = $state(false);
     let unlistenTray: (() => void) | undefined;
     let limitCheckId: ReturnType<typeof setInterval> | null = null;
     let dailyAlertSent: boolean = $state(false);
@@ -80,9 +81,9 @@
         const selId = selectedProject ? Number(selectedProject) : undefined;
         const maxSec = getEffectiveMaxSeconds();
         if (running) {
-            setTrayTimer(todayTotal, running.startedAt.getTime(), tp, selId, showTrayTitle, maxSec, limitReached).catch(() => {});
+            setTrayTimer(todayTotal, running.startedAt.getTime(), tp, selId, showTrayTitle, maxSec, limitReached, autoPauseOnSleep).catch(() => {});
         } else {
-            setTrayTimer(todayTotal, undefined, tp, selId, showTrayTitle, undefined, limitReached).catch(() => {});
+            setTrayTimer(todayTotal, undefined, tp, selId, showTrayTitle, undefined, limitReached, autoPauseOnSleep).catch(() => {});
         }
     }
 
@@ -168,6 +169,7 @@
         projects = await getProjects();
         trayOrder = projects.map(p => p.id!);
         showTrayTitle = (await getSetting("taskbarDisplay")) === "true";
+        autoPauseOnSleep = (await getSetting("autoPauseOnSleep")) === "true";
 
         const existing = await getRunningTimer();
 
@@ -213,6 +215,12 @@
                 handleStop(running.timerId, true);
                 const proj = getSelectedProject();
                 if (proj) notify("Timer Stopped", `${proj.name}: time limit reached`);
+            } else if (payload.startsWith("auto_pause:") && running) {
+                const preSleepMs = Number(payload.slice("auto_pause:".length));
+                const endAt = preSleepMs > 0 ? new Date(preSleepMs) : undefined;
+                handleStop(running.timerId, true, endAt);
+                const proj = getSelectedProject();
+                if (proj) notify("Timer Stopped", `${proj.name}: system went to sleep`);
             } else if (payload.startsWith("select_project:")) {
                 const projId = Number(payload.slice("select_project:".length));
                 handleTrayProjectSelect(projId);
@@ -252,8 +260,8 @@
         syncTray();
     }
 
-    async function handleStop(timerId: number, showWindow = false) {
-        await stopTimer(timerId);
+    async function handleStop(timerId: number, showWindow = false, endAt?: Date) {
+        await stopTimer(timerId, endAt);
         running = null;
         stopLimitChecking();
         await refreshTodayTotal();

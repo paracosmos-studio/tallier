@@ -30,6 +30,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             tray::set_tray_timer,
             tray::set_tray_show_title,
+            tray::set_tray_auto_pause,
             window::set_window_profile,
             window::set_compact_height,
             files::path_exists,

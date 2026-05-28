@@ -24,11 +24,12 @@ export async function startTimer(): Promise<number> {
  * Stops a running timer by ID.
  * Sets the end time, calculates the total elapsed seconds, and updates status.
  * @param timerId - ID of the timer to stop.
+ * @param endAt - Optional explicit end time; defaults to now. Used by auto-pause to clamp to pre-sleep timestamp.
  */
-export async function stopTimer(timerId: number): Promise<void> {
+export async function stopTimer(timerId: number, endAt?: Date): Promise<void> {
     const database = getDB();
-    const now = new Date();
-    const endTime = now.toTimeString().split(" ")[0];
+    const end = endAt ?? new Date();
+    const endTime = end.toTimeString().split(" ")[0];
 
     const rows = await database.select<Timer[]>(
         "SELECT * FROM timers WHERE id = $1",
@@ -41,7 +42,7 @@ export async function stopTimer(timerId: number): Promise<void> {
 
     const timer = rows[0];
     const startDate = new Date(`${timer.date}T${timer.start}`);
-    const totalSeconds = Math.floor((now.getTime() - startDate.getTime()) / 1000);
+    const totalSeconds = Math.max(0, Math.floor((end.getTime() - startDate.getTime()) / 1000));
 
     await database.execute(
         "UPDATE timers SET status = $1, \"end\" = $2, total = $3 WHERE id = $4",

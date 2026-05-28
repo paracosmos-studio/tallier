@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{
     AppHandle, Emitter, Manager, Wry,
     menu::{CheckMenuItem, IconMenuItem, Menu, PredefinedMenuItem, Submenu},
@@ -9,6 +9,9 @@ use tauri::{
 };
 
 use crate::util::{format_elapsed, now_ms};
+
+// gap in wall-clock between ticks that counts as a system sleep
+const SLEEP_GAP_THRESHOLD_SECS: u64 = 45;
 
 #[derive(serde::Deserialize, Clone)]
 pub struct TrayProject {
@@ -21,6 +24,7 @@ struct TrayInner {
     is_running: Arc<AtomicBool>,
     stop_signal: Arc<AtomicBool>,
     show_title: Arc<AtomicBool>,
+    auto_pause_on_sleep: Arc<AtomicBool>,
 }
 
 pub(crate) struct TrayState(Mutex<Option<TrayInner>>);
@@ -37,13 +41,33 @@ fn spawn_ticker(
     started_at_ms: i64,
     stop: Arc<AtomicBool>,
     max_seconds: Option<u64>,
+    auto_pause_on_sleep: Arc<AtomicBool>,
 ) {
     thread::spawn(move || {
         let mut limit_emitted = false;
+        let mut prev_wall = SystemTime::now();
+
         while !stop.load(Ordering::Relaxed) {
             thread::sleep(Duration::from_secs(1));
 
             if stop.load(Ordering::Relaxed) { break; }
+
+            // wall-clock gap > 1s means the OS suspended this thread
+            let wall_now = SystemTime::now();
+            let gap_secs = wall_now
+                .duration_since(prev_wall)
+                .unwrap_or_default()
+                .as_secs();
+
+            if gap_secs >= SLEEP_GAP_THRESHOLD_SECS && auto_pause_on_sleep.load(Ordering::Relaxed) {
+                let prev_ms = prev_wall
+                    .duration_since(UNIX_EPOCH)
+                    .map(|d| d.as_millis() as i64)
+                    .unwrap_or(0);
+                let _ = app.emit("tray-menu-action", format!("auto_pause:{}", prev_ms));
+                break;
+            }
+            prev_wall = wall_now;
 
             let live = ((now_ms() - started_at_ms) / 1000).max(0) as u64;
             let total = base + live;
@@ -242,10 +266,12 @@ pub fn set_tray_timer(
     show_title: bool,
     max_seconds: Option<u64>,
     limit_reached: bool,
+    auto_pause_on_sleep: bool,
 ) -> Result<(), String> {
     let state = app.state::<TrayState>();
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
     let running = started_at_ms.is_some();
+    let needs_ticker = running && (show_title || auto_pause_on_sleep);
 
     let menu = build_menu(&app, running, &projects, selected_id, limit_reached)?;
 
@@ -253,6 +279,7 @@ pub fn set_tray_timer(
         inner.stop_signal.store(true, Ordering::Relaxed);
         inner.is_running.store(running, Ordering::Relaxed);
         inner.show_title.store(show_title, Ordering::Relaxed);
+        inner.auto_pause_on_sleep.store(auto_pause_on_sleep, Ordering::Relaxed);
         inner.icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
 
         if show_title {
@@ -266,14 +293,18 @@ pub fn set_tray_timer(
             inner.icon.set_title(Some("")).map_err(|e| e.to_string())?;
         }
 
-        if show_title {
-            if let Some(ms) = started_at_ms {
-                let stop = Arc::new(AtomicBool::new(false));
-                inner.stop_signal = stop.clone();
-                spawn_ticker(app.clone(), base_elapsed, ms, stop, max_seconds);
-            } else {
-                inner.stop_signal = Arc::new(AtomicBool::new(true));
-            }
+        if needs_ticker {
+            let ms = started_at_ms.unwrap();
+            let stop = Arc::new(AtomicBool::new(false));
+            inner.stop_signal = stop.clone();
+            spawn_ticker(
+                app.clone(),
+                base_elapsed,
+                ms,
+                stop,
+                max_seconds,
+                inner.auto_pause_on_sleep.clone(),
+            );
         } else {
             inner.stop_signal = Arc::new(AtomicBool::new(true));
         }
@@ -284,6 +315,7 @@ pub fn set_tray_timer(
     // first call: create tray icon
     let is_running = Arc::new(AtomicBool::new(running));
     let is_running_clone = is_running.clone();
+    let auto_pause_flag = Arc::new(AtomicBool::new(auto_pause_on_sleep));
 
     let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
         .map_err(|e| e.to_string())?;
@@ -345,14 +377,18 @@ pub fn set_tray_timer(
         .build(&app)
         .map_err(|e| e.to_string())?;
 
-    let stop_signal = if show_title {
-        if let Some(ms) = started_at_ms {
-            let stop = Arc::new(AtomicBool::new(false));
-            spawn_ticker(app.clone(), base_elapsed, ms, stop.clone(), max_seconds);
-            stop
-        } else {
-            Arc::new(AtomicBool::new(true))
-        }
+    let stop_signal = if needs_ticker {
+        let ms = started_at_ms.unwrap();
+        let stop = Arc::new(AtomicBool::new(false));
+        spawn_ticker(
+            app.clone(),
+            base_elapsed,
+            ms,
+            stop.clone(),
+            max_seconds,
+            auto_pause_flag.clone(),
+        );
+        stop
     } else {
         Arc::new(AtomicBool::new(true))
     };
@@ -362,6 +398,7 @@ pub fn set_tray_timer(
         is_running,
         stop_signal,
         show_title: Arc::new(AtomicBool::new(show_title)),
+        auto_pause_on_sleep: auto_pause_flag,
     });
 
     Ok(())
@@ -377,11 +414,24 @@ pub fn set_tray_show_title(app: AppHandle, show: bool) -> Result<(), String> {
         if show {
             inner.icon.set_title(Some(&format_elapsed(0))).map_err(|e| e.to_string())?;
         } else {
-            inner.stop_signal.store(true, Ordering::Relaxed);
-            inner.stop_signal = Arc::new(AtomicBool::new(true));
+            // keep ticker alive when auto-pause still needs sleep detection
+            if !inner.auto_pause_on_sleep.load(Ordering::Relaxed) {
+                inner.stop_signal.store(true, Ordering::Relaxed);
+                inner.stop_signal = Arc::new(AtomicBool::new(true));
+            }
             inner.icon.set_title(Some("")).map_err(|e| e.to_string())?;
         }
     }
 
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_tray_auto_pause(app: AppHandle, enabled: bool) -> Result<(), String> {
+    let state = app.state::<TrayState>();
+    let guard = state.0.lock().map_err(|e| e.to_string())?;
+    if let Some(ref inner) = *guard {
+        inner.auto_pause_on_sleep.store(enabled, Ordering::Relaxed);
+    }
     Ok(())
 }

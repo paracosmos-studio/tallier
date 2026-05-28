@@ -4,36 +4,43 @@
     and the persistent storage location selector.
 -->
 <script lang="ts">
-    import Select from "$lib/components/select.svelte";
     import Toggle from "$lib/components/toggle.svelte";
 
     import { onMount } from "svelte";
     import { getSetting, setSetting } from "$lib/db";
-    import { setTrayShowTitle } from "$lib/tray";
+    import { setTrayShowTitle, setTrayAutoPause } from "$lib/tray";
 
     type Settings = {
         taskbarDisplay: boolean
-        autoPauseOption: string
+        autoPauseOnSleep: boolean
         sendAnonymousUsagePing: boolean
         enableAutomaticUpdates: boolean
     };
 
     let settings: Settings = $state({
         taskbarDisplay: false,
-        autoPauseOption: "inactive-30",
+        autoPauseOnSleep: false,
         sendAnonymousUsagePing: false,
         enableAutomaticUpdates: true,
     });
 
     onMount(async () => {
-        const stored = await getSetting("taskbarDisplay");
-        if (stored !== null) settings.taskbarDisplay = stored === "true";
+        const taskbar = await getSetting("taskbarDisplay");
+        if (taskbar !== null) settings.taskbarDisplay = taskbar === "true";
+        const autoPause = await getSetting("autoPauseOnSleep");
+        if (autoPause !== null) settings.autoPauseOnSleep = autoPause === "true";
     });
 
     async function handleTaskbarToggle(checked: boolean) {
         settings.taskbarDisplay = checked;
         await setSetting("taskbarDisplay", String(checked));
         await setTrayShowTitle(checked);
+    }
+
+    async function handleAutoPauseToggle(checked: boolean) {
+        settings.autoPauseOnSleep = checked;
+        await setSetting("autoPauseOnSleep", String(checked));
+        await setTrayAutoPause(checked);
     }
 </script>
 
@@ -55,24 +62,8 @@
         </div>
 
         <div class="preference-item">
-            <span>Stop timer when asleep for</span>
-            <div class="dropdown">
-                <Select
-                    options={[
-                        { value: "none", label: "never" },
-                        { value: "inactive-30", label: "30 sec" },
-                        { value: "inactive-60", label: "1 min" },
-                        { value: "inactive-300", label: "5 min" },
-                    ]}
-                    bind:value={settings.autoPauseOption}
-                    placeholder="Select Option"
-                    size="sm"
-                    searchable={false}
-                    onchange={async (value) => {
-                        console.log("Selected option:", value);
-                    }}
-                />
-            </div>
+            <span>Stop timer when system goes to sleep</span>
+            <Toggle checked={settings.autoPauseOnSleep} onchange={handleAutoPauseToggle} />
         </div>
     </div>
 </section>
@@ -100,9 +91,5 @@
         justify-content: space-between;
         font-size: 0.9rem;
         color: var(--gray-20);
-    }
-
-    .preference-item .dropdown {
-        width: 150px;
     }
 </style>
