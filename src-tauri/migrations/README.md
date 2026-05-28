@@ -4,15 +4,15 @@ This directory contains SQL migration files for the Tallier application.
 
 ## Naming Convention
 
-Migrations should follow the pattern: `YYYYMMDDXXX_description.sql`
+Migrations should follow the pattern: `YYYYMMDDHHMM_description.sql`
 - `YYYYMMDD`: Date of the migration (e.g., 20240427 for April 27, 2024)
-- `XXX`: Incremental number for multiple migrations on the same day (e.g., 001, 002)
+- `HHMM`: Time of the migration (e.g., 0930 for 9:30 AM)
 - `description`: Brief description with underscores
 
 Examples:
-- `20240427001_create_users.sql`
-- `20240427002_create_projects.sql`
-- `20240427003_add_user_email.sql`
+- `202404270930_create_users.sql`
+- `202404271345_create_projects.sql`
+- `202404271156_add_user_email.sql`
 
 ## Adding New Migrations
 
@@ -24,7 +24,7 @@ Examples:
 Migration {
     version: 2,  // Increment version
     description: "create projects table",
-    sql: include_str!("../migrations/20240427002_create_projects.sql"),
+    sql: include_str!("../migrations/202404271345_create_projects.sql"),
     kind: MigrationKind::Up,
 },
 ```
