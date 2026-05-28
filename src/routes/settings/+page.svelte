@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { Project, ProjectLimits } from "$lib/types";
+    import type { Project, ProjectLimits, Client } from "$lib/types";
     import {
         Add,
         FolderOutlined,
@@ -16,6 +16,8 @@
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import ProjectList from "$lib/components/project/project-list.svelte";
     import ProjectForm from "$lib/components/project/project-form.svelte";
+    import ClientList from "$lib/components/client/client-list.svelte";
+    import ClientForm from "$lib/components/client/client-form.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import PreferenceTab from "$lib/components/settings/preference-tab.svelte";
     import AboutTab from "$lib/components/settings/about-tab.svelte";
@@ -26,11 +28,16 @@
         updateProjectName,
         deleteProject,
         reorderProjects,
+        getClients,
+        createClient,
+        updateClient,
+        deleteClient,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
 
     type Tab = "projects" | "clients" | "preference" | "about";
     type ProjectView = "list" | "add" | "edit";
+    type ClientView = "list" | "add" | "edit";
 
     const tabs: { id: Tab; label: string; icon: string; activeIcon: string }[] = [
         { id: "projects", label: "Projects", icon: FolderOutlined, activeIcon: FolderFilled },
@@ -51,10 +58,22 @@
 
     let colorMap = $derived(buildProjectColorMap(projects));
 
-    onMount(loadProjects);
+    // clients tab state
+    let clientView: ClientView = $state("list");
+    let clients: Client[] = $state([]);
+    let editingClient: Client | undefined = $state(undefined);
+    let deleteClientTarget: Client | undefined = $state(undefined);
+
+    onMount(async () => {
+        await Promise.all([loadProjects(), loadClients()]);
+    });
 
     async function loadProjects() {
         projects = await getProjects();
+    }
+
+    async function loadClients() {
+        clients = await getClients();
     }
 
     function showAdd() {
@@ -123,10 +142,58 @@
             ?.dispatchEvent(new Event("submit", { cancelable: true }));
     }
 
+    // clients handlers
+    function showClientAdd() {
+        editingClient = undefined;
+        clientView = "add";
+    }
+
+    function showClientEdit(c: Client) {
+        editingClient = c;
+        clientView = "edit";
+    }
+
+    function showClientList() {
+        editingClient = undefined;
+        clientView = "list";
+    }
+
+    async function handleClientSave(payload: Omit<Client, "id">) {
+        if (clientView === "edit" && editingClient?.id != null) {
+            await updateClient(editingClient.id, payload);
+        } else {
+            await createClient(payload);
+        }
+        await loadClients();
+        showClientList();
+    }
+
+    function requestClientDelete(c: Client) {
+        deleteClientTarget = c;
+    }
+
+    async function confirmClientDelete() {
+        if (deleteClientTarget?.id == null) return;
+        await deleteClient(deleteClientTarget.id);
+        deleteClientTarget = undefined;
+        await loadClients();
+    }
+
+    function cancelClientDelete() {
+        deleteClientTarget = undefined;
+    }
+
+    function submitClientForm() {
+        document
+            .getElementById("client-form")
+            ?.dispatchEvent(new Event("submit", { cancelable: true }));
+    }
+
     function selectTab(id: Tab) {
         activeTab = id;
-        // ensure we never linger in a project sub-view when leaving the tab
+        // ensure we never linger in a sub-view when leaving the tab
         if (id !== "projects" && projectView !== "list") showList();
+        if (id !== "clients" && clientView !== "list") showClientList();
     }
 </script>
 
@@ -150,6 +217,28 @@
                         Cancel
                     </Button>
                     <Button size="xs" title="Save Project" onclick={submitProjectForm}>
+                        Save
+                    </Button>
+                </div>
+            {/if}
+        {:else if activeTab === "clients"}
+            {#if clientView === "list"}
+                <Button size="xs" title="Add New Client" onclick={showClientAdd}>
+                    <Icon path={Add} size="14" />
+                    <span>Add Client</span>
+                </Button>
+            {:else}
+                <div class="actions">
+                    <Button
+                        size="xs"
+                        title="Cancel"
+                        bgColor={"var(--gray-60)"}
+                        fgColor={"var(--gray-10)"}
+                        onclick={showClientList}
+                    >
+                        Cancel
+                    </Button>
+                    <Button size="xs" title="Save Client" onclick={submitClientForm}>
                         Save
                     </Button>
                 </div>
@@ -196,7 +285,19 @@
                     />
                 {/if}
             {:else if activeTab === "clients"}
-                <p class="empty">Coming soon.</p>
+                {#if clientView === "list"}
+                    <ClientList
+                        {clients}
+                        onedit={showClientEdit}
+                        ondelete={requestClientDelete}
+                    />
+                {:else}
+                    <ClientForm
+                        client={editingClient}
+                        onsave={handleClientSave}
+                        oncancel={showClientList}
+                    />
+                {/if}
             {:else if activeTab === "preference"}
                 <PreferenceTab />
             {:else if activeTab === "about"}
@@ -212,6 +313,15 @@
         confirmLabel="Delete"
         onconfirm={confirmDelete}
         oncancel={cancelDelete}
+    />
+
+    <DialogConfirm
+        open={deleteClientTarget != null}
+        title="Delete Client"
+        message={`Are you sure you want to delete "${deleteClientTarget?.contact_name ?? ""}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onconfirm={confirmClientDelete}
+        oncancel={cancelClientDelete}
     />
 </main>
 
@@ -278,12 +388,5 @@
     .tab-content {
         min-width: 0;
         padding-bottom: 1rem;
-    }
-
-    .empty {
-        color: var(--gray-40);
-        font-size: 0.875rem;
-        text-align: center;
-        margin: 2rem 0;
     }
 </style>

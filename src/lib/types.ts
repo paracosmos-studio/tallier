@@ -31,6 +31,22 @@ export interface ProjectLimits {
   maxWeeklyEnabled: boolean;
 }
 
+export interface ClientContact {
+  label: string;
+  value: string;
+}
+
+export interface Client {
+  id?: number;
+  contact_name: string;
+  company_name: string | null;
+  mailing_address: string | null;
+  emails: ClientContact[] | null;
+  phones: ClientContact[] | null;
+  websites: ClientContact[] | null;
+  invoice_id_prefix: string | null;
+}
+
 export interface Entry {
   id?: number;
   timer_id: number;

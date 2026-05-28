@@ -25,6 +25,12 @@ pub(crate) fn load_migrations() -> Vec<Migration> {
             description: "add project color and hourly rate",
             sql: include_str!("../migrations/20260328001_project_color_and_rate.sql"),
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 5,
+            description: "add clients table",
+            sql: include_str!("../migrations/20260528001_clients_table.sql"),
+            kind: MigrationKind::Up,
         }
     ]
 }

@@ -4,3 +4,4 @@ export { startTimer, stopTimer, getRunningTimer, getTodayProjectTotal, getWeekPr
 export { createEntry, updateEntrySummary, getEntryByTimerId, getEntries } from "./entries";
 export { getSetting, setSetting } from "./settings";
 export { getReportEntries, getDailyProjectTotals, getProjectTotals, updateEntry, updateEntryTimes, deleteEntry, createManualEntry } from "./reports";
+export { getClients, getClient, createClient, updateClient, deleteClient } from "./clients";
