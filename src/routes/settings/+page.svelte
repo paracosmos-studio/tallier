@@ -223,6 +223,7 @@
         grid-template-columns: 1fr 3fr;
         gap: 1.25rem;
         align-items: start;
+        min-height: calc(100vh - 120px);
     }
 
     .tab-nav {
@@ -241,14 +242,22 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        min-height: 30px;
+        box-sizing: border-box;
         text-align: left;
         padding: 0.45rem 0.65rem;
         color: var(--gray-30);
         font-family: inherit;
         font-size: 0.9rem;
         font-weight: 400;
+        line-height: 1;
         cursor: pointer;
         transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .tab-item :global(.svg-icon) {
+        display: block;
+        flex-shrink: 0;
     }
 
     .tab-item:hover {
