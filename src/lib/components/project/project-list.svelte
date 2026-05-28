@@ -7,12 +7,14 @@
     @param {(project: Project) => void} onconfigure - Callback when configure is clicked.
     @param {(project: Project) => void} ondelete - Callback when delete is clicked.
     @param {(projects: Project[]) => void} onreorder - Callback with reordered project array after drag.
+    @param {() => void} [onadd] - Optional callback invoked from the empty state's call-to-action.
 -->
 
 <script lang="ts">
     import type { Project } from "$lib/types";
     import Icon from "$lib/components/icon.svelte";
-    import { CheckCircle, CloseCircle, Build, Delete, Drag } from "$lib/icons";
+    import EmptyState from "$lib/components/empty-state.svelte";
+    import { CheckCircle, CloseCircle, Build, Delete, Drag, FolderOutlined, Add } from "$lib/icons";
     import { buildProjectColorMap } from "$lib/colors";
 
     type Props = {
@@ -21,9 +23,10 @@
         onconfigure: (project: Project) => void;
         ondelete: (project: Project) => void;
         onreorder: (projects: Project[]) => void;
+        onadd?: () => void;
     };
 
-    let { projects, onrename, onconfigure, ondelete, onreorder }: Props = $props();
+    let { projects, onrename, onconfigure, ondelete, onreorder, onadd }: Props = $props();
 
     let colorMap = $derived(buildProjectColorMap(projects));
 
@@ -97,7 +100,14 @@
 
 <section>
     {#if projects.length === 0}
-        <p class="empty">No projects yet.</p>
+        <EmptyState
+            icon={FolderOutlined}
+            title="No projects yet"
+            description="Projects let you group time entries and set daily, weekly, or monthly limits."
+            actionLabel={onadd ? "Add Project" : undefined}
+            actionIcon={onadd ? Add : undefined}
+            onaction={onadd}
+        />
     {:else}
         <ul class="pr-list">
             {#each projects as project, idx (project.id)}
@@ -170,13 +180,6 @@
 </section>
 
 <style>
-    p.empty {
-        font-size: 14px;
-        color: var(--gray-40);
-        text-align: center;
-        margin: 2rem 0;
-    }
-
     .pr-list {
         display: flex;
         flex-direction: column;

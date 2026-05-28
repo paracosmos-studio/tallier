@@ -3,7 +3,8 @@
     import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
-    import { Add, CalendarMonth } from "$lib/icons";
+    import { Add, CalendarMonth, Receipt, Alarm } from "$lib/icons";
+    import { goto } from "$app/navigation";
     import DayDetail from "$lib/components/reports/day-detail.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
     import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
@@ -243,7 +244,14 @@
     {#if loading}
         <p class="empty">Loading...</p>
     {:else if entries.length === 0}
-        <p class="empty">No entries for this range.</p>
+        <EmptyState
+            icon={Receipt}
+            title="No entries in this range"
+            description="Track time with the timer or add a manual log to populate this view."
+            actionLabel="Go to Timer"
+            actionIcon={Alarm}
+            onaction={() => goto("/")}
+        />
     {:else}
         <div class="split">
             <aside class="dates">

@@ -6,7 +6,8 @@
     import BarList from "$lib/components/charts/bar-list.svelte";
     import StackedBarChart from "$lib/components/charts/stacked-bar-chart.svelte";
     import Icon from "$lib/components/icon.svelte";
-    import { Menu } from "$lib/icons";
+    import EmptyState from "$lib/components/empty-state.svelte";
+    import { Menu, ChartBar, Alarm } from "$lib/icons";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { getProjects, getDailyProjectTotals, getProjectTotals } from "$lib/db";
@@ -222,7 +223,14 @@
         <p class="empty">Loading...</p>
 
     {:else if totalSeconds === 0}
-        <p class="empty">No data for the selected range.</p>
+        <EmptyState
+            icon={ChartBar}
+            title="No data to report"
+            description="There's nothing tracked in this range yet. Start a timer and your activity will show up here."
+            actionLabel="Go to Timer"
+            actionIcon={Alarm}
+            onaction={() => goto("/")}
+        />
 
     {:else}
         <div class="content">

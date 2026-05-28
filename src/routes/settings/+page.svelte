@@ -274,6 +274,7 @@
                         onconfigure={showEdit}
                         ondelete={requestDelete}
                         onreorder={handleReorder}
+                        onadd={showAdd}
                     />
                 {:else}
                     <ProjectForm
@@ -290,6 +291,7 @@
                         {clients}
                         onedit={showClientEdit}
                         ondelete={requestClientDelete}
+                        onadd={showClientAdd}
                     />
                 {:else}
                     <ClientForm

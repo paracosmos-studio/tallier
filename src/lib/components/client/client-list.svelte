@@ -6,24 +6,34 @@
     @param {Client[]} clients - Array of clients to display.
     @param {(client: Client) => void} onedit - Callback when a row is clicked.
     @param {(client: Client) => void} ondelete - Callback when delete clicked.
+    @param {() => void} [onadd] - Optional callback invoked from the empty state's call-to-action.
 -->
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
-    import { Delete } from "$lib/icons";
+    import EmptyState from "$lib/components/empty-state.svelte";
+    import { Delete, WorkOutlined, Add } from "$lib/icons";
     import type { Client } from "$lib/types";
 
     type Props = {
         clients: Client[];
         onedit: (client: Client) => void;
         ondelete: (client: Client) => void;
+        onadd?: () => void;
     };
 
-    let { clients, onedit, ondelete }: Props = $props();
+    let { clients, onedit, ondelete, onadd }: Props = $props();
 </script>
 
 <section>
     {#if clients.length === 0}
-        <p class="empty">No clients yet.</p>
+        <EmptyState
+            icon={WorkOutlined}
+            title="No clients yet"
+            description="Save client contacts to attach them to invoices and keep billing details in one place."
+            actionLabel={onadd ? "Add Client" : undefined}
+            actionIcon={onadd ? Add : undefined}
+            onaction={onadd}
+        />
     {:else}
         <ul class="cl-list">
             {#each clients as client (client.id)}
@@ -55,13 +65,6 @@
 </section>
 
 <style>
-    p.empty {
-        font-size: 14px;
-        color: var(--gray-40);
-        text-align: center;
-        margin: 2rem 0;
-    }
-
     .cl-list {
         display: flex;
         flex-direction: column;
