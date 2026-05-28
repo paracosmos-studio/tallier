@@ -19,7 +19,7 @@
         createManualEntry,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/colors";
-    import { formatDateISO, formatDateLong, formatDuration } from "$lib/format";
+    import { formatDateISO, formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "$lib/format";
     import { loadRangeState, saveRangeState } from "$lib/range-storage";
     import type { Project, ReportEntry } from "$lib/types";
 
@@ -302,7 +302,9 @@
 <DialogConfirm
     open={deleteOpen}
     title="Delete Entry"
-    message={`Delete "${deleteTarget?.title || "Untitled"}"? This cannot be undone.`}
+    message={deleteTarget
+        ? `Delete entry ${formatDateMedium(deleteTarget.date)} @ ${formatTimeOfDay(deleteTarget.start)} - ${formatTimeOfDay(deleteTarget.end ?? "")}? This cannot be undone.`
+        : ""}
     confirmLabel="Delete"
     cancelLabel="Cancel"
     onconfirm={confirmDelete}

@@ -281,7 +281,7 @@
             {#if showHide}
                 <div class="hide-row">
                     <div class="hide-text">
-                        <span class="hide-label">Hide entry</span>
+                        <span class="hide-label">Hide entry from timesheet</span>
                     </div>
                     <Toggle bind:checked={editHidden} />
                 </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
-    import { Alarm, Settings, FolderOpen, ChartBar } from "$lib/icons";
+    import { Alarm, Settings, ChartBar } from "$lib/icons";
     import { page } from '$app/state';
 
     interface TitleInfo {
@@ -11,10 +11,6 @@
     const TitleMap: Record<string, TitleInfo> = {
         '/': {
             title: 'Tallier'
-        },
-        '/projects': {
-            title: 'Projects',
-            icon: FolderOpen
         },
         '/settings': {
             title: 'Settings',

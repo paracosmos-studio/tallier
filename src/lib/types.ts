@@ -11,6 +11,8 @@ export interface Project {
   id?: number;
   position: number;
   name: string;
+  color: string | null;
+  hourly_rate: number | null;
   max_daily: number | null;
   max_daily_alert: number | null;
   max_weekly: number | null;

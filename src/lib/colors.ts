@@ -1,4 +1,4 @@
-const PROJECT_COLORS = [
+export const PROJECT_COLORS: readonly string[] = [
     "#9ECB78",
     "#EEC675",
     "#E16470",
@@ -13,13 +13,23 @@ export function getProjectColor(index: number): string {
     return PROJECT_COLORS[index % PROJECT_COLORS.length];
 }
 
+export function getRandomProjectColor(): string {
+    return PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)];
+}
+
+/**
+ * Builds a project-id → color map. Honors each project's stored `color` when
+ * present; otherwise falls back to a position-based assignment from the preset
+ * palette so unconfigured projects still get stable colors.
+ */
 export function buildProjectColorMap(
-    projects: { id?: number; position: number }[]
+    projects: { id?: number; position: number; color?: string | null }[]
 ): Map<number, string> {
     const map = new Map<number, string>();
     const sorted = [...projects].sort((a, b) => a.position - b.position);
     sorted.forEach((p, i) => {
-        if (p.id !== undefined) map.set(p.id, getProjectColor(i));
+        if (p.id === undefined) return;
+        map.set(p.id, p.color ?? getProjectColor(i));
     });
     return map;
 }

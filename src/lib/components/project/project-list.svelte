@@ -12,7 +12,8 @@
 <script lang="ts">
     import type { Project } from "$lib/types";
     import Icon from "$lib/components/icon.svelte";
-    import { CheckCircle, CloseCircle, Tune, Edit, Delete, Drag } from "$lib/icons";
+    import { CheckCircle, CloseCircle, Build, Delete, Drag } from "$lib/icons";
+    import { buildProjectColorMap } from "$lib/colors";
 
     type Props = {
         projects: Project[];
@@ -24,6 +25,8 @@
 
     let { projects, onrename, onconfigure, ondelete, onreorder }: Props = $props();
 
+    let colorMap = $derived(buildProjectColorMap(projects));
+
     let editingId: number | null = $state(null);
     let editingName: string = $state("");
     let dragIdx: number | null = $state(null);
@@ -33,6 +36,11 @@
     function startRename(project: Project) {
         editingId = project.id!;
         editingName = project.name;
+    }
+
+    function autoFocus(node: HTMLInputElement) {
+        node.focus();
+        node.select();
     }
 
     function cancelEdit() {
@@ -105,6 +113,7 @@
                                 type="text"
                                 class="pr-name-input"
                                 maxlength="30"
+                                use:autoFocus
                                 bind:value={editingName}
                                 onkeydown={(e: KeyboardEvent) => {
                                     if (e.key === "Enter") saveEdit();
@@ -131,14 +140,23 @@
                             >
                                 <Icon path={Drag} size="20" fill="var(--gray-50)" />
                             </span>
-                            <span class="pr-name">{project.name}</span>
+                            <span
+                                class="pr-color"
+                                style="background-color: {colorMap.get(project.id!) ?? 'var(--gray-60)'};"
+                                aria-hidden="true"
+                            ></span>
+                            <button
+                                type="button"
+                                class="pr-name"
+                                title="Rename"
+                                onclick={() => startRename(project)}
+                            >
+                                {project.name}
+                            </button>
                         </div>
                         <div class="pr-actions">
-                            <button title="Rename" class="rename" onclick={() => startRename(project)}>
-                                <Icon path={Edit} size="20" fill="currentColor" />
-                            </button>
                             <button title="Configure" class="configure" onclick={() => onconfigure(project)}>
-                                <Icon path={Tune} size="20" fill="currentColor" />
+                                <Icon path={Build} size="20" fill="currentColor" />
                             </button>
                             <button title="Delete" class="delete" onclick={() => ondelete(project)}>
                                 <Icon path={Delete} size="20" fill="currentColor" />
@@ -202,6 +220,14 @@
         touch-action: none;
     }
 
+    .pr-color {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
     .pr-info {
         display: flex;
         align-items: center;
@@ -222,8 +248,19 @@
     }
 
     .pr-name {
+        appearance: none;
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
         font-size: 14px;
         color: var(--gray-10);
+        cursor: text;
+        text-align: left;
+    }
+
+    .pr-name:hover {
+        color: var(--gray-20);
     }
 
     .pr-actions button {
@@ -251,7 +288,4 @@
         color: var(--yellow);
     }
 
-    .pr-actions button.rename:hover {
-        color: var(--gray-20);
-    }
 </style>
