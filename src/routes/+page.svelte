@@ -3,7 +3,7 @@
     import { listen } from "@tauri-apps/api/event";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
-    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getSetting } from "$lib/db";
+    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getProjectTotalsForLimits, getSetting } from "$lib/db";
     import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
     import Select from "$lib/components/select.svelte";
@@ -19,8 +19,22 @@
     let selectedProject = $state("");
     let projects: Project[] = $state([]);
     let trayOrder: number[] = $state([]);
+    let projectTotals: Map<number, { today: number; week: number }> = $state(new Map());
     let projectOptions = $derived(
-        projects.map(p => ({ value: String(p.id), label: p.name }))
+        projects.map(p => {
+            const t = projectTotals.get(p.id!);
+            let hint: string | undefined;
+            if (p.max_daily_enabled && t) {
+                if (p.max_daily && p.max_daily > 0 && t.today >= p.max_daily) {
+                    hint = "Daily limit reached";
+                } else if (p.max_weekly && p.max_weekly > 0 && t.week >= p.max_weekly) {
+                    hint = "Weekly limit reached";
+                }
+            }
+            return hint
+                ? { value: String(p.id), label: p.name, hint }
+                : { value: String(p.id), label: p.name };
+        })
     );
     let limitReached = $derived.by(() => {
         const proj = getSelectedProject();
@@ -85,6 +99,10 @@
         } else {
             setTrayTimer(todayTotal, undefined, tp, selId, showTrayTitle, undefined, limitReached, autoPauseOnSleep).catch(() => {});
         }
+    }
+
+    async function refreshProjectTotals() {
+        projectTotals = await getProjectTotalsForLimits();
     }
 
     async function refreshTodayTotal() {
@@ -185,6 +203,7 @@
 
         await refreshTodayTotal();
         await refreshWeekTotal();
+        await refreshProjectTotals();
         syncTray();
 
         if (running) {
@@ -266,6 +285,7 @@
         stopLimitChecking();
         await refreshTodayTotal();
         await refreshWeekTotal();
+        await refreshProjectTotals();
         syncTray();
         stoppedTimerId = timerId;
         if (showWindow) {

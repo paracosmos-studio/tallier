@@ -85,6 +85,41 @@ export async function getTodayProjectTotal(projectId: number): Promise<number> {
 
 
 /**
+ * Returns today + this-week totals for every project in one round-trip.
+ * Map key is project_id; value carries both periods in seconds.
+ */
+export async function getProjectTotalsForLimits(): Promise<Map<number, { today: number; week: number }>> {
+    const database = getDB();
+    const now = new Date();
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const today = fmt(now);
+    const day = now.getDay();
+    const mondayOffset = day === 0 ? -6 : 1 - day;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + mondayOffset);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const rows = await database.select<{ project_id: number; today_seconds: number; week_seconds: number }[]>(
+        `SELECT e.project_id,
+                COALESCE(SUM(CASE WHEN t.date = $1 THEN t.total ELSE 0 END), 0) AS today_seconds,
+                COALESCE(SUM(t.total), 0) AS week_seconds
+         FROM timers t
+         JOIN entries e ON e.timer_id = t.id
+         WHERE t.date >= $2 AND t.date <= $3 AND t.status = 'stopped'
+         GROUP BY e.project_id`,
+        [today, fmt(monday), fmt(sunday)]
+    );
+
+    const totals = new Map<number, { today: number; week: number }>();
+    for (const r of rows) {
+        totals.set(r.project_id, { today: r.today_seconds, week: r.week_seconds });
+    }
+    return totals;
+}
+
+
+/**
  * Gets the total seconds logged for a project this week (Mon-Sun, stopped timers only).
  * @param projectId - ID of the project to calculate total for.
  */

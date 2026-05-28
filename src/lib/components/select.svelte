@@ -2,7 +2,7 @@
     @component
     Custom select dropdown with search functionality.
 
-    @param {Array<{value: string, label: string}>} options The selectable options.
+    @param {Array<{value: string, label: string, hint?: string}>} options The selectable options. Optional `hint` renders as muted yellow accent text alongside the label.
     @param {string} [value] The currently selected value (bindable, single-select).
     @param {string[]} [values] The currently selected values (bindable, multi-select).
     @param {boolean} [multiple=false] Enable multi-selection mode.
@@ -23,7 +23,7 @@
     import { ArrowDropdown, Search, Close, Check } from '$lib/icons';
 
     interface Props {
-        options: Array<{ value: string; label: string }>;
+        options: Array<{ value: string; label: string; hint?: string }>;
         value?: string;
         values?: string[];
         multiple?: boolean;
@@ -84,6 +84,7 @@
     });
 
     const hasSelection = $derived(multiple ? values.length > 0 : !!value);
+    const selectedHint = $derived(!multiple ? options.find(o => o.value === value)?.hint : undefined);
 
     function isSelected(optValue: string): boolean {
         return multiple ? values.includes(optValue) : optValue === value;
@@ -161,6 +162,9 @@
     >
         {#if !isOpen}
             <span class="selected-value">{selectedLabel}</span>
+            {#if selectedHint}
+                <span class={`option-hint ${size}`}>{selectedHint}</span>
+            {/if}
             {#if nullable && hasSelection}
                 <span
                     role="button"
@@ -215,6 +219,9 @@
                         onclick={() => selectOption(option.value)}
                     >
                         <span class="option-label">{option.label}</span>
+                        {#if option.hint}
+                            <span class={`option-hint ${size}`}>{option.hint}</span>
+                        {/if}
                         {#if multiple && isSelected(option.value)}
                             <Icon path={Check} size={iconSizeMap.check[size]} fill="var(--green)" />
                         {/if}
@@ -387,6 +394,16 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    .option-hint {
+        color: var(--yellow);
+        flex-shrink: 0;
+        pointer-events: none;
+    }
+
+    .option-hint.sm { font-size: 0.75rem; }
+    .option-hint.md { font-size: 0.8rem; }
+    .option-hint.lg { font-size: 0.85rem; }
 
     .option.sm {
         padding: 0.35rem 0.5rem;
