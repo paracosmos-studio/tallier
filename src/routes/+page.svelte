@@ -4,6 +4,7 @@
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
     import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getProjectTotalsForLimits, getSetting } from "$lib/db";
+    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/date-utils";
     import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
     import Select from "$lib/components/select.svelte";
@@ -51,6 +52,7 @@
     let stoppedTimerId: number | null = $state(null);
     let showTrayTitle: boolean = $state(false);
     let autoPauseOnSleep: boolean = $state(false);
+    let weekStartsOn: number = $state(DEFAULT_WEEK_START);
     let unlistenTray: (() => void) | undefined;
     let limitCheckId: ReturnType<typeof setInterval> | null = null;
     let dailyAlertSent: boolean = $state(false);
@@ -102,7 +104,7 @@
     }
 
     async function refreshProjectTotals() {
-        projectTotals = await getProjectTotalsForLimits();
+        projectTotals = await getProjectTotalsForLimits(weekStartsOn);
     }
 
     async function refreshTodayTotal() {
@@ -115,7 +117,7 @@
 
     async function refreshWeekTotal() {
         if (selectedProject) {
-            weekTotal = await getWeekProjectTotal(Number(selectedProject));
+            weekTotal = await getWeekProjectTotal(Number(selectedProject), weekStartsOn);
         } else {
             weekTotal = 0;
         }
@@ -188,6 +190,7 @@
         trayOrder = projects.map(p => p.id!);
         showTrayTitle = (await getSetting("taskbarDisplay")) === "true";
         autoPauseOnSleep = (await getSetting("autoPauseOnSleep")) === "true";
+        weekStartsOn = parseWeekStartsOn(await getSetting(WEEK_START_SETTING_KEY));
 
         const existing = await getRunningTimer();
 

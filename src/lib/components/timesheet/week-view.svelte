@@ -1,8 +1,9 @@
 <!--
     @component
     Timesheet week view: per-week tables of project rows with decimal-hour
-    cells across Monday-Sunday and a daily Total footer. The Project and Sum
-    columns stay pinned while the weekday columns scroll horizontally.
+    cells across a 7-day span and a daily Total footer. The week anchor day is
+    driven by the user's `weekStartsOn` setting (0=Sun..6=Sat). The Project
+    and Sum columns stay pinned while the weekday columns scroll horizontally.
     Tapping a non-empty cell asks the page to open the edit dialog on the
     entry behind it.
 
@@ -12,11 +13,13 @@
     @param {number} roundMinutes - round each entry duration to this many minutes.
     @param {Set<number>} hiddenIds - entry IDs currently excluded from totals.
     @param {Map<number, EntryOverride>} overrides - view-only edits per entry.
+    @param {number} weekStartsOn - 0..6 (Sun..Sat); anchors weeks to that day.
     @param {(entry: ReportEntry, siblings?: ReportEntry[]) => void} onedit - request to open the edit dialog; pass the full set of entries in the cell so the dialog can page through them.
 -->
 <script lang="ts">
     import { formatDateShort, formatDateISO, MONTHS } from "$lib/format";
     import { buildDayGroups, buildWeeks } from "$lib/timesheet";
+    import { orderedDayLabels } from "$lib/date-utils";
     import type { ReportEntry, Project } from "$lib/types";
     import type { EntryOverride, WeekSection } from "$lib/timesheet";
 
@@ -27,6 +30,7 @@
         roundMinutes: number;
         hiddenIds: Set<number>;
         overrides: Map<number, EntryOverride>;
+        weekStartsOn: number;
         onedit: (entry: ReportEntry, siblings?: ReportEntry[]) => void;
     };
 
@@ -37,10 +41,11 @@
         roundMinutes,
         hiddenIds,
         overrides,
+        weekStartsOn,
         onedit,
     }: Props = $props();
 
-    const DAY_LETTERS: readonly string[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    let dayLabels: string[] = $derived(orderedDayLabels(weekStartsOn));
 
     let projectNames: Map<number, string> = $derived.by(() => {
         const m = new Map<number, string>();
@@ -51,7 +56,7 @@
     });
 
     let weeks: WeekSection[] = $derived(
-        buildWeeks(buildDayGroups(entries, roundMinutes, hiddenIds, overrides, projectNames))
+        buildWeeks(buildDayGroups(entries, roundMinutes, hiddenIds, overrides, projectNames), weekStartsOn)
     );
 
     const today: string = formatDateISO(new Date());
@@ -99,11 +104,10 @@
                         {#each week.days as d, i (d)}
                             <th
                                 class="col-day head-day"
-                                class:weekend={i >= 5}
                                 class:today={d === today}
                                 scope="col"
                             >
-                                <span class="dow">{DAY_LETTERS[i]}</span>
+                                <span class="dow">{dayLabels[i]}</span>
                                 <span class="dnum">{week.dayNumbers[i]}</span>
                             </th>
                         {/each}
@@ -126,7 +130,6 @@
                                 {@const has = cell.entries.length > 0}
                                 <td
                                     class="col-day cell-day"
-                                    class:weekend={i >= 5}
                                     class:today={week.days[i] === today}
                                     class:empty={!has}
                                 >
@@ -154,7 +157,6 @@
                         {#each week.dailyTotals as s, i (i)}
                             <td
                                 class="col-day foot-day"
-                                class:weekend={i >= 5}
                                 class:today={week.days[i] === today}
                                 class:empty={s === 0}
                             >
@@ -413,16 +415,6 @@
         color: var(--green);
         text-align: center;
         font-weight: 500;
-    }
-
-    /* weekend de-emphasis */
-    .col-day.weekend {
-        background: color-mix(in srgb, var(--gray-80) 35%, transparent);
-    }
-
-    .col-day.weekend .dow,
-    .col-day.weekend .dnum {
-        color: var(--gray-30);
     }
 
     /* today accent */

@@ -1,5 +1,6 @@
 import { computeDuration, formatDateISO, roundSeconds, roundTimeOfDay, timeToSeconds } from "./format";
 import { splitCrossMidnight } from "./cross-midnight";
+import { startOfWeek } from "./date-utils";
 import type { ReportEntry } from "./types";
 
 
@@ -253,14 +254,6 @@ export function projectKey(date: string, projectId: number): string {
     return `${date}|${projectId}`;
 }
 
-function mondayOf(dateStr: string): Date {
-    const d: Date = new Date(dateStr + "T00:00:00");
-    const dow: number = d.getDay();
-    const diff: number = dow === 0 ? -6 : 1 - dow;
-    d.setDate(d.getDate() + diff);
-    return d;
-}
-
 function addDays(d: Date, n: number): Date {
     const r: Date = new Date(d);
     r.setDate(d.getDate() + n);
@@ -268,17 +261,18 @@ function addDays(d: Date, n: number): Date {
 }
 
 /**
- * Re-buckets the per-day timesheet groups into Monday-anchored weeks.
+ * Re-buckets the per-day timesheet groups into weeks anchored by `weekStartsOn`.
  * Each cell holds the rounded seconds for that (project, day) and a
  * reference to the underlying entries so the edit dialog can target them.
+ * @param weekStartsOn - 0..6 (Sun..Sat)
  */
-export function buildWeeks(dayGroups: TimesheetDayGroup[]): WeekSection[] {
+export function buildWeeks(dayGroups: TimesheetDayGroup[], weekStartsOn: number): WeekSection[] {
     const byDate: Map<string, TimesheetDayGroup> = new Map();
     for (const g of dayGroups) byDate.set(g.date, g);
 
     const weekStarts: Set<string> = new Set();
     for (const g of dayGroups) {
-        weekStarts.add(formatDateISO(mondayOf(g.date)));
+        weekStarts.add(formatDateISO(startOfWeek(new Date(g.date + "T00:00:00"), weekStartsOn)));
     }
 
     return Array.from(weekStarts)

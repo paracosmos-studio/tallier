@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { getProjects, getReportEntries } from "$lib/db";
+    import { getProjects, getReportEntries, getSetting } from "$lib/db";
+    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/date-utils";
     import { buildProjectColorMap } from "$lib/colors";
     import { formatDateISO } from "$lib/format";
     import PageNavigation from "$lib/components/page-navigation.svelte";
@@ -47,6 +48,7 @@
     let selectedProjects: string[] = $state([]);
     let view: View = $state("vl");
     let roundTo: Round = $state("1");
+    let weekStartsOn: number = $state(DEFAULT_WEEK_START);
 
     const rangeOptions = [
         { value: "7", label: "Last 7 days" },
@@ -244,6 +246,7 @@
     onMount(async () => {
         projects = await getProjects();
         colorMap = buildProjectColorMap(projects);
+        weekStartsOn = parseWeekStartsOn(await getSetting(WEEK_START_SETTING_KEY));
         await loadEntries();
     });
 </script>
@@ -334,6 +337,7 @@
             {roundMinutes}
             {hiddenIds}
             {overrides}
+            {weekStartsOn}
             onedit={openEdit}
         />
     {:else}
@@ -346,6 +350,7 @@
             end={activeRange.end}
             {hiddenIds}
             {overrides}
+            {weekStartsOn}
             onedit={openEdit}
         />
     {/if}

@@ -1,5 +1,10 @@
 import { getDB } from "./connection";
+import { startOfWeek, endOfWeek } from "$lib/date-utils";
 import type { Timer } from "$lib/types";
+
+function fmtISODate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 
 /**
@@ -69,8 +74,7 @@ export async function getRunningTimer(): Promise<Timer | null> {
  */
 export async function getTodayProjectTotal(projectId: number): Promise<number> {
     const database = getDB();
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const today = fmtISODate(new Date());
     const rows = await database.select<{ total_seconds: number }[]>(
         `SELECT COALESCE(SUM(t.total), 0) as total_seconds
          FROM timers t
@@ -87,18 +91,14 @@ export async function getTodayProjectTotal(projectId: number): Promise<number> {
 /**
  * Returns today + this-week totals for every project in one round-trip.
  * Map key is project_id; value carries both periods in seconds.
+ * @param weekStartsOn - 0..6 (Sun..Sat); anchors the 7-day window.
  */
-export async function getProjectTotalsForLimits(): Promise<Map<number, { today: number; week: number }>> {
+export async function getProjectTotalsForLimits(weekStartsOn: number): Promise<Map<number, { today: number; week: number }>> {
     const database = getDB();
     const now = new Date();
-    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const today = fmt(now);
-    const day = now.getDay();
-    const mondayOffset = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + mondayOffset);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const today = fmtISODate(now);
+    const weekStart = startOfWeek(now, weekStartsOn);
+    const weekEnd = endOfWeek(now, weekStartsOn);
 
     const rows = await database.select<{ project_id: number; today_seconds: number; week_seconds: number }[]>(
         `SELECT e.project_id,
@@ -108,7 +108,7 @@ export async function getProjectTotalsForLimits(): Promise<Map<number, { today: 
          JOIN entries e ON e.timer_id = t.id
          WHERE t.date >= $2 AND t.date <= $3 AND t.status = 'stopped'
          GROUP BY e.project_id`,
-        [today, fmt(monday), fmt(sunday)]
+        [today, fmtISODate(weekStart), fmtISODate(weekEnd)]
     );
 
     const totals = new Map<number, { today: number; week: number }>();
@@ -120,20 +120,16 @@ export async function getProjectTotalsForLimits(): Promise<Map<number, { today: 
 
 
 /**
- * Gets the total seconds logged for a project this week (Mon-Sun, stopped timers only).
+ * Gets the total seconds logged for a project this week (stopped timers only).
+ * Week boundaries are anchored by `weekStartsOn` (0..6, Sun..Sat).
  * @param projectId - ID of the project to calculate total for.
+ * @param weekStartsOn - 0..6 (Sun..Sat); anchors the 7-day window.
  */
-export async function getWeekProjectTotal(projectId: number): Promise<number> {
+export async function getWeekProjectTotal(projectId: number, weekStartsOn: number): Promise<number> {
     const database = getDB();
     const now = new Date();
-    const day = now.getDay();
-    const mondayOffset = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + mondayOffset);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const weekStart = startOfWeek(now, weekStartsOn);
+    const weekEnd = endOfWeek(now, weekStartsOn);
 
     const rows = await database.select<{ total_seconds: number }[]>(
         `SELECT COALESCE(SUM(t.total), 0) as total_seconds
@@ -143,7 +139,7 @@ export async function getWeekProjectTotal(projectId: number): Promise<number> {
            AND t.date >= $2
            AND t.date <= $3
            AND t.status = 'stopped'`,
-        [projectId, fmt(monday), fmt(sunday)]
+        [projectId, fmtISODate(weekStart), fmtISODate(weekEnd)]
     );
     return rows[0]?.total_seconds ?? 0;
 }

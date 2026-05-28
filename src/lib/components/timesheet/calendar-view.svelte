@@ -1,11 +1,12 @@
 <!--
     @component
-    Timesheet calendar view: a fixed 7-column Sunday-anchored week with hours
-    down the left and daily totals across the bottom. Each entry renders as a
-    colored block positioned by its start time and sized by its duration.
-    When the active range spans more than a week, the header offers prev/next
-    paging instead of horizontal scrolling. Tapping a block opens the edit
-    dialog (view-only override, like the week view).
+    Timesheet calendar view: a fixed 7-column week (anchored by the user's
+    `weekStartsOn` setting) with hours down the left and daily totals across
+    the bottom. Each entry renders as a colored block positioned by its start
+    time and sized by its duration. When the active range spans more than a
+    week, the header offers prev/next paging instead of horizontal scrolling.
+    Tapping a block opens the edit dialog (view-only override, like the week
+    view).
 
     @param {ReportEntry[]} entries - entries already filtered by range and projects.
     @param {Project[]} projects - all projects (used by the page-level edit dialog).
@@ -15,6 +16,7 @@
     @param {string} end - active range end (YYYY-MM-DD).
     @param {Set<number>} hiddenIds - entry IDs currently excluded from totals.
     @param {Map<number, EntryOverride>} overrides - view-only edits per entry.
+    @param {number} weekStartsOn - 0..6 (Sun..Sat); anchors the week grid to that day.
     @param {(entry: ReportEntry) => void} onedit - request to open the edit dialog.
 -->
 <script lang="ts">
@@ -22,6 +24,7 @@
     import { ArrowBack, ArrowForward, VisibilityOff } from "$lib/icons";
     import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/format";
     import { buildCalendarDays } from "$lib/timesheet";
+    import { startOfWeek } from "$lib/date-utils";
     import type { ReportEntry, Project } from "$lib/types";
     import type { CalendarDay, EntryOverride } from "$lib/timesheet";
 
@@ -34,6 +37,7 @@
         end: string;
         hiddenIds: Set<number>;
         overrides: Map<number, EntryOverride>;
+        weekStartsOn: number;
         onedit: (entry: ReportEntry) => void;
     };
 
@@ -46,6 +50,7 @@
         end,
         hiddenIds,
         overrides,
+        weekStartsOn,
         onedit,
     }: Props = $props();
 
@@ -83,11 +88,11 @@
         return m;
     });
 
-    // sunday-anchored week starts spanning [start, end]
+    // week starts spanning [start, end], anchored by weekStartsOn
     let weekStarts: string[] = $derived.by(() => {
         if (!start || !end) return [];
-        const s = sundayOf(start);
-        const e = sundayOf(end);
+        const s = startOfWeek(new Date(start + "T00:00:00"), weekStartsOn);
+        const e = startOfWeek(new Date(end + "T00:00:00"), weekStartsOn);
         const count = Math.round((e.getTime() - s.getTime()) / MS_PER_DAY / 7) + 1;
         const out: string[] = [];
         for (let i = 0; i < count; i++) {
@@ -136,12 +141,6 @@
         const targetHour = Math.max(0, Math.floor(earliest / 3600) - 1);
         scrollerEl.scrollTop = targetHour * hourH;
     });
-
-    function sundayOf(dateStr: string): Date {
-        const d: Date = new Date(dateStr + "T00:00:00");
-        d.setDate(d.getDate() - d.getDay());
-        return d;
-    }
 
     function dayHeader(date: string): { mon: string; day: string; dow: number; dowLabel: string; inRange: boolean } {
         const d: Date = new Date(date + "T00:00:00");
@@ -224,7 +223,6 @@
                     {@const h = dayHeader(date)}
                     <div
                         class="day-head head"
-                        class:weekend={h.dow === 0 || h.dow === 6}
                         class:today={date === today}
                         class:out={!h.inRange}
                     >
@@ -245,7 +243,6 @@
                     {@const d = dayMap.get(date)}
                     <div
                         class="day-col"
-                        class:weekend={h.dow === 0 || h.dow === 6}
                         class:today={date === today}
                         class:out={!h.inRange}
                     >
@@ -465,10 +462,6 @@
     .day-col {
         position: relative;
         border-right: 1px solid var(--gray-80);
-    }
-
-    .day-col.weekend {
-        background: color-mix(in srgb, var(--gray-80) 22%, transparent);
     }
 
     .day-col.today {
