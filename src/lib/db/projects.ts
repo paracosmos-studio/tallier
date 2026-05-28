@@ -22,16 +22,23 @@ export async function getProject(id: number): Promise<Project | null> {
 }
 
 
+export interface ProjectExtras {
+    color?: string | null;
+    hourlyRate?: number | null;
+    currency?: string | null;
+}
+
+
 /**
  * Creates a new project appended to the end of the position list.
  * @param name - display name for the project.
  * @param limits - optional timer limit config.
- * @param color - optional swatch color (hex). Null = unassigned (palette fallback).
+ * @param extras - optional swatch color, hourly rate, and currency.
  */
 export async function createProject(
     name: string,
     limits?: ProjectLimits,
-    color: string | null = null
+    extras: ProjectExtras = {}
 ): Promise<void> {
     const database = getDB();
     const rows = await database.select<{max_pos: number | null}[]>(
@@ -40,12 +47,16 @@ export async function createProject(
     const nextPos = (rows[0]?.max_pos ?? -1) + 1;
     await database.execute(
         `INSERT INTO projects
-            (name, position, color, max_daily, max_daily_alert, max_weekly, max_weekly_alert, max_daily_enabled, max_weekly_enabled)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            (name, position, color, hourly_rate, currency,
+             max_daily, max_daily_alert, max_weekly, max_weekly_alert,
+             max_daily_enabled, max_weekly_enabled)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
             name,
             nextPos,
-            color,
+            extras.color ?? null,
+            extras.hourlyRate ?? null,
+            extras.currency ?? null,
             limits?.maxDaily ?? null,
             limits?.maxDailyAlert ?? null,
             limits?.maxWeekly ?? null,
@@ -58,33 +69,38 @@ export async function createProject(
 
 
 /**
- * Updates the display name, limits, and color of an existing project.
+ * Updates the display name, limits, color, hourly rate, and currency
+ * of an existing project.
  * @param id - project ID.
  * @param name - new display name.
  * @param limits - timer limit config.
- * @param color - swatch color (hex) or null to clear.
+ * @param extras - swatch color, hourly rate, currency (null clears).
  */
 export async function updateProject(
     id: number,
     name: string,
     limits?: ProjectLimits,
-    color: string | null = null
+    extras: ProjectExtras = {}
 ): Promise<void> {
     const database = getDB();
     await database.execute(
         `UPDATE projects
          SET name = $1,
              color = $2,
-             max_daily = $3,
-             max_daily_alert = $4,
-             max_weekly = $5,
-             max_weekly_alert = $6,
-             max_daily_enabled = $7,
-             max_weekly_enabled = $8
-         WHERE id = $9`,
+             hourly_rate = $3,
+             currency = $4,
+             max_daily = $5,
+             max_daily_alert = $6,
+             max_weekly = $7,
+             max_weekly_alert = $8,
+             max_daily_enabled = $9,
+             max_weekly_enabled = $10
+         WHERE id = $11`,
         [
             name,
-            color,
+            extras.color ?? null,
+            extras.hourlyRate ?? null,
+            extras.currency ?? null,
             limits?.maxDaily ?? null,
             limits?.maxDailyAlert ?? null,
             limits?.maxWeekly ?? null,

@@ -13,6 +13,7 @@ export interface Project {
   name: string;
   color: string | null;
   hourly_rate: number | null;
+  currency: string | null;
   max_daily: number | null;
   max_daily_alert: number | null;
   max_weekly: number | null;

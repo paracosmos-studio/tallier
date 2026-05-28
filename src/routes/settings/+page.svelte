@@ -77,11 +77,15 @@
         projectView = "list";
     }
 
-    async function handleFormSave(name: string, limits: ProjectLimits, color: string) {
+    async function handleFormSave(
+        name: string,
+        limits: ProjectLimits,
+        extras: { color: string; hourlyRate: number | null; currency: string | null },
+    ) {
         if (projectView === "edit" && editingProject?.id != null) {
-            await updateProject(editingProject.id, name, limits, color);
+            await updateProject(editingProject.id, name, limits, extras);
         } else {
-            await createProject(name, limits, color);
+            await createProject(name, limits, extras);
         }
         await loadProjects();
         showList();

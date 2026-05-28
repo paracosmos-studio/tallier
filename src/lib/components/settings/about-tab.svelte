@@ -29,7 +29,7 @@
                 https://tallier.app
             </a>
             <a href={settings.urls.license} target="_blank" rel="noopener noreferrer">
-                view license
+                View License
             </a>
         </div>
     </div>
@@ -96,7 +96,7 @@
 <style>
     .card {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
         gap: 1rem;
         padding: 0.75rem;
