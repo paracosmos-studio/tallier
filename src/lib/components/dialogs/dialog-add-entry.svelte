@@ -11,7 +11,7 @@
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
-    import { computeDuration, formatDateISO, formatDuration, timeToSeconds } from "$lib/format";
+    import { computeDuration, formatDateISO, formatDuration, timeToSeconds } from "$lib/helpers/format";
     import type { Project } from "$lib/types";
 
     type Props = {

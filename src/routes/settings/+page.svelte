@@ -33,7 +33,7 @@
         updateClient,
         deleteClient,
     } from "$lib/db";
-    import { buildProjectColorMap } from "$lib/colors";
+    import { buildProjectColorMap } from "$lib/helpers/colors";
 
     type Tab = "projects" | "clients" | "preference" | "about";
     type ProjectView = "list" | "add" | "edit";

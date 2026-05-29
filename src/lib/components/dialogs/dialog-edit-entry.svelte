@@ -23,7 +23,7 @@
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
     import { ArrowBack, ArrowForward } from "$lib/icons";
-    import { computeDuration, formatDuration, timeToSeconds } from "$lib/format";
+    import { computeDuration, formatDuration, timeToSeconds } from "$lib/helpers/format";
     import type { ReportEntry, Project } from "$lib/types";
 
     type Props = {

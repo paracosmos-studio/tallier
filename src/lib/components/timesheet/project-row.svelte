@@ -19,7 +19,7 @@
     import EntryRow from "$lib/components/reports/entry-row.svelte";
     import Icon from "$lib/components/icon.svelte";
     import { ArrowDropdown, ArrowDropup } from "$lib/icons";
-    import { formatDuration } from "$lib/format";
+    import { formatDuration } from "$lib/helpers/format";
     import type { ReportEntry } from "$lib/types";
 
     type Props = {
@@ -64,7 +64,6 @@
             {#each entries as entry (entry.entry_id)}
                 <EntryRow
                     {entry}
-                    {colorMap}
                     hidden={hiddenIds.has(entry.entry_id)}
                     onedit={() => onedit(entry)}
                     onhide={() => onhide(entry.entry_id)}

@@ -11,7 +11,7 @@
 -->
 <script lang="ts">
     import EntryRow from "./entry-row.svelte";
-    import { formatDuration } from "$lib/format";
+    import { formatDuration } from "$lib/helpers/format";
     import type { ReportEntry, ProjectEntryGroup } from "$lib/types";
 
     type Props = {
@@ -54,7 +54,6 @@
                 {#each pg.entries as entry (entry.entry_id)}
                     <EntryRow
                         {entry}
-                        {colorMap}
                         onedit={() => onedit(entry)}
                         ondelete={() => ondelete(entry)}
                     />

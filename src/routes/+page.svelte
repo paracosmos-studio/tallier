@@ -4,7 +4,7 @@
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
     import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getProjectTotalsForLimits, getSetting } from "$lib/db";
-    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/date-utils";
+    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
     import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
     import Select from "$lib/components/select.svelte";

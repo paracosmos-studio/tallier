@@ -1,7 +1,7 @@
 <script lang="ts">
     import { untrack } from "svelte";
     import type { Project, ProjectLimits } from "$lib/types";
-    import { PROJECT_COLORS, getRandomProjectColor } from "$lib/colors";
+    import { PROJECT_COLORS, getRandomProjectColor } from "$lib/helpers/colors";
     import Select from "$lib/components/select.svelte";
     import ProjectLimit from "./project-limit.svelte";
 

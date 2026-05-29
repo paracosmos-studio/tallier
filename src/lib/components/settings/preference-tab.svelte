@@ -10,7 +10,7 @@
     import { onMount } from "svelte";
     import { getSetting, setSetting } from "$lib/db";
     import { setTrayShowTitle, setTrayAutoPause } from "$lib/tray";
-    import { WEEK_START_SETTING_KEY, DEFAULT_WEEK_START, parseWeekStartsOn } from "$lib/date-utils";
+    import { WEEK_START_SETTING_KEY, DEFAULT_WEEK_START, parseWeekStartsOn } from "$lib/helpers/date-utils";
 
     type Settings = {
         taskbarDisplay: boolean

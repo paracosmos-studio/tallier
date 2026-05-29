@@ -17,9 +17,9 @@
     @param {(entry: ReportEntry, siblings?: ReportEntry[]) => void} onedit - request to open the edit dialog; pass the full set of entries in the cell so the dialog can page through them.
 -->
 <script lang="ts">
-    import { formatDateShort, formatDateISO, MONTHS } from "$lib/format";
+    import { formatDateShort, formatDateISO, MONTHS } from "$lib/helpers/format";
     import { buildDayGroups, buildWeeks } from "$lib/timesheet";
-    import { orderedDayLabels } from "$lib/date-utils";
+    import { orderedDayLabels } from "$lib/helpers/date-utils";
     import type { ReportEntry, Project } from "$lib/types";
     import type { EntryOverride, WeekSection } from "$lib/timesheet";
 

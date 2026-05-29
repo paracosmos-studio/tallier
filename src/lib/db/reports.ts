@@ -1,6 +1,6 @@
 import { getDB } from "./connection";
-import { computeDuration } from "$lib/format";
-import { splitCrossMidnight } from "$lib/cross-midnight";
+import { computeDuration } from "$lib/helpers/format";
+import { splitCrossMidnight } from "$lib/helpers/cross-midnight";
 import type { ReportEntry, DailyProjectTotal, ProjectTotal } from "$lib/types";
 
 

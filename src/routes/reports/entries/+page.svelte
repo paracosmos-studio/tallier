@@ -1,12 +1,12 @@
 <script lang="ts">
     import PageNavigation from "$lib/components/page-navigation.svelte";
-    import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
     import { Add, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import { goto } from "$app/navigation";
     import DayDetail from "$lib/components/reports/day-detail.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
+    import DateRangeFilter from "$lib/components/date-range-filter.svelte";
     import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import DialogAddEntry from "$lib/components/dialogs/dialog-add-entry.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
@@ -19,32 +19,17 @@
         deleteEntry,
         createManualEntry,
     } from "$lib/db";
-    import { buildProjectColorMap } from "$lib/colors";
-    import { formatDateISO, formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "$lib/format";
-    import { loadRangeState, saveRangeState } from "$lib/range-storage";
+    import { buildProjectColorMap } from "$lib/helpers/colors";
+    import { formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "$lib/helpers/format";
+    import { computeDateRange } from "$lib/helpers/date-range";
+    import { loadRangeState, saveRangeState } from "$lib/helpers/range-storage";
     import type { Project, ReportEntry } from "$lib/types";
 
     const persisted = loadRangeState();
     let selectedRange: string = $state(persisted.selectedRange ?? "30");
     let customStart: string = $state(persisted.customStart ?? "");
     let customEnd: string = $state(persisted.customEnd ?? "");
-    let prevNumericRange: string = $state(
-        persisted.selectedRange && persisted.selectedRange !== "custom"
-            ? persisted.selectedRange
-            : "7"
-    );
 
-    function ensureCustomDates(): void {
-        if (selectedRange !== "custom") return;
-        if (customStart && customEnd) return;
-        const today = new Date();
-        const parsed = parseInt(prevNumericRange);
-        const days = Number.isFinite(parsed) && parsed > 0 ? parsed : 7;
-        const start = new Date(today);
-        start.setDate(today.getDate() - days + 1);
-        customStart = formatDateISO(start);
-        customEnd = formatDateISO(today);
-    }
     let projects: Project[] = $state([]);
     let entries: ReportEntry[] = $state([]);
     let colorMap: Map<number, string> = $state(new Map());
@@ -58,25 +43,6 @@
 
     let deleteOpen: boolean = $state(false);
     let deleteTarget: ReportEntry | null = $state(null);
-
-    function getDateRange(): { start: string; end: string } | null {
-        const today = new Date();
-        const end = formatDateISO(today);
-
-        if (selectedRange === "custom") {
-            if (!customStart || !customEnd) return null;
-            return { start: customStart, end: customEnd };
-        }
-
-        if (selectedRange === "all") {
-            return { start: "2000-01-01", end };
-        }
-
-        const days = parseInt(selectedRange);
-        const start = new Date(today);
-        start.setDate(today.getDate() - days + 1);
-        return { start: formatDateISO(start), end };
-    }
 
     interface GroupedDay {
         date: string;
@@ -103,8 +69,8 @@
             : null
     );
 
-    async function loadEntries() {
-        const range = getDateRange();
+    async function loadEntries(): Promise<void> {
+        const range = computeDateRange(selectedRange, customStart, customEnd);
         if (!range) return;
         loading = true;
         entries = await getReportEntries(range.start, range.end);
@@ -115,9 +81,7 @@
         loading = false;
     }
 
-    function handleRangeChange() {
-        if (selectedRange !== "custom") prevNumericRange = selectedRange;
-        ensureCustomDates();
+    function handleRangeChange(): void {
         saveRangeState({ selectedRange, customStart, customEnd });
         loadEntries();
     }
@@ -185,7 +149,6 @@
     }
 
     onMount(async () => {
-        ensureCustomDates();
         saveRangeState({ selectedRange, customStart, customEnd });
         projects = await getProjects();
         colorMap = buildProjectColorMap(projects);
@@ -196,40 +159,12 @@
 <main>
     <PageNavigation previousPage="/reports">
         <div class="nav-actions">
-            {#if selectedRange === "custom"}
-                <div class="custom-range">
-                    <input
-                        type="date"
-                        bind:value={customStart}
-                        onchange={handleRangeChange}
-                    />
-                    <span class="range-sep">to</span>
-                    <input
-                        type="date"
-                        bind:value={customEnd}
-                        onchange={handleRangeChange}
-                    />
-                </div>
-            {/if}
-            <div class="range-select">
-                <Select
-                    options={[
-                        { value: "7", label: "Last 7 days" },
-                        { value: "14", label: "Last 14 days" },
-                        { value: "30", label: "Last 30 days" },
-                        { value: "90", label: "Last 3 Months" },
-                        { value: "180", label: "Last 6 Months" },
-                        { value: "365", label: "Last Year" },
-                        { value: "all", label: "All Time" },
-                        { value: "custom", label: "Custom Range" },
-                    ]}
-                    size="sm"
-                    nullable={false}
-                    searchable={false}
-                    bind:value={selectedRange}
-                    onchange={handleRangeChange}
-                />
-            </div>
+            <DateRangeFilter
+                bind:selectedRange
+                bind:customStart
+                bind:customEnd
+                onchange={handleRangeChange}
+            />
             <Button
                 size="xs"
                 title="Add Log"
@@ -324,37 +259,6 @@
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-
-    .range-select {
-        width: 160px;
-    }
-
-    .custom-range {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .custom-range input {
-        background: var(--gray-80);
-        border: 1px solid var(--gray-60);
-        border-radius: 4px;
-        color: var(--gray-10);
-        color-scheme: dark;
-        font-size: 0.8rem;
-        padding: 4px 6px;
-        font-family: inherit;
-    }
-
-    .custom-range input:focus {
-        outline: none;
-        border-color: var(--gray-40);
-    }
-
-    .range-sep {
-        font-size: 0.75rem;
-        color: var(--gray-40);
     }
 
     .empty {

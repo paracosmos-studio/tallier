@@ -15,7 +15,7 @@
     import Icon from "$lib/components/icon.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
     import { CheckCircle, CloseCircle, Build, Delete, Drag, FolderOutlined, Add } from "$lib/icons";
-    import { buildProjectColorMap } from "$lib/colors";
+    import { buildProjectColorMap } from "$lib/helpers/colors";
 
     type Props = {
         projects: Project[];

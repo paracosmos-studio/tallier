@@ -4,7 +4,6 @@
     Each action button only renders when its callback is provided.
 
     @param {ReportEntry} entry - the entry data to display.
-    @param {Map<number, string>} colorMap - project ID to color mapping.
     @param {() => void} onedit - callback to open edit dialog.
     @param {() => void} [ondelete] - callback to trigger delete confirmation.
     @param {boolean} [hidden=false] - whether the entry is currently hidden from totals.
@@ -13,19 +12,18 @@
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
     import { Edit, Delete, VisibilityOff } from "$lib/icons";
-    import { formatDuration, formatTimeOfDay } from "$lib/format";
+    import { formatDuration, formatTimeOfDay } from "$lib/helpers/format";
     import type { ReportEntry } from "$lib/types";
 
     type Props = {
         entry: ReportEntry;
-        colorMap: Map<number, string>;
         onedit: () => void;
         ondelete?: () => void;
         hidden?: boolean;
         onhide?: () => void;
     };
 
-    let { entry, colorMap, onedit, ondelete, hidden = false, onhide }: Props = $props();
+    let { entry, onedit, ondelete, hidden = false, onhide }: Props = $props();
 </script>
 
 <div class="row" class:hidden>

@@ -8,7 +8,7 @@
     @param {number} totalDays - number of days with tracked time.
 -->
 <script lang="ts">
-    import { formatDuration } from "$lib/format";
+    import { formatDuration } from "$lib/helpers/format";
 
     type Props = {
         totalSeconds: number;

@@ -22,9 +22,9 @@
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
     import { ArrowBack, ArrowForward, VisibilityOff } from "$lib/icons";
-    import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/format";
+    import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/helpers/format";
     import { buildCalendarDays } from "$lib/timesheet";
-    import { startOfWeek } from "$lib/date-utils";
+    import { startOfWeek } from "$lib/helpers/date-utils";
     import type { ReportEntry, Project } from "$lib/types";
     import type { CalendarDay, EntryOverride } from "$lib/timesheet";
 

@@ -15,7 +15,7 @@
 -->
 <script lang="ts">
     import DayGroup from "./day-group.svelte";
-    import { formatDuration } from "$lib/format";
+    import { formatDuration } from "$lib/helpers/format";
     import { buildDayGroups, projectKey } from "$lib/timesheet";
     import type { ReportEntry, Project } from "$lib/types";
     import type { TimesheetDayGroup, EntryOverride } from "$lib/timesheet";

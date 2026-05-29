@@ -1,5 +1,5 @@
 import { nextDateISO, timeToSeconds, SECONDS_PER_DAY } from "./format";
-import type { ReportEntry } from "./types";
+import type { ReportEntry } from "$lib/types";
 
 /**
  * Splits any entry whose `end` is on the next day into two segments

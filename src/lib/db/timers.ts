@@ -1,5 +1,5 @@
 import { getDB } from "./connection";
-import { startOfWeek, endOfWeek } from "$lib/date-utils";
+import { startOfWeek, endOfWeek } from "$lib/helpers/date-utils";
 import type { Timer } from "$lib/types";
 
 function fmtISODate(d: Date): string {
