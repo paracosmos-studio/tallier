@@ -23,10 +23,10 @@
     import Icon from "$lib/components/icon.svelte";
     import { ArrowBack, ArrowForward, VisibilityOff } from "$lib/icons";
     import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/helpers/format";
-    import { buildCalendarDays } from "$lib/timesheet";
+    import { buildCalendarDays } from "$lib/helpers/timesheet";
     import { startOfWeek } from "$lib/helpers/date-utils";
     import type { ReportEntry, Project } from "$lib/types";
-    import type { CalendarDay, EntryOverride } from "$lib/timesheet";
+    import type { CalendarDay, EntryOverride } from "$lib/helpers/timesheet";
 
     type Props = {
         entries: ReportEntry[];

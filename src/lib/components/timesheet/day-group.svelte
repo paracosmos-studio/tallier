@@ -16,9 +16,9 @@
 <script lang="ts">
     import ProjectRow from "./project-row.svelte";
     import { formatDuration, formatDateLong } from "$lib/helpers/format";
-    import { projectKey } from "$lib/timesheet";
+    import { projectKey } from "$lib/helpers/timesheet";
     import type { ReportEntry } from "$lib/types";
-    import type { TimesheetProjectGroup } from "$lib/timesheet";
+    import type { TimesheetProjectGroup } from "$lib/helpers/timesheet";
 
     type Props = {
         date: string;

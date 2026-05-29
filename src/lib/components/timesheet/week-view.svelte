@@ -18,10 +18,10 @@
 -->
 <script lang="ts">
     import { formatDateShort, formatDateISO, MONTHS } from "$lib/helpers/format";
-    import { buildDayGroups, buildWeeks } from "$lib/timesheet";
+    import { buildDayGroups, buildWeeks } from "$lib/helpers/timesheet";
     import { orderedDayLabels } from "$lib/helpers/date-utils";
     import type { ReportEntry, Project } from "$lib/types";
-    import type { EntryOverride, WeekSection } from "$lib/timesheet";
+    import type { EntryOverride, WeekSection } from "$lib/helpers/timesheet";
 
     type Props = {
         entries: ReportEntry[];

@@ -20,12 +20,12 @@
     import DialogFullscreen from "$lib/components/dialogs/dialog-fullscreen.svelte";
     import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import FlyingAirplaneSuccess from "$lib/animations/flying-airplane-success.svelte";
-    import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/export-timesheet";
+    import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/helpers/export-timesheet";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
     import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
-    import type { EntryOverride } from "$lib/timesheet";
+    import type { EntryOverride } from "$lib/helpers/timesheet";
 
     type View = "vl" | "vw" | "vc";
     type Round = "1" | "5" | "15";
