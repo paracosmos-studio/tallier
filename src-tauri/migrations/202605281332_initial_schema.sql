@@ -23,12 +23,18 @@ CREATE TABLE IF NOT EXISTS projects (
     UNIQUE("id", "position")
 );
 
+INSERT INTO projects ("position", "name") VALUES
+    (0, 'Personal'),
+    (1, 'Work'),
+    (2, 'Study');
+
 CREATE TABLE IF NOT EXISTS entries (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
     "timer_id" INTEGER NOT NULL,
     "project_id" INTEGER NOT NULL,
     "title" TEXT,
     "summary" TEXT,
+    "is_billable" INTEGER NOT NULL DEFAULT 1,
     "created_at" TEXT NOT NULL DEFAULT '',
     "updated_at" TEXT,
     "updated_reason" TEXT,

@@ -7,19 +7,21 @@
     @param {boolean} open - controls dialog visibility.
     @param {ReportEntry | null} entry - the log being edited.
     @param {Project[]} projects - all projects for the dropdown.
-    @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; date: string; start: string; end: string; reason: string | null; hidden?: boolean }) => void} onsave - save callback; `hidden` is only present when `showHide` is true.
+    @param {(data: { entryId: number; timerId: number; projectId: number; title: string | null; summary: string | null; date: string; start: string; end: string; reason: string | null; hidden?: boolean; isBillable?: boolean }) => void} onsave - save callback; `hidden` is only present when `showHide` is true, `isBillable` only when `showBillable` is true.
     @param {() => void} onclose - close callback.
     @param {string} [notice] - optional info banner shown above the form (e.g. for view-only edits).
     @param {boolean} [showReason=true] - whether to show the "Reason for edit" input.
     @param {boolean} [showHide=false] - whether to show the "Hide entry" toggle (timesheet view-only).
     @param {boolean} [initialHidden=false] - current hidden state, used to seed the toggle when `showHide` is true.
+    @param {boolean} [showBillable=false] - whether to show the "Mark as not billable" toggle (persisted edits).
+    @param {boolean} [initialBillable=true] - current billable state, used to seed the toggle when `showBillable` is true.
     @param {ReportEntry[] | null} [siblings=null] - related entries reachable via prev/next pagination; when set and length > 1, navigation arrows appear at the top of the form. Unsaved changes are dropped on navigation.
     @param {(entry: ReportEntry) => void} [onnavigate] - called with the sibling to switch to.
 -->
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
-    import Toggle from "$lib/components/toggle.svelte";
+    import ToggleRow from "$lib/components/toggle-row.svelte";
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
     import { ArrowBack, ArrowForward } from "$lib/icons";
@@ -41,12 +43,15 @@
             end: string;
             reason: string | null;
             hidden?: boolean;
+            isBillable?: boolean;
         }) => void;
         onclose: () => void;
         notice?: string;
         showReason?: boolean;
         showHide?: boolean;
         initialHidden?: boolean;
+        showBillable?: boolean;
+        initialBillable?: boolean;
         siblings?: ReportEntry[] | null;
         onnavigate?: (entry: ReportEntry) => void;
     };
@@ -61,6 +66,8 @@
         showReason = true,
         showHide = false,
         initialHidden = false,
+        showBillable = false,
+        initialBillable = true,
         siblings = null,
         onnavigate,
     }: Props = $props();
@@ -105,6 +112,7 @@
     let editEnd: string = $state("");
     let editReason: string = $state("");
     let editHidden: boolean = $state(false);
+    let editNotBillable: boolean = $state(false);
 
     $effect(() => {
         if (open && entry) {
@@ -126,6 +134,11 @@
     // this effect won't overwrite in-progress toggles before save.
     $effect(() => {
         editHidden = initialHidden;
+    });
+
+    // mirror upstream billable state the same way the hide toggle does
+    $effect(() => {
+        editNotBillable = !initialBillable;
     });
 
     function toTimeInputValue(hhmmss: string): string {
@@ -171,6 +184,7 @@
             end: toHHMMSS(editEnd),
             reason: editReason.trim() || null,
             ...(showHide ? { hidden: editHidden } : {}),
+            ...(showBillable ? { isBillable: !editNotBillable } : {}),
         });
     }
 
@@ -279,12 +293,10 @@
                 <p class="duration">Duration: {durationLabel}</p>
             {/if}
             {#if showHide}
-                <div class="hide-row">
-                    <div class="hide-text">
-                        <span class="hide-label">Hide entry from timesheet</span>
-                    </div>
-                    <Toggle bind:checked={editHidden} />
-                </div>
+                <ToggleRow label="Hide entry from timesheet" bind:checked={editHidden} />
+            {/if}
+            {#if showBillable}
+                <ToggleRow label="Mark as not billable" bind:checked={editNotBillable} />
             {/if}
             {#if showReason}
                 <div class="field">
@@ -435,25 +447,5 @@
         color: var(--gray-10);
         font-size: 0.72rem;
         line-height: 1.4;
-    }
-
-    .hide-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 0;
-    }
-
-    .hide-text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-    }
-
-    .hide-label {
-        font-size: 0.8rem;
-        color: var(--gray-10);
     }
 </style>

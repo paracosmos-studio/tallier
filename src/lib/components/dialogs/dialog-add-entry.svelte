@@ -4,13 +4,14 @@
 
     @param {boolean} open - controls dialog visibility.
     @param {Project[]} projects - all projects for the dropdown.
-    @param {(data: { projectId: number; date: string; start: string; end: string; title: string | null; summary: string | null }) => void} onsave - save callback.
+    @param {(data: { projectId: number; date: string; start: string; end: string; title: string | null; summary: string | null; isBillable: boolean }) => void} onsave - save callback.
     @param {() => void} onclose - close callback.
 -->
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Select from "$lib/components/select.svelte";
     import Button from "$lib/components/button.svelte";
+    import ToggleRow from "$lib/components/toggle-row.svelte";
     import { computeDuration, formatDateISO, formatDuration, timeToSeconds } from "$lib/helpers/format";
     import type { Project } from "$lib/types";
 
@@ -24,6 +25,7 @@
             end: string;
             title: string | null;
             summary: string | null;
+            isBillable: boolean;
         }) => void;
         onclose: () => void;
     };
@@ -36,6 +38,7 @@
     let summary: string = $state("");
     let start: string = $state("");
     let end: string = $state("");
+    let notBillable: boolean = $state(false);
 
     $effect(() => {
         if (open) {
@@ -45,6 +48,7 @@
             summary = "";
             start = "09:00:00";
             end = "10:00:00";
+            notBillable = false;
         }
     });
 
@@ -83,6 +87,7 @@
             end: toHHMMSS(end),
             title: title.trim() || null,
             summary: summary.trim() || null,
+            isBillable: !notBillable,
         });
     }
 
@@ -161,6 +166,7 @@
         {:else if durationLabel}
             <p class="duration">Duration: {durationLabel}</p>
         {/if}
+        <ToggleRow label="Mark as not billable" bind:checked={notBillable} />
     </div>
     {#snippet footer()}
         <Button size="xs" onclick={onclose} bgColor="var(--gray-60)" fgColor="var(--gray-10)">Cancel</Button>

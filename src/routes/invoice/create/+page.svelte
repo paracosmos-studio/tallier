@@ -8,7 +8,8 @@
     import DialogGenerateInvoiceItems from "$lib/components/dialogs/dialog-generate-invoice-items.svelte";
     import type { GenerateOptions } from "$lib/components/dialogs/dialog-generate-invoice-items.svelte";
     import type { TableInit } from "$lib/components/table.svelte";
-    import { Add, WandStars } from "$lib/icons";
+    import EmptyState from "$lib/components/empty-state.svelte";
+    import { Add, WandStars, WorkOutlined } from "$lib/icons";
     import { getClients, getProjects, getReportEntries } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { buildInvoiceItems } from "$lib/helpers/invoice-items";
@@ -107,25 +108,36 @@
 
     <div class="step-body">
         {#if currentStep === 0}
-            <div class="client-select">
-                <ClientSelectList
-                    {clients}
-                    bind:selectedId={selectedClientId}
-                    oncomplete={() => (currentStep = 1)}
+            {#if clients.length === 0}
+                <EmptyState
+                    icon={WorkOutlined}
+                    title="No clients yet"
+                    description="Save client contacts to attach them to invoices and keep billing details in one place."
+                    actionLabel="Add Client"
+                    actionIcon={Add}
+                    onaction={() => goto("/settings?tab=clients")}
                 />
-            </div>
-            <div class="new-client">
-                <Button
-                    size="xs"
-                    title="New Client"
-                    bgColor={"var(--gray-90)"}
-                    fgColor={"var(--gray-10)"}
-                    onclick={() => goto("/settings?tab=clients")}
-                >
-                    <Icon path={Add} size="14" fill="currentColor" />
-                    <span>Add Client</span>
-                </Button>
-            </div>
+            {:else}
+                <div class="client-select">
+                    <ClientSelectList
+                        {clients}
+                        bind:selectedId={selectedClientId}
+                        oncomplete={() => (currentStep = 1)}
+                    />
+                </div>
+                <div class="new-client">
+                    <Button
+                        size="xs"
+                        title="New Client"
+                        bgColor={"var(--gray-90)"}
+                        fgColor={"var(--gray-10)"}
+                        onclick={() => goto("/settings?tab=clients")}
+                    >
+                        <Icon path={Add} size="14" fill="currentColor" />
+                        <span>Add Client</span>
+                    </Button>
+                </div>
+            {/if}
         {:else if currentStep === 1}
             {#key itemsInit}
                 <Table init={itemsInit} onchange={(s) => (itemsHasData = hasDataRow(s.rows))} />

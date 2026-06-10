@@ -215,10 +215,12 @@
     <PageNavigation previousPage="/">
         {#if activeTab === "projects"}
             {#if projectView === "list"}
-                <Button size="xs" title="Add New Project" onclick={showAdd}>
-                    <Icon path={Add} size="14" />
-                    <span>Add Project</span>
-                </Button>
+                {#if projects.length > 0}
+                    <Button size="xs" title="Add New Project" onclick={showAdd}>
+                        <Icon path={Add} size="14" />
+                        <span>Add Project</span>
+                    </Button>
+                {/if}
             {:else}
                 <div class="actions">
                     <Button
@@ -237,10 +239,12 @@
             {/if}
         {:else if activeTab === "clients"}
             {#if clientView === "list"}
-                <Button size="xs" title="Add New Client" onclick={showClientAdd}>
-                    <Icon path={Add} size="14" />
-                    <span>Add Client</span>
-                </Button>
+                {#if clients.length > 0}
+                    <Button size="xs" title="Add New Client" onclick={showClientAdd}>
+                        <Icon path={Add} size="14" />
+                        <span>Add Client</span>
+                    </Button>
+                {/if}
             {:else}
                 <div class="actions">
                     <Button

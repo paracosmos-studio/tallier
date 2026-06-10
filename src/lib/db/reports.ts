@@ -23,7 +23,7 @@ export async function getReportEntries(
 
     const rows = await database.select<ReportEntry[]>(
         `SELECT e.id as entry_id, e.timer_id, e.project_id, p.name as project_name,
-                e.title, e.summary, t.date, t.start, t.end, t.total
+                e.title, e.summary, e.is_billable, t.date, t.start, t.end, t.total
          FROM entries e
          JOIN timers t ON t.id = e.timer_id
          JOIN projects p ON p.id = e.project_id
@@ -60,7 +60,7 @@ export async function getDailyProjectTotals(
 
     const rows = await database.select<ReportEntry[]>(
         `SELECT e.id as entry_id, e.timer_id, e.project_id, p.name as project_name,
-                e.title, e.summary, t.date, t.start, t.end, t.total
+                e.title, e.summary, e.is_billable, t.date, t.start, t.end, t.total
          FROM entries e
          JOIN timers t ON t.id = e.timer_id
          JOIN projects p ON p.id = e.project_id
@@ -120,25 +120,27 @@ export async function getProjectTotals(
 
 
 /**
- * Updates an entry's project, title, summary, and records the edit reason.
+ * Updates an entry's project, title, summary, billable flag, and records the edit reason.
  * @param entryId - ID of the entry to update.
  * @param projectId - new project ID.
  * @param title - new title (nullable).
  * @param summary - new summary (nullable).
  * @param reason - reason for the edit (nullable).
+ * @param isBillable - whether the entry counts toward invoices.
  */
 export async function updateEntry(
     entryId: number,
     projectId: number,
     title: string | null,
     summary: string | null,
-    reason: string | null
+    reason: string | null,
+    isBillable: boolean
 ): Promise<void> {
     const database = getDB();
     await database.execute(
-        `UPDATE entries SET project_id = $1, title = $2, summary = $3,
-         updated_at = datetime('now'), updated_reason = $4 WHERE id = $5`,
-        [projectId, title, summary, reason, entryId]
+        `UPDATE entries SET project_id = $1, title = $2, summary = $3, is_billable = $4,
+         updated_at = datetime('now'), updated_reason = $5 WHERE id = $6`,
+        [projectId, title, summary, isBillable ? 1 : 0, reason, entryId]
     );
 }
 
@@ -166,6 +168,7 @@ export async function deleteEntry(
  * @param end - end time (HH:MM:SS).
  * @param title - optional title.
  * @param summary - optional summary.
+ * @param isBillable - whether the entry counts toward invoices.
  */
 export async function createManualEntry(
     projectId: number,
@@ -174,6 +177,7 @@ export async function createManualEntry(
     end: string,
     title: string | null,
     summary: string | null,
+    isBillable: boolean,
 ): Promise<void> {
     const database = getDB();
     const total: number = computeDuration(start, end);
@@ -185,8 +189,8 @@ export async function createManualEntry(
     const timerId = timerResult.lastInsertId as number;
 
     await database.execute(
-        "INSERT INTO entries (timer_id, project_id, title, summary, created_at) VALUES ($1, $2, $3, $4, datetime('now'))",
-        [timerId, projectId, title, summary]
+        "INSERT INTO entries (timer_id, project_id, title, summary, is_billable, created_at) VALUES ($1, $2, $3, $4, $5, datetime('now'))",
+        [timerId, projectId, title, summary, isBillable ? 1 : 0]
     );
 }
 

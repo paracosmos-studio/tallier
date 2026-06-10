@@ -53,6 +53,7 @@ export interface Entry {
   project_id: number;
   title?: string;
   summary?: string;
+  is_billable: boolean;
   created_at?: string;
   updated_at?: string;
   updated_reason?: string;
@@ -65,6 +66,7 @@ export interface ReportEntry {
   project_name: string;
   title: string | null;
   summary: string | null;
+  is_billable: boolean;
   date: string;
   start: string;
   end: string | null;

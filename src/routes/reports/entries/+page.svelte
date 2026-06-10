@@ -101,8 +101,9 @@
         start: string;
         end: string;
         reason: string | null;
+        isBillable?: boolean;
     }) {
-        await updateEntry(data.entryId, data.projectId, data.title, data.summary, data.reason);
+        await updateEntry(data.entryId, data.projectId, data.title, data.summary, data.reason, data.isBillable ?? true);
         await updateEntryTimes(data.timerId, data.date, data.start, data.end);
 
         editOpen = false;
@@ -117,6 +118,7 @@
         end: string;
         title: string | null;
         summary: string | null;
+        isBillable: boolean;
     }) {
         await createManualEntry(
             data.projectId,
@@ -125,6 +127,7 @@
             data.end,
             data.title,
             data.summary,
+            data.isBillable,
         );
         addOpen = false;
         await loadEntries();
@@ -238,6 +241,8 @@
     open={editOpen}
     entry={editEntry}
     {projects}
+    showBillable={true}
+    initialBillable={editEntry ? !!editEntry.is_billable : true}
     onsave={handleSave}
     onclose={() => { editOpen = false; editEntry = null; }}
 />

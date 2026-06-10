@@ -1,13 +1,15 @@
 <!--
     @component
     Reusable modal dialog with header, body, and footer slots. An optional
-    `headerExtras` snippet renders centered between the title and close icon.
+    `headerExtras` snippet renders centered between the title and close icon;
+    an optional `headerRight` snippet renders right-aligned in the header.
 
     @param {boolean} open - Controls dialog visibility.
     @param {string} [title=""] - Header title text.
     @param {boolean} [dismissible=true] - Whether the dialog can be closed via close icon, Escape, or backdrop click.
     @param {string} [width] - Optional preferred width (e.g. "520px"). Capped by 90vw.
     @param {() => any} [headerExtras] - Optional snippet rendered centered in the header (e.g. inline pagination).
+    @param {() => any} [headerRight] - Optional snippet rendered right-aligned in the header, before the close icon.
     @param {() => void} onclose - Callback when dialog is closed.
 -->
 
@@ -19,6 +21,7 @@
         children: () => any;
         footer?: () => any;
         headerExtras?: () => any;
+        headerRight?: () => any;
         open: boolean;
         title?: string;
         dismissible?: boolean;
@@ -26,7 +29,7 @@
         onclose: () => void;
     };
 
-    let { children, footer, headerExtras, open, title = "", dismissible = true, width, onclose }: Props = $props();
+    let { children, footer, headerExtras, headerRight, open, title = "", dismissible = true, width, onclose }: Props = $props();
 
     let dialogEl: HTMLDialogElement | undefined = $state(undefined);
     let innerEl: HTMLDivElement | undefined = $state(undefined);
@@ -67,6 +70,11 @@
             {#if headerExtras}
                 <div class="header-extras">
                     {@render headerExtras()}
+                </div>
+            {/if}
+            {#if headerRight}
+                <div class="header-right">
+                    {@render headerRight()}
                 </div>
             {/if}
             {#if dismissible}
@@ -144,6 +152,12 @@
         align-items: center;
         justify-content: center;
         min-width: 0;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
     }
 
     .close {

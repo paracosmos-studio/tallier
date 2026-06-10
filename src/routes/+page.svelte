@@ -3,7 +3,7 @@
     import { listen } from "@tauri-apps/api/event";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
-    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getProjectTotalsForLimits, getSetting } from "$lib/db";
+    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, updateEntryBillable, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getProjectTotalsForLimits, getSetting } from "$lib/db";
     import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
     import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
@@ -306,15 +306,21 @@
         syncTray();
     }
 
-    async function handleSummary(title: string, summary: string) {
+    async function handleSummary(title: string, summary: string, isBillable: boolean) {
         if (stoppedTimerId !== null) {
-            await updateEntrySummary(stoppedTimerId, title, summary);
+            await updateEntrySummary(stoppedTimerId, title, summary, isBillable);
         }
         stoppedTimerId = null;
     }
 
     async function handleSkipSummary() {
         stoppedTimerId = null;
+    }
+
+    async function handleBillableChange(isBillable: boolean) {
+        if (stoppedTimerId !== null) {
+            await updateEntryBillable(stoppedTimerId, isBillable);
+        }
     }
 </script>
 
@@ -356,6 +362,7 @@
         open={stoppedTimerId !== null}
         onsave={handleSummary}
         onskip={handleSkipSummary}
+        onbillablechange={handleBillableChange}
     />
 </main>
 

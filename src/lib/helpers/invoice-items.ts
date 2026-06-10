@@ -85,9 +85,10 @@ function assemble(columns: Column[], lines: Line[], totalsRow: TotalsRow): Table
 /**
  * Builds a `TableInit` of invoice line items from report entries.
  *
- * Each entry's duration is rounded to `roundMinutes` (billing-style) before
- * being converted to hours. Money values are computed from the project's
- * hourly rate; entries on a project with no rate leave Rate/Total blank.
+ * Entries flagged non-billable are dropped before anything else. Each
+ * remaining entry's duration is rounded to `roundMinutes` (billing-style)
+ * before being converted to hours. Money values are computed from the
+ * project's hourly rate; entries on a project with no rate leave Rate/Total blank.
  *
  * Totals respect each project's currency: when every billed project shares one
  * currency its symbol prefixes the grand total; when none is set the total has
@@ -95,17 +96,20 @@ function assemble(columns: Column[], lines: Line[], totalsRow: TotalsRow): Table
  * section per currency, each with its own total. Column sums use the same
  * 2-decimal values shown per row, so the displayed figures always add up.
  *
- * @param entries - Report entries already filtered to the chosen projects/range.
+ * @param allEntries - Report entries already filtered to the chosen projects/range (non-billable ones are dropped here).
  * @param projects - All projects, used to resolve hourly rates and currencies.
  * @param roundMinutes - Rounding step in minutes (<=1 means no rounding).
  * @param opts - Shaping options from the generate dialog.
  */
 export function buildInvoiceItems(
-    entries: ReportEntry[],
+    allEntries: ReportEntry[],
     projects: Project[],
     roundMinutes: number,
     opts: InvoiceItemOptions,
 ): TableInit {
+    // non-billable entries never reach an invoice
+    const entries = allEntries.filter((e) => e.is_billable);
+
     const rateById = new Map<number, number | null>();
     const currencyById = new Map<number, string | null>();
     for (const p of projects) {

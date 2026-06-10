@@ -80,6 +80,10 @@
         if (!range) return;
         loading = true;
         entries = await getReportEntries(range.start, range.end);
+        // non-billable entries default to hidden from the timesheet; keep any manual hides
+        const nextHidden = new Set(hiddenIds);
+        for (const e of entries) if (!e.is_billable) nextHidden.add(e.entry_id);
+        hiddenIds = nextHidden;
         activeRange = range;
         loading = false;
     }

@@ -3,24 +3,28 @@
     Dialog for entering a title and summary after stopping a timer.
 
     @param {boolean} open - Controls dialog visibility.
-    @param {(title: string, summary: string) => void} onsave - Callback with title and summary.
+    @param {(title: string, summary: string, isBillable: boolean) => void} onsave - Callback with title, summary, and billable flag.
     @param {() => void} onskip - Callback when skipped.
+    @param {(isBillable: boolean) => void} [onbillablechange] - Fires immediately when the billable toggle changes, so the flag persists even if the form is skipped.
 -->
 
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Button from "$lib/components/button.svelte";
+    import ToggleRow from "$lib/components/toggle-row.svelte";
 
     type Props = {
         open: boolean;
-        onsave: (title: string, summary: string) => void;
+        onsave: (title: string, summary: string, isBillable: boolean) => void;
         onskip: () => void;
+        onbillablechange?: (isBillable: boolean) => void;
     };
 
-    let { open, onsave, onskip }: Props = $props();
+    let { open, onsave, onskip, onbillablechange }: Props = $props();
 
     let title: string = $state("");
     let summary: string = $state("");
+    let notBillable: boolean = $state(false);
     let error: string = $state("");
 
     function handleSave() {
@@ -28,7 +32,7 @@
             error = "* Required field is empty";
             return;
         }
-        onsave(title.trim(), summary.trim());
+        onsave(title.trim(), summary.trim(), !notBillable);
         reset();
     }
 
@@ -40,11 +44,19 @@
     function reset() {
         title = "";
         summary = "";
+        notBillable = false;
         error = "";
     }
 </script>
 
 <Dialog {open} title="Summary" dismissible={false} onclose={handleSkip}>
+    {#snippet headerRight()}
+        <ToggleRow
+            label="Not billable"
+            bind:checked={notBillable}
+            onchange={(checked) => onbillablechange?.(!checked)}
+        />
+    {/snippet}
     <form onsubmit={(e) => { e.preventDefault(); handleSave(); }}>
         <input
             id="entry-title"
@@ -92,7 +104,7 @@
         display: flex;
         flex-direction: column;
         gap: 0px;
-        margin-top: 0.5rem;
+        margin-top: 0;
     }
 
     input {

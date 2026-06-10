@@ -26,20 +26,39 @@ export async function createEntry(
 
 
 /**
- * Updates title and summary on an existing entry by timer ID.
+ * Updates title, summary, and billable flag on an existing entry by timer ID.
  * @param timerId - ID of the associated timer.
  * @param title - title for the entry.
  * @param summary - summary/notes for the entry.
+ * @param isBillable - whether the entry counts toward invoices.
  */
 export async function updateEntrySummary(
     timerId: number,
     title: string,
-    summary: string
+    summary: string,
+    isBillable: boolean
 ): Promise<void> {
     const database = getDB();
     await database.execute(
-        "UPDATE entries SET title = $1, summary = $2 WHERE timer_id = $3",
-        [title || null, summary || null, timerId]
+        "UPDATE entries SET title = $1, summary = $2, is_billable = $3 WHERE timer_id = $4",
+        [title || null, summary || null, isBillable ? 1 : 0, timerId]
+    );
+}
+
+
+/**
+ * Updates only the billable flag on an existing entry by timer ID.
+ * @param timerId - ID of the associated timer.
+ * @param isBillable - whether the entry counts toward invoices.
+ */
+export async function updateEntryBillable(
+    timerId: number,
+    isBillable: boolean
+): Promise<void> {
+    const database = getDB();
+    await database.execute(
+        "UPDATE entries SET is_billable = $1 WHERE timer_id = $2",
+        [isBillable ? 1 : 0, timerId]
     );
 }
 
