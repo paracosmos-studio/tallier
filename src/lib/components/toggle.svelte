@@ -1,12 +1,14 @@
 <script lang="ts">
     interface Props {
         checked?: boolean;
+        disabled?: boolean;
         onchange?: (checked: boolean) => void
     };
 
-    let { checked = $bindable(false), onchange }: Props = $props();
+    let { checked = $bindable(false), disabled = false, onchange }: Props = $props();
 
     function handleToggle() {
+        if (disabled) return;
         checked = !checked;
         onchange?.(checked);
     }
@@ -18,6 +20,7 @@
     Animated toggle switch component with smooth transitions
 
     @param {boolean} checked - toggle state
+    @param {boolean} [disabled=false] - when true, the toggle is non-interactive and dimmed
     @param {(checked: boolean) => void} [onchange] - callback when state changes
 
     @example
@@ -26,6 +29,7 @@
 <button
     class="toggle"
     class:checked
+    {disabled}
     onclick={handleToggle}
     type="button"
     aria-label="Toggle switch"
@@ -52,6 +56,11 @@
 
     .toggle:hover {
         opacity: 0.9;
+    }
+
+    .toggle:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
     }
 
     .toggle.checked {
