@@ -1,5 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
+    import { page } from "$app/state";
     import type { Project, ProjectLimits, Client } from "$lib/types";
     import {
         Add,
@@ -46,7 +48,13 @@
         { id: "about", label: "About", icon: InfoOutlined, activeIcon: InfoFilled },
     ];
 
-    let activeTab: Tab = $state("projects");
+    const tabIds = tabs.map((t) => t.id);
+
+    function parseTab(value: string | null): Tab {
+        return tabIds.includes(value as Tab) ? (value as Tab) : "projects";
+    }
+
+    let activeTab: Tab = $derived(parseTab(page.url.searchParams.get("tab")));
 
     // projects tab state
     let projectView: ProjectView = $state("list");
@@ -190,11 +198,17 @@
     }
 
     function selectTab(id: Tab) {
-        activeTab = id;
-        // ensure we never linger in a sub-view when leaving the tab
-        if (id !== "projects" && projectView !== "list") showList();
-        if (id !== "clients" && clientView !== "list") showClientList();
+        goto(id === "projects" ? "/settings" : `?tab=${id}`, {
+            replaceState: true,
+            keepFocus: true,
+            noScroll: true,
+        });
     }
+
+    $effect(() => {
+        if (activeTab !== "projects") showList();
+        if (activeTab !== "clients") showClientList();
+    });
 </script>
 
 <main>
