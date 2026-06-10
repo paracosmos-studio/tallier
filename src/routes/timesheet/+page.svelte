@@ -247,7 +247,7 @@
                 size="sm"
                 multiple
                 nullable
-                searchable={false}
+                searchable={true}
                 placeholder="All projects"
                 multipleLabel={(n) => `${n} projects`}
                 values={selectedProjects}

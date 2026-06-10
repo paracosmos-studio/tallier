@@ -6,45 +6,68 @@
     contact name (with company name in parentheses when present) and one contact
     detail as subtext, preferring email, then website, then mailing address.
 
+    Selecting a client checks it and plays a brief button-press animation; the
+    list is locked while it plays and `oncomplete` fires when it finishes (use
+    it to advance the flow).
+
     @param {Client[]} clients - Clients to list.
     @param {number} [selectedId] - Id of the selected client (bindable, may be cleared).
-    @param {(id: number | undefined) => void} [onchange] - Fires when the selection changes.
+    @param {(id: number | undefined) => void} [onchange] - Fires immediately when the selection changes.
+    @param {(id: number) => void} [oncomplete] - Fires when the press animation finishes.
 -->
 
 <script lang="ts">
-    import type { Client, ClientContact } from "$lib/types";
+    import type { Client } from "$lib/types";
+    import { firstContactValue } from "$lib/helpers/clients";
 
     type Props = {
         clients: Client[];
         selectedId?: number;
         onchange?: (id: number | undefined) => void;
+        oncomplete?: (id: number) => void;
     };
 
-    let { clients, selectedId = $bindable(), onchange }: Props = $props();
+    let { clients, selectedId = $bindable(), onchange, oncomplete }: Props = $props();
 
-    function firstValue(list: ClientContact[] | null): string | null {
-        return list?.find((c) => c.value.trim())?.value.trim() ?? null;
-    }
+    let animatingId: number | undefined = $state(undefined);
 
     function subtext(c: Client): string | null {
-        return firstValue(c.emails) ?? firstValue(c.websites) ?? c.mailing_address;
+        return firstContactValue(c.emails) ?? firstContactValue(c.websites) ?? c.mailing_address;
     }
 
-    function toggle(id: number): void {
-        selectedId = selectedId === id ? undefined : id;
-        onchange?.(selectedId);
+    function select(id: number): void {
+        if (animatingId !== undefined) return; // locked while drawing
+        if (selectedId === id) {
+            selectedId = undefined;
+            onchange?.(undefined);
+            return;
+        }
+        selectedId = id;
+        onchange?.(id);
+        animatingId = id; // kicks off the press animation
+    }
+
+    function finish(id: number): void {
+        if (animatingId !== id) return;
+        oncomplete?.(id);
+        animatingId = undefined;
     }
 </script>
 
-<ul class="cs-list">
-    {#each clients as client (client.id)}
+<ul class="cs-list" class:locked={animatingId !== undefined}>
+    {#each clients as client, i (client.id)}
         {@const sub = subtext(client)}
-        <li>
-            <label class="cs-card">
+        <li class="rise-in" style="--i: {i}">
+            <label
+                class="cs-card"
+                class:animating={animatingId === client.id}
+                onanimationend={() => finish(client.id!)}
+            >
                 <input
                     type="checkbox"
                     checked={selectedId === client.id}
-                    onchange={() => toggle(client.id!)}
+                    disabled={animatingId !== undefined}
+                    onchange={() => select(client.id!)}
                 />
                 <span class="cs-info">
                     <span class="cs-name">
@@ -73,7 +96,12 @@
         margin: 0;
     }
 
+    .cs-list.locked {
+        pointer-events: none;
+    }
+
     .cs-card {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 5px;
@@ -82,11 +110,36 @@
         background: var(--gray-90);
         border: 1px solid transparent;
         cursor: pointer;
-        transition: border-color 0.15s ease;
+        transform: scale(1);
+        transition:
+            border-color 0.15s ease,
+            opacity 0.2s ease,
+            transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        will-change: transform;
     }
 
     .cs-card:hover {
         border-color: var(--gray-70);
+        transform: scale(1.01);
+    }
+
+    .cs-card.animating {
+        animation: cs-press 0.4s ease-out;
+    }
+
+    @keyframes cs-press {
+        0% {
+            transform: scale(1);
+        }
+        30% {
+            transform: scale(0.98);
+        }
+        62% {
+            transform: scale(1.01);
+        }
+        100% {
+            transform: scale(1);
+        }
     }
 
     /* visually hide native input but keep it accessible */

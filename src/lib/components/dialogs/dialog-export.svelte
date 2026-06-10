@@ -67,7 +67,7 @@
         </div>
 
         <div class="toggle-row">
-            <span class="toggle-label">Include notes (title and summary)</span>
+            <span class="toggle-label">Include entry title and summary</span>
             <Toggle bind:checked={includeNotes} />
         </div>
 

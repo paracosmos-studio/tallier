@@ -524,7 +524,7 @@
     .cell {
         position: relative;
         display: flex;
-        align-items: stretch;
+        align-items: center;
         min-height: 30px;
         padding: 4px 8px;
         box-sizing: border-box;
@@ -545,9 +545,6 @@
     .edit {
         flex: 1;
         min-width: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
         outline: none;
         line-height: 1.35;
         overflow-wrap: anywhere;

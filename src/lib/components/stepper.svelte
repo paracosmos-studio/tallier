@@ -2,12 +2,14 @@
     @component
     Horizontal step-flow indicator: numbered markers, each with a title, joined by
     dashed connectors (e.g. "1 Title --- 2 Title"). The active step is highlighted.
-    When `onselect` is provided, each step becomes a button for navigation.
+    When `onselect` is provided, each step becomes a button for navigation;
+    `isDisabled` can gate individual steps (the button is then non-interactive).
 
     @param {Array<{ label: string; title: string }>} steps - Ordered steps; `label`
         fills the circle, `title` sits beside it. The array length sets the count.
     @param {number} [current=0] - Zero-based index of the active step.
     @param {(index: number) => void} [onselect] - Fires with the clicked step index.
+    @param {(index: number) => boolean} [isDisabled] - Returns true to block navigation to a step.
 -->
 
 <script lang="ts">
@@ -22,9 +24,10 @@
         steps: Step[];
         current?: number;
         onselect?: (index: number) => void;
+        isDisabled?: (index: number) => boolean;
     };
 
-    let { steps, current = 0, onselect }: Props = $props();
+    let { steps, current = 0, onselect, isDisabled }: Props = $props();
 </script>
 
 {#snippet head(step: Step, i: number)}
@@ -44,6 +47,7 @@
                     type="button"
                     class="step-head interactive"
                     title={`Go to ${step.title}`}
+                    disabled={isDisabled?.(i) ?? false}
                     onclick={() => onselect(i)}
                 >
                     {@render head(step, i)}
@@ -94,8 +98,13 @@
         cursor: pointer;
     }
 
-    .step-head.interactive:hover {
+    .step-head.interactive:not(:disabled):hover {
         opacity: 0.85;
+    }
+
+    .step-head.interactive:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
     }
 
     .step-title {

@@ -112,7 +112,8 @@
         <ul class="pr-list">
             {#each projects as project, idx (project.id)}
                 <li
-                    class="pr-item"
+                    class="pr-item rise-in"
+                    style="--i: {idx}"
                     class:drag-over-top={dragging && overIdx === idx && dragIdx !== null && dragIdx !== idx && dragIdx > idx}
                     class:drag-over-bottom={dragging && overIdx === idx && dragIdx !== null && dragIdx !== idx && dragIdx < idx}
                     class:dragging={dragging && dragIdx === idx}

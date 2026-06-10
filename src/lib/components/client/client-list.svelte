@@ -1,7 +1,9 @@
 <!--
     @component
-    Displays the saved clients. Clicking a row opens the edit form; the
-    trailing delete button removes the client (after confirm dialog).
+    Displays the saved clients. Each row shows the contact name (with company
+    name beside it when present) and one contact detail as subtext, preferring
+    email, then mailing address, then phone. Clicking a row opens the edit form;
+    the trailing delete button removes the client (after confirm dialog).
 
     @param {Client[]} clients - Array of clients to display.
     @param {(client: Client) => void} onedit - Callback when a row is clicked.
@@ -12,6 +14,7 @@
     import Icon from "$lib/components/icon.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
     import { Delete, WorkOutlined, Add } from "$lib/icons";
+    import { firstContactValue } from "$lib/helpers/clients";
     import type { Client } from "$lib/types";
 
     type Props = {
@@ -22,6 +25,10 @@
     };
 
     let { clients, onedit, ondelete, onadd }: Props = $props();
+
+    function subtext(c: Client): string | null {
+        return firstContactValue(c.emails) ?? c.mailing_address ?? firstContactValue(c.phones);
+    }
 </script>
 
 <section>
@@ -36,17 +43,23 @@
         />
     {:else}
         <ul class="cl-list">
-            {#each clients as client (client.id)}
-                <li class="cl-item">
+            {#each clients as client, i (client.id)}
+                {@const sub = subtext(client)}
+                <li class="cl-item rise-in" style="--i: {i}">
                     <button
                         type="button"
                         class="cl-info"
                         onclick={() => onedit(client)}
                         title="Edit client"
                     >
-                        <span class="cl-name">{client.contact_name}</span>
-                        {#if client.company_name}
-                            <span class="cl-company">{client.company_name}</span>
+                        <span class="cl-name">
+                            {client.contact_name}
+                            {#if client.company_name}
+                                <span class="cl-company">• {client.company_name}</span>
+                            {/if}
+                        </span>
+                        {#if sub}
+                            <span class="cl-sub">{sub}</span>
                         {/if}
                     </button>
                     <div class="cl-actions">
@@ -85,10 +98,9 @@
 
     .cl-info {
         flex: 1;
+        min-width: 0;
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
         background: none;
         border: none;
         padding: 0;
@@ -104,8 +116,15 @@
     }
 
     .cl-company {
+        color: var(--gray-30);
+    }
+
+    .cl-sub {
         font-size: 0.72rem;
         color: var(--gray-30);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .cl-actions {

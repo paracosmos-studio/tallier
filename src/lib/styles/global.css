@@ -87,3 +87,26 @@ a:hover {
     background: var(--gray-70);
     width: 8px;
 }
+
+/* staggered rise-in for list items; set --i to the item index */
+.rise-in {
+    animation: rise-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+@keyframes rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rise-in {
+        animation: none;
+    }
+}

@@ -19,17 +19,19 @@ export function getRandomProjectColor(): string {
 
 /**
  * Builds a project-id → color map. Honors each project's stored `color` when
- * present; otherwise falls back to a position-based assignment from the preset
- * palette so unconfigured projects still get stable colors.
+ * present; otherwise falls back to a palette color keyed by creation order
+ * (id asc) so an unconfigured project's color follows the project across
+ * reorders instead of staying glued to its list slot.
  */
 export function buildProjectColorMap(
-    projects: { id?: number; position: number; color?: string | null }[]
+    projects: { id?: number; color?: string | null }[]
 ): Map<number, string> {
     const map = new Map<number, string>();
-    const sorted = [...projects].sort((a, b) => a.position - b.position);
-    sorted.forEach((p, i) => {
-        if (p.id === undefined) return;
-        map.set(p.id, p.color ?? getProjectColor(i));
+    const ordered = projects
+        .filter((p) => p.id !== undefined)
+        .sort((a, b) => a.id! - b.id!);
+    ordered.forEach((p, i) => {
+        map.set(p.id!, p.color ?? getProjectColor(i));
     });
     return map;
 }
