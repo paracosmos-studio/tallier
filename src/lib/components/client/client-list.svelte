@@ -14,7 +14,7 @@
     import Icon from "$lib/components/icon.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
     import { Delete, WorkOutlined, Add } from "$lib/icons";
-    import { firstContactValue } from "$lib/helpers/clients";
+    import { clientSubtext } from "$lib/helpers/clients";
     import type { Client } from "$lib/types";
 
     type Props = {
@@ -25,10 +25,6 @@
     };
 
     let { clients, onedit, ondelete, onadd }: Props = $props();
-
-    function subtext(c: Client): string | null {
-        return firstContactValue(c.emails) ?? c.mailing_address ?? firstContactValue(c.phones);
-    }
 </script>
 
 <section>
@@ -44,7 +40,7 @@
     {:else}
         <ul class="cl-list">
             {#each clients as client, i (client.id)}
-                {@const sub = subtext(client)}
+                {@const sub = clientSubtext(client)}
                 <li class="cl-item rise-in" style="--i: {i}">
                     <button
                         type="button"

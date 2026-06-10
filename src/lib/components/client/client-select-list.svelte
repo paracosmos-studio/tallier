@@ -4,7 +4,7 @@
     on the right. Clicking a card toggles its selection (selecting clears any
     other), so the active client can also be deselected. Each card shows the
     contact name (with company name in parentheses when present) and one contact
-    detail as subtext, preferring email, then website, then mailing address.
+    detail as subtext, preferring email, then mailing address, then phone.
 
     Selecting a client checks it and plays a brief button-press animation; the
     list is locked while it plays and `oncomplete` fires when it finishes (use
@@ -18,7 +18,7 @@
 
 <script lang="ts">
     import type { Client } from "$lib/types";
-    import { firstContactValue } from "$lib/helpers/clients";
+    import { clientSubtext } from "$lib/helpers/clients";
 
     type Props = {
         clients: Client[];
@@ -30,10 +30,6 @@
     let { clients, selectedId = $bindable(), onchange, oncomplete }: Props = $props();
 
     let animatingId: number | undefined = $state(undefined);
-
-    function subtext(c: Client): string | null {
-        return firstContactValue(c.emails) ?? firstContactValue(c.websites) ?? c.mailing_address;
-    }
 
     function select(id: number): void {
         if (animatingId !== undefined) return; // locked while drawing
@@ -56,7 +52,7 @@
 
 <ul class="cs-list" class:locked={animatingId !== undefined}>
     {#each clients as client, i (client.id)}
-        {@const sub = subtext(client)}
+        {@const sub = clientSubtext(client)}
         <li class="rise-in" style="--i: {i}">
             <label
                 class="cs-card"
