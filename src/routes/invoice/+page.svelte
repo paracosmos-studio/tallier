@@ -2,29 +2,19 @@
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
-    import DateRangeFilter from "$lib/components/date-range-filter.svelte";
-    import { Download } from "$lib/icons";
-
-    let selectedRange: string = $state("7");
-    let customStart: string = $state("");
-    let customEnd: string = $state("");
+    import { goto } from "$app/navigation";
+    import { Add } from "$lib/icons";
 </script>
 
 <main>
     <PageNavigation previousPage="/">
         <div class="nav-actions">
-            <DateRangeFilter
-                bind:selectedRange
-                bind:customStart
-                bind:customEnd
-            />
-            <Button size="xs" title="Export invoice" onclick={() => {}}>
-                <Icon path={Download} size="16" />
-                <span>Export</span>
+            <Button size="xs" title="Create invoice" onclick={() => goto("/invoice/create")}>
+                <Icon path={Add} size="16" />
+                <span>Create Invoice</span>
             </Button>
         </div>
     </PageNavigation>
-    <p>Invoice</p>
 </main>
 
 <style>

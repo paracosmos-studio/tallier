@@ -12,7 +12,8 @@
     @param {boolean} expanded - whether the row shows individual entries.
     @param {Set<number>} hiddenIds - entry IDs excluded from totals.
     @param {() => void} ontoggle - toggle expand/collapse callback.
-    @param {(entryId: number) => void} onhide - toggle hidden state for an entry.
+    @param {(entryId: number) => void} [onhide] - toggle hidden state for an entry (eye icon).
+    @param {(entryId: number) => void} [ondelete] - remove an entry (trash icon).
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
 -->
 <script lang="ts">
@@ -31,7 +32,8 @@
         expanded: boolean;
         hiddenIds: Set<number>;
         ontoggle: () => void;
-        onhide: (entryId: number) => void;
+        onhide?: (entryId: number) => void;
+        ondelete?: (entryId: number) => void;
         onedit: (entry: ReportEntry) => void;
     };
 
@@ -45,6 +47,7 @@
         hiddenIds,
         ontoggle,
         onhide,
+        ondelete,
         onedit,
     }: Props = $props();
 </script>
@@ -66,7 +69,8 @@
                     {entry}
                     hidden={hiddenIds.has(entry.entry_id)}
                     onedit={() => onedit(entry)}
-                    onhide={() => onhide(entry.entry_id)}
+                    onhide={onhide ? () => onhide(entry.entry_id) : undefined}
+                    ondelete={ondelete ? () => ondelete(entry.entry_id) : undefined}
                 />
             {/each}
         </div>

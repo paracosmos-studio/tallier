@@ -11,7 +11,8 @@
     @param {Set<number>} hiddenIds - entry IDs currently excluded from totals.
     @param {Map<number, EntryOverride>} overrides - view-only edits per entry.
     @param {(entry: ReportEntry) => void} onedit - request to open the edit dialog.
-    @param {(entryId: number) => void} onhide - request to toggle the hidden state for an entry.
+    @param {(entryId: number) => void} [onhide] - request to toggle the hidden state for an entry (eye icon).
+    @param {(entryId: number) => void} [ondelete] - request to remove an entry from the list (trash icon).
 -->
 <script lang="ts">
     import DayGroup from "./day-group.svelte";
@@ -28,7 +29,8 @@
         hiddenIds: Set<number>;
         overrides: Map<number, EntryOverride>;
         onedit: (entry: ReportEntry) => void;
-        onhide: (entryId: number) => void;
+        onhide?: (entryId: number) => void;
+        ondelete?: (entryId: number) => void;
     };
 
     let {
@@ -40,6 +42,7 @@
         overrides,
         onedit,
         onhide,
+        ondelete
     }: Props = $props();
 
     let collapsed: Set<string> = $state(new Set());
@@ -81,6 +84,7 @@
                 {hiddenIds}
                 ontoggle={(pid) => toggle(dg.date, pid)}
                 {onhide}
+                {ondelete}
                 {onedit}
             />
         {/each}

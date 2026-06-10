@@ -10,7 +10,8 @@
     @param {Set<string>} collapsed - set of collapsed "date|projectId" keys (default state is expanded).
     @param {Set<number>} hiddenIds - entry IDs excluded from totals.
     @param {(projectId: number) => void} ontoggle - toggle a project row's expanded state.
-    @param {(entryId: number) => void} onhide - toggle hidden state for an entry.
+    @param {(entryId: number) => void} [onhide] - toggle hidden state for an entry (eye icon).
+    @param {(entryId: number) => void} [ondelete] - remove an entry (trash icon).
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
 -->
 <script lang="ts">
@@ -28,7 +29,8 @@
         collapsed: Set<string>;
         hiddenIds: Set<number>;
         ontoggle: (projectId: number) => void;
-        onhide: (entryId: number) => void;
+        onhide?: (entryId: number) => void;
+        ondelete?: (entryId: number) => void;
         onedit: (entry: ReportEntry) => void;
     };
 
@@ -41,6 +43,7 @@
         hiddenIds,
         ontoggle,
         onhide,
+        ondelete,
         onedit,
     }: Props = $props();
 </script>
@@ -63,6 +66,7 @@
                 {hiddenIds}
                 ontoggle={() => ontoggle(pg.projectId)}
                 {onhide}
+                {ondelete}
                 {onedit}
             />
         {/each}
