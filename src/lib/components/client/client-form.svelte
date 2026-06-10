@@ -11,8 +11,9 @@
 <script lang="ts">
     import { untrack } from "svelte";
     import Icon from "$lib/components/icon.svelte";
-    import { Add, Close } from "$lib/icons";
+    import { Add, Delete } from "$lib/icons";
     import type { Client, ClientContact } from "$lib/types";
+    import Button from "$lib/components/button.svelte";
 
     type Props = {
         client?: Client;
@@ -110,14 +111,6 @@
             <div class="contact-group" role="group" aria-label={title}>
                 <div class="contact-head">
                     <span class="lbl">{title}</span>
-                    <button
-                        type="button"
-                        class="add-another"
-                        onclick={() => setter(addRow(list))}
-                    >
-                        <Icon path={Add} size="12" fill="currentColor" />
-                        <span>Add</span>
-                    </button>
                 </div>
                 {#each list as item, idx (idx)}
                     <div class="pair">
@@ -135,17 +128,33 @@
                             maxlength="200"
                             bind:value={list[idx].value}
                         />
-                        <button
-                            type="button"
-                            class="row-btn remove"
-                            title="Remove"
-                            aria-label="Remove"
+
+                        <Button
+                            type='button'
+                            size='xs'
+                            title='Remove'
+                            bgColor='var(--background)'
+                            fgColor='var(--gray-10)'
                             onclick={() => setter(removeRow(list, idx))}
                         >
-                            <Icon path={Close} size="18" fill="currentColor" />
-                        </button>
+                            <Icon path={Delete} size="14" fill="var(--red)" />
+                        </Button>
                     </div>
                 {/each}
+
+                <div class="add-another">
+                    <Button
+                        type='button'
+                        size='xs'
+                        title='Add another'
+                        bgColor='var(--gray-90)'
+                        fgColor='var(--gray-20)'
+                        onclick={() => setter(addRow(list))}
+                    >
+                        <Icon path={Add} size="12" fill="currentColor" />
+                        <span>Add Another</span>
+                    </Button>
+                </div>
             </div>
         {/snippet}
 
@@ -225,6 +234,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.4rem;
+        margin-bottom: 10px;
     }
 
     .contact-head {
@@ -292,42 +302,5 @@
 
     .pair-value {
         flex: 1;
-    }
-
-    .row-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        background-color: var(--gray-90);
-        border: none;
-        border-radius: 4px;
-        color: var(--gray-30);
-        padding: 2px;
-        cursor: pointer;
-        transition: color 0.15s ease, border-color 0.15s ease;
-    }
-
-    .row-btn.remove:hover {
-        color: var(--red);
-        background-color: var(--gray-80);
-    }
-
-    .add-another {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        background: none;
-        border: none;
-        padding: 0;
-        color: var(--gray-20);
-        font-family: inherit;
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: color 0.15s ease;
-    }
-
-    .add-another:hover {
-        color: var(--yellow);
     }
 </style>
