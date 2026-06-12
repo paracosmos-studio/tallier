@@ -2,9 +2,9 @@
     @component
     Square client avatar. Renders the profile image when present, otherwise a
     Person icon placeholder on the shared card background. `src` is a stored
-    avatar filename (resolved to an asset URL) or an inline data URL.
+    avatar filename, resolved to an asset URL.
 
-    @param {string | null} [src] - Stored avatar filename or data URL.
+    @param {string | null} [src] - Stored avatar filename.
     @param {number} [size=36] - Side length in pixels.
     @param {string} [name] - Contact name, used as image alt text.
 -->
@@ -23,11 +23,10 @@
 
     let url: string | null = $state(null);
 
-    // data URLs render directly; stored filenames resolve to an asset URL
+    // stored filename resolves to an asset URL
     $effect(() => {
         const value = src;
         if (!value) { url = null; return; }
-        if (value.startsWith("data:")) { url = value; return; }
         let active = true;
         avatarSrc(value)
             .then((resolved) => { if (active) url = resolved; })

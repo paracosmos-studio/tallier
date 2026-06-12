@@ -9,12 +9,17 @@
     @param {() => void} oncancel - Callback when the form is cancelled.
 -->
 <script lang="ts">
-    import { untrack } from "svelte";
+    import { untrack, onDestroy } from "svelte";
     import Icon from "$lib/components/icon.svelte";
     import { Add, Delete, Edit, Close } from "$lib/icons";
     import type { Client, ClientContact } from "$lib/types";
     import Button from "$lib/components/button.svelte";
-    import { loadClientAvatar, AVATAR_ACCEPT, avatarSrc } from "$lib/helpers/clients";
+    import {
+        saveClientAvatar,
+        deleteClientAvatar,
+        AVATAR_ACCEPT,
+        avatarSrc,
+    } from "$lib/helpers/clients";
 
     type Props = {
         client?: Client;
@@ -41,6 +46,11 @@
     let phones: ClientContact[] = $state(untrack(() => seedList(client?.phones)));
     let websites: ClientContact[] = $state(untrack(() => seedList(client?.websites)));
 
+    // files written to disk this session; uncommitted ones are cleaned up on
+    // destroy so a cancelled or re-picked upload never orphans a file.
+    const sessionFiles = new Set<string>();
+    let committed = false;
+
     async function onAvatarPick(e: Event): Promise<void> {
         const input = e.currentTarget as HTMLInputElement;
         const file = input.files?.[0];
@@ -48,28 +58,45 @@
         if (!file) return;
         avatarError = "";
         try {
-            avatar = await loadClientAvatar(file);
+            const name = await saveClientAvatar(file);
+            if (avatar && sessionFiles.has(avatar)) {
+                sessionFiles.delete(avatar);
+                await deleteClientAvatar(avatar);
+            }
+            sessionFiles.add(name);
+            avatar = name;
         } catch (err) {
             avatarError = err instanceof Error ? err.message : "Invalid image";
         }
     }
 
-    function removeAvatar(): void {
+    async function removeAvatar(): Promise<void> {
+        const name = avatar;
         avatar = null;
         avatarError = "";
+        if (name && sessionFiles.has(name)) {
+            sessionFiles.delete(name);
+            await deleteClientAvatar(name);
+        }
     }
 
-    // data URLs preview directly; an existing filename resolves to an asset URL
+    // stored filename resolves to an asset URL for preview
     let previewUrl: string | null = $state(null);
     $effect(() => {
         const value = avatar;
         if (!value) { previewUrl = null; return; }
-        if (value.startsWith("data:")) { previewUrl = value; return; }
         let active = true;
         avatarSrc(value)
             .then((resolved) => { if (active) previewUrl = resolved; })
             .catch(() => { if (active) previewUrl = null; });
         return () => { active = false; };
+    });
+
+    onDestroy(() => {
+        for (const name of sessionFiles) {
+            if (committed && name === avatar) continue; // kept by the save
+            deleteClientAvatar(name);
+        }
     });
 
     function addRow(list: ClientContact[]): ClientContact[] {
@@ -93,6 +120,7 @@
         e.preventDefault();
         const name = contactName.trim();
         if (!name) return;
+        committed = true; // the stored avatar is now referenced by a saved client
         onsave({
             contact_name: name,
             company_name: companyName.trim() || null,

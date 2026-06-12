@@ -1,35 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { getDB } from "./connection";
+import { deleteClientAvatar } from "$lib/helpers/clients";
 import type { Client, ClientContact } from "$lib/types";
-
-const MIME_EXT: Record<string, string> = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/gif": "gif",
-};
-
-/**
- * Reconciles the avatar on save. `next` is a fresh data URL (newly picked
- * image), an existing stored filename (unchanged), or null (cleared). New
- * images are copied into the app data dir and the replaced/old file removed.
- * Returns the filename to persist in the row.
- */
-async function persistAvatar(next: string | null, prev: string | null): Promise<string | null> {
-    if (next?.startsWith("data:")) {
-        const mime = next.slice(5, next.indexOf(";"));
-        const ext = MIME_EXT[mime] ?? "png";
-        const bytes = new Uint8Array(await (await fetch(next)).arrayBuffer());
-        const name = await invoke<string>("save_avatar", { bytes, ext });
-        if (prev) await invoke("delete_avatar", { name: prev }).catch(() => {});
-        return name;
-    }
-    if (!next && prev) {
-        await invoke("delete_avatar", { name: prev }).catch(() => {});
-        return null;
-    }
-    return next; // unchanged filename, or null
-}
 
 async function storedAvatar(id: number): Promise<string | null> {
     const rows = await getDB().select<{ avatar: string | null }[]>(
@@ -108,7 +79,6 @@ export async function getClient(id: number): Promise<Client | null> {
 /** Creates a new client appended to the end of the position list. */
 export async function createClient(c: Omit<Client, "id" | "position">): Promise<void> {
     const database = getDB();
-    const avatar = await persistAvatar(c.avatar, null);
     const rows = await database.select<{ max_pos: number | null }[]>(
         "SELECT MAX(position) as max_pos FROM clients"
     );
@@ -123,7 +93,7 @@ export async function createClient(c: Omit<Client, "id" | "position">): Promise<
             c.contact_name,
             c.company_name,
             c.mailing_address,
-            avatar,
+            c.avatar,
             pack(c.emails),
             pack(c.phones),
             pack(c.websites),
@@ -135,7 +105,9 @@ export async function createClient(c: Omit<Client, "id" | "position">): Promise<
 /** Updates all editable fields of an existing client (position is unchanged). */
 export async function updateClient(id: number, c: Omit<Client, "id" | "position">): Promise<void> {
     const database = getDB();
-    const avatar = await persistAvatar(c.avatar, await storedAvatar(id));
+    // drop the previously stored file when the avatar is replaced or cleared
+    const prev = await storedAvatar(id);
+    if (prev && prev !== c.avatar) await deleteClientAvatar(prev);
     await database.execute(
         `UPDATE clients
          SET contact_name = $1,
@@ -151,7 +123,7 @@ export async function updateClient(id: number, c: Omit<Client, "id" | "position"
             c.contact_name,
             c.company_name,
             c.mailing_address,
-            avatar,
+            c.avatar,
             pack(c.emails),
             pack(c.phones),
             pack(c.websites),
@@ -179,5 +151,5 @@ export async function deleteClient(id: number): Promise<void> {
     const database = getDB();
     const avatar = await storedAvatar(id);
     await database.execute("DELETE FROM clients WHERE id = $1", [id]);
-    if (avatar) await invoke("delete_avatar", { name: avatar }).catch(() => {});
+    if (avatar) await deleteClientAvatar(avatar);
 }

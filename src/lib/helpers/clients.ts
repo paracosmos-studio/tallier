@@ -1,4 +1,4 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { appDataDir, join } from "@tauri-apps/api/path";
 import type { Client, ClientContact } from "$lib/types";
 
@@ -12,65 +12,72 @@ export function clientSubtext(c: Client): string | null {
     return firstContactValue(c.emails) ?? c.mailing_address ?? firstContactValue(c.phones);
 }
 
-const AVATAR_TYPES: readonly string[] = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-];
+// single source of truth for allowed avatar types, mapped to the extension
+// used on disk. drives both the file picker and validation.
+const AVATAR_MIME_EXT: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+};
 const AVATAR_MAX_BYTES: number = 10 * 1024 * 1024;
 const AVATAR_MIN_DIM: number = 200;
 const AVATAR_MAX_DIM: number = 3500;
 
 /** `accept` value for the avatar file input. */
-export const AVATAR_ACCEPT: string = AVATAR_TYPES.join(",");
+export const AVATAR_ACCEPT: string = Object.keys(AVATAR_MIME_EXT).join(",");
 
 /** subdirectory of the app data dir holding copied avatar files. */
 const AVATAR_SUBDIR: string = "avatars";
 let avatarRoot: Promise<string> | null = null;
 
-/** Resolves a stored avatar filename to an asset-protocol URL for `<img>`. */
+/** resolves a stored avatar filename to an asset-protocol URL for `<img>`. */
 export async function avatarSrc(name: string): Promise<string> {
     avatarRoot ??= appDataDir();
     return convertFileSrc(await join(await avatarRoot, AVATAR_SUBDIR, name));
 }
 
-function readDataUrl(file: File): Promise<string> {
+// natural dimensions via a transient object URL (never a base64 data URL)
+function imageSize(file: File): Promise<{ w: number; h: number }> {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error("Could not read the file"));
-        reader.readAsDataURL(file);
-    });
-}
-
-function imageSize(src: string): Promise<{ w: number; h: number }> {
-    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
         const img = new Image();
-        img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-        img.onerror = () => reject(new Error("Invalid image"));
-        img.src = src;
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve({ w: img.naturalWidth, h: img.naturalHeight });
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("Invalid image"));
+        };
+        img.src = url;
     });
 }
 
 /**
- * Validates an avatar file (type, size, resolution) and returns it as a data
- * URL. Throws an Error with a user-facing message when the file is rejected.
+ * validates an avatar file (type, size, resolution), copies it into the app
+ * data dir, and returns the stored filename. Throws an Error with a user-facing
+ * message when the file is rejected.
  */
-export async function loadClientAvatar(file: File): Promise<string> {
-    if (!AVATAR_TYPES.includes(file.type)) {
-        throw new Error("Use a JPG, PNG, WEBP, or GIF image");
+export async function saveClientAvatar(file: File): Promise<string> {
+    const ext = AVATAR_MIME_EXT[file.type];
+    if (!ext) {
+        throw new Error("Use a JPG, PNG, or WEBP image");
     }
     if (file.size > AVATAR_MAX_BYTES) {
         throw new Error("Image must be 10MB or smaller");
     }
-    const dataUrl = await readDataUrl(file);
-    const { w, h } = await imageSize(dataUrl);
+    const { w, h } = await imageSize(file);
     if (w < AVATAR_MIN_DIM || h < AVATAR_MIN_DIM) {
         throw new Error(`Image must be at least ${AVATAR_MIN_DIM}x${AVATAR_MIN_DIM}px`);
     }
     if (w > AVATAR_MAX_DIM || h > AVATAR_MAX_DIM) {
         throw new Error(`Image must be ${AVATAR_MAX_DIM}x${AVATAR_MAX_DIM}px or smaller`);
     }
-    return dataUrl;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    return await invoke<string>("save_avatar", { bytes, ext });
+}
+
+/** removes a stored avatar file by name (best-effort, never throws). */
+export async function deleteClientAvatar(name: string): Promise<void> {
+    await invoke("delete_avatar", { name }).catch(() => {});
 }
