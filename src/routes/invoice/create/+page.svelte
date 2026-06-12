@@ -97,8 +97,8 @@
             steps={[
                 { label: "1", title: "Client" },
                 { label: "2", title: "Items" },
-                { label: "3", title: "Template" },
-                { label: "4", title: "Export" },
+                { label: "3", title: "Details" },
+                { label: "4", title: "Template" },
             ]}
             current={currentStep}
             onselect={(i) => (currentStep = i)}
