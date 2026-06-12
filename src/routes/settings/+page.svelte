@@ -33,6 +33,7 @@
         getClients,
         createClient,
         updateClient,
+        reorderClients,
         deleteClient,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
@@ -166,7 +167,7 @@
         clientView = "list";
     }
 
-    async function handleClientSave(payload: Omit<Client, "id">) {
+    async function handleClientSave(payload: Omit<Client, "id" | "position">) {
         if (clientView === "edit" && editingClient?.id != null) {
             await updateClient(editingClient.id, payload);
         } else {
@@ -174,6 +175,12 @@
         }
         await loadClients();
         showClientList();
+    }
+
+    async function handleClientReorder(reordered: Client[]) {
+        const order = reordered.map((c, i) => ({ id: c.id!, position: i }));
+        await reorderClients(order);
+        await loadClients();
     }
 
     function requestClientDelete(c: Client) {
@@ -309,6 +316,7 @@
                         {clients}
                         onedit={showClientEdit}
                         ondelete={requestClientDelete}
+                        onreorder={handleClientReorder}
                         onadd={showClientAdd}
                     />
                 {:else}

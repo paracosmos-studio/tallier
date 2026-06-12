@@ -26,7 +26,11 @@
       "shadow": false
     }],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/avatars/*"]
+      }
     },
     "macOSPrivateApi": true,
     "withGlobalTauri": true

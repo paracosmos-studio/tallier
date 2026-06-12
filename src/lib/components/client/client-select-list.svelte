@@ -19,6 +19,7 @@
 <script lang="ts">
     import type { Client } from "$lib/types";
     import { clientSubtext } from "$lib/helpers/clients";
+    import ClientAvatar from "./client-avatar.svelte";
 
     type Props = {
         clients: Client[];
@@ -65,6 +66,7 @@
                     disabled={animatingId !== undefined}
                     onchange={() => select(client.id!)}
                 />
+                <ClientAvatar src={client.avatar} name={client.contact_name} size={32} />
                 <span class="cs-info">
                     <span class="cs-name">
                         {client.contact_name}
@@ -100,7 +102,7 @@
         position: relative;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 8px;
         padding: 8px 12px;
         border-radius: 6px;
         background: var(--gray-90);

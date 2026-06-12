@@ -38,9 +38,11 @@ export interface ClientContact {
 
 export interface Client {
   id?: number;
+  position: number;
   contact_name: string;
   company_name: string | null;
   mailing_address: string | null;
+  avatar: string | null;
   emails: ClientContact[] | null;
   phones: ClientContact[] | null;
   websites: ClientContact[] | null;

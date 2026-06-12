@@ -35,6 +35,8 @@ pub fn run() {
             window::set_compact_height,
             files::path_exists,
             files::write_text_file,
+            files::save_avatar,
+            files::delete_avatar,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

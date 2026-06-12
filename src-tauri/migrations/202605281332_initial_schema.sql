@@ -49,9 +49,11 @@ CREATE TABLE IF NOT EXISTS settings (
 
 CREATE TABLE IF NOT EXISTS clients (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "position" INTEGER NOT NULL DEFAULT 0,
     "contact_name" TEXT NOT NULL,
     "company_name" TEXT,
     "mailing_address" TEXT,
+    "avatar" TEXT,
     "emails" TEXT,
     "phones" TEXT,
     "websites" TEXT,

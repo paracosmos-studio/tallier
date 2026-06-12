@@ -5,19 +5,20 @@
     via the per-row remove button.
 
     @param {Client} [client] - Client to edit. Omit for add mode.
-    @param {(payload: Omit<Client, "id">) => void} onsave - Callback on save.
+    @param {(payload: Omit<Client, "id" | "position">) => void} onsave - Callback on save.
     @param {() => void} oncancel - Callback when the form is cancelled.
 -->
 <script lang="ts">
     import { untrack } from "svelte";
     import Icon from "$lib/components/icon.svelte";
-    import { Add, Delete } from "$lib/icons";
+    import { Add, Delete, Edit, Close } from "$lib/icons";
     import type { Client, ClientContact } from "$lib/types";
     import Button from "$lib/components/button.svelte";
+    import { loadClientAvatar, AVATAR_ACCEPT, avatarSrc } from "$lib/helpers/clients";
 
     type Props = {
         client?: Client;
-        onsave: (payload: Omit<Client, "id">) => void;
+        onsave: (payload: Omit<Client, "id" | "position">) => void;
         oncancel: () => void;
     };
 
@@ -34,9 +35,42 @@
     let companyName: string = $state(untrack(() => client?.company_name ?? ""));
     let mailingAddress: string = $state(untrack(() => client?.mailing_address ?? ""));
     let invoicePrefix: string = $state(untrack(() => client?.invoice_id_prefix ?? ""));
+    let avatar: string | null = $state(untrack(() => client?.avatar ?? null));
+    let avatarError: string = $state("");
     let emails: ClientContact[] = $state(untrack(() => seedList(client?.emails)));
     let phones: ClientContact[] = $state(untrack(() => seedList(client?.phones)));
     let websites: ClientContact[] = $state(untrack(() => seedList(client?.websites)));
+
+    async function onAvatarPick(e: Event): Promise<void> {
+        const input = e.currentTarget as HTMLInputElement;
+        const file = input.files?.[0];
+        input.value = ""; // allow re-picking the same file
+        if (!file) return;
+        avatarError = "";
+        try {
+            avatar = await loadClientAvatar(file);
+        } catch (err) {
+            avatarError = err instanceof Error ? err.message : "Invalid image";
+        }
+    }
+
+    function removeAvatar(): void {
+        avatar = null;
+        avatarError = "";
+    }
+
+    // data URLs preview directly; an existing filename resolves to an asset URL
+    let previewUrl: string | null = $state(null);
+    $effect(() => {
+        const value = avatar;
+        if (!value) { previewUrl = null; return; }
+        if (value.startsWith("data:")) { previewUrl = value; return; }
+        let active = true;
+        avatarSrc(value)
+            .then((resolved) => { if (active) previewUrl = resolved; })
+            .catch(() => { if (active) previewUrl = null; });
+        return () => { active = false; };
+    });
 
     function addRow(list: ClientContact[]): ClientContact[] {
         return [...list, { label: "", value: "" }];
@@ -63,6 +97,7 @@
             contact_name: name,
             company_name: companyName.trim() || null,
             mailing_address: mailingAddress.trim() || null,
+            avatar,
             emails: compact(emails),
             phones: compact(phones),
             websites: compact(websites),
@@ -74,21 +109,63 @@
 <section>
     <p class="title">{isEdit ? "Edit" : "New"} Client</p>
     <form id="client-form" onsubmit={handleSubmit}>
-        <div class="name-row">
-            <label>
-                <span class="lbl">Contact Name *</span>
-                <input
-                    type="text"
-                    maxlength="40"
-                    bind:value={contactName}
-                    onkeydown={(e: KeyboardEvent) => { if (e.key === "Escape") oncancel(); }}
-                />
-            </label>
+        <div class="identity-row">
+            <div class="avatar-col">
+                <span class="lbl">Logo</span>
+                <div class="avatar-frame">
+                    <label
+                        class="avatar-btn"
+                        class:has-image={!!avatar}
+                        title={avatar ? "Change photo" : "Add photo"}
+                    >
+                        <input
+                            type="file"
+                            accept={AVATAR_ACCEPT}
+                            onchange={onAvatarPick}
+                        />
+                        {#if avatar}
+                            {#if previewUrl}
+                                <img src={previewUrl} alt="" />
+                            {/if}
+                            <span class="overlay" aria-hidden="true">
+                                <Icon path={Edit} size="18" fill="var(--gray-10)" />
+                            </span>
+                        {:else}
+                            <Icon path={Add} size="26" fill="var(--gray-30)" />
+                        {/if}
+                    </label>
+                    {#if avatar}
+                        <button
+                            type="button"
+                            class="avatar-remove"
+                            title="Remove photo"
+                            onclick={removeAvatar}
+                        >
+                            <Icon path={Close} size="14" fill="currentColor" />
+                        </button>
+                    {/if}
+                </div>
+                {#if avatarError}
+                    <span class="avatar-err">{avatarError}</span>
+                {/if}
+            </div>
 
-            <label>
-                <span class="lbl">Company Name</span>
-                <input type="text" maxlength="60" bind:value={companyName} />
-            </label>
+            <div class="fields-col">
+                <label>
+                    <span class="lbl">Contact Name *</span>
+                    <input
+                        type="text"
+                        maxlength="40"
+                        bind:value={contactName}
+                        onkeydown={(e: KeyboardEvent) => { if (e.key === "Escape") oncancel(); }}
+                    />
+                </label>
+
+                <label>
+                    <span class="lbl">Company Name</span>
+                    <input type="text" maxlength="60" bind:value={companyName} />
+                </label>
+            </div>
         </div>
 
         <label>
@@ -215,14 +292,121 @@
         gap: 0.25rem;
     }
 
-    .name-row {
+    .identity-row {
         display: flex;
+        gap: 1.25rem;
+    }
+
+    .avatar-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .avatar-frame {
+        position: relative;
+        width: 100%;
+    }
+
+    .fields-col {
+        flex: 3.7;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
         gap: 0.6rem;
     }
 
-    .name-row label {
-        flex: 1;
-        min-width: 0;
+    .avatar-btn {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 6px;
+        background-color: var(--gray-90);
+        border: 1px solid var(--gray-70);
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+    }
+
+    .avatar-btn:hover {
+        border-color: var(--gray-60);
+    }
+
+    .avatar-btn:focus-within {
+        border-color: var(--gray-50);
+        outline: 2px solid var(--green);
+        outline-offset: 2px;
+    }
+
+    /* visually hide native file input but keep it accessible */
+    .avatar-btn input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .avatar-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-btn .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    .avatar-btn.has-image:hover .overlay,
+    .avatar-btn.has-image:focus-within .overlay {
+        opacity: 1;
+    }
+
+    .avatar-remove {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.55);
+        color: var(--gray-10);
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .avatar-remove:hover {
+        background: rgba(0, 0, 0, 0.7);
+        color: var(--red);
+    }
+
+    .avatar-err {
+        font-size: 0.68rem;
+        line-height: 1.2;
+        text-align: center;
+        color: var(--red);
     }
 
     .lbl {
