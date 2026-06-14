@@ -1,46 +1,45 @@
 <!--
     @component
-    Form for adding or editing a client. Emails, phones, and websites are each
+    Form for adding or editing a sender profile. Emails and phones are each
     label/value pairs the user can grow with an "add another" button or trim
     via the per-row remove button.
 
-    @param {Client} [client] - Client to edit. Omit for add mode.
-    @param {(payload: Omit<Client, "id" | "position">) => void} onsave - Callback on save.
+    @param {Profile} [profile] - Profile to edit. Omit for add mode.
+    @param {(payload: Omit<Profile, "id" | "position">) => void} onsave - Callback on save.
     @param {() => void} oncancel - Callback when the form is cancelled.
 -->
 <script lang="ts">
     import { untrack } from "svelte";
     import Icon from "$lib/components/icon.svelte";
     import { Add, Delete } from "$lib/icons";
-    import type { Client, ClientContact } from "$lib/types";
+    import type { Profile, ClientContact } from "$lib/types";
     import Button from "$lib/components/button.svelte";
     import AvatarUpload from "$lib/components/avatar-upload.svelte";
 
     type Props = {
-        client?: Client;
-        onsave: (payload: Omit<Client, "id" | "position">) => void;
+        profile?: Profile;
+        onsave: (payload: Omit<Profile, "id" | "position">) => void;
         oncancel: () => void;
     };
 
-    let { client, onsave, oncancel }: Props = $props();
+    let { profile, onsave, oncancel }: Props = $props();
 
-    let isEdit: boolean = $derived(!!client);
+    let isEdit: boolean = $derived(!!profile);
 
     function seedList(list: ClientContact[] | null | undefined): ClientContact[] {
         if (list && list.length > 0) return list.map((c) => ({ ...c }));
         return [{ label: "", value: "" }];
     }
 
-    let contactName: string = $state(untrack(() => client?.contact_name ?? ""));
-    let companyName: string = $state(untrack(() => client?.company_name ?? ""));
-    let mailingAddress: string = $state(untrack(() => client?.mailing_address ?? ""));
-    let invoicePrefix: string = $state(untrack(() => client?.invoice_id_prefix ?? ""));
-    let avatar: string | null = $state(untrack(() => client?.avatar ?? null));
-    let emails: ClientContact[] = $state(untrack(() => seedList(client?.emails)));
-    let phones: ClientContact[] = $state(untrack(() => seedList(client?.phones)));
-    let websites: ClientContact[] = $state(untrack(() => seedList(client?.websites)));
+    let label: string = $state(untrack(() => profile?.label ?? ""));
+    let businessName: string = $state(untrack(() => profile?.business_name ?? ""));
+    let taxId: string = $state(untrack(() => profile?.tax_id ?? ""));
+    let mailingAddress: string = $state(untrack(() => profile?.mailing_address ?? ""));
+    let logo: string | null = $state(untrack(() => profile?.logo ?? null));
+    let emails: ClientContact[] = $state(untrack(() => seedList(profile?.emails)));
+    let phones: ClientContact[] = $state(untrack(() => seedList(profile?.phones)));
 
-    // bound to the avatar picker; commit() on save keeps the uploaded file
+    // bound to the logo picker; commit() on save keeps the uploaded file
     let uploader: { commit: () => void } | undefined = $state(undefined);
 
     function addRow(list: ClientContact[]): ClientContact[] {
@@ -62,42 +61,42 @@
 
     function handleSubmit(e: SubmitEvent): void {
         e.preventDefault();
-        const name = contactName.trim();
-        if (!name) return;
-        uploader?.commit(); // the stored avatar is now referenced by a saved client
+        const name = label.trim();
+        const business = businessName.trim();
+        if (!name || !business) return;
+        uploader?.commit(); // the stored logo is now referenced by a saved profile
         onsave({
-            contact_name: name,
-            company_name: companyName.trim() || null,
-            mailing_address: mailingAddress.trim() || null,
-            avatar,
+            label: name,
+            business_name: business,
+            tax_id: taxId.trim() || null,
+            logo,
             emails: compact(emails),
             phones: compact(phones),
-            websites: compact(websites),
-            invoice_id_prefix: invoicePrefix.trim() || null,
+            mailing_address: mailingAddress.trim() || null,
         });
     }
 </script>
 
 <section>
-    <p class="title">{isEdit ? "Edit" : "New"} Client</p>
-    <form id="client-form" onsubmit={handleSubmit}>
+    <p class="title">{isEdit ? "Edit" : "New"} Profile</p>
+    <form id="profile-form" onsubmit={handleSubmit}>
         <div class="identity-row">
-            <AvatarUpload bind:value={avatar} bind:this={uploader} />
+            <AvatarUpload bind:value={logo} bind:this={uploader} />
 
             <div class="fields-col">
                 <label>
-                    <span class="lbl">Contact Name *</span>
+                    <span class="lbl">Profile Label *</span>
                     <input
                         type="text"
                         maxlength="40"
-                        bind:value={contactName}
+                        bind:value={label}
                         onkeydown={(e: KeyboardEvent) => { if (e.key === "Escape") oncancel(); }}
                     />
                 </label>
 
                 <label>
-                    <span class="lbl">Company Name</span>
-                    <input type="text" maxlength="60" bind:value={companyName} />
+                    <span class="lbl">Business / Legal Name *</span>
+                    <input type="text" maxlength="60" bind:value={businessName} />
                 </label>
             </div>
         </div>
@@ -185,22 +184,14 @@
             "tel",
             (next) => (phones = next),
         )}
-        {@render contactList(
-            "Websites",
-            websites,
-            "label",
-            "https://example.com",
-            "url",
-            (next) => (websites = next),
-        )}
 
         <label>
-            <span class="lbl">Invoice ID Prefix</span>
+            <span class="lbl">Tax ID / VAT / EIN</span>
             <input
                 type="text"
-                placeholder="e.g. ACME-"
-                maxlength="20"
-                bind:value={invoicePrefix}
+                placeholder="e.g. EIN 12-3456789"
+                maxlength="40"
+                bind:value={taxId}
             />
         </label>
     </form>

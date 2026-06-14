@@ -49,6 +49,18 @@ export interface Client {
   invoice_id_prefix: string | null;
 }
 
+export interface Profile {
+  id?: number;
+  position: number;
+  label: string;
+  business_name: string;
+  tax_id: string | null;
+  logo: string | null;
+  emails: ClientContact[] | null;
+  phones: ClientContact[] | null;
+  mailing_address: string | null;
+}
+
 export interface Entry {
   id?: number;
   timer_id: number;

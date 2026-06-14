@@ -2,13 +2,14 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { page } from "$app/state";
-    import type { Project, ProjectLimits, Client } from "$lib/types";
+    import type { Project, ProjectLimits, Client, Profile } from "$lib/types";
     import {
         Add,
         FolderOutlined,
         FolderFilled,
         WorkOutlined,
         WorkFilled,
+        Person,
         Tune,
         InfoOutlined,
         InfoFilled,
@@ -20,6 +21,8 @@
     import ProjectForm from "$lib/components/project/project-form.svelte";
     import ClientList from "$lib/components/client/client-list.svelte";
     import ClientForm from "$lib/components/client/client-form.svelte";
+    import ProfileList from "$lib/components/profile/profile-list.svelte";
+    import ProfileForm from "$lib/components/profile/profile-form.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import PreferenceTab from "$lib/components/settings/preference-tab.svelte";
     import AboutTab from "$lib/components/settings/about-tab.svelte";
@@ -35,16 +38,23 @@
         updateClient,
         reorderClients,
         deleteClient,
+        getProfiles,
+        createProfile,
+        updateProfile,
+        reorderProfiles,
+        deleteProfile,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
 
-    type Tab = "projects" | "clients" | "preference" | "about";
+    type Tab = "projects" | "clients" | "profiles" | "preference" | "about";
     type ProjectView = "list" | "add" | "edit";
     type ClientView = "list" | "add" | "edit";
+    type ProfileView = "list" | "add" | "edit";
 
     const tabs: { id: Tab; label: string; icon: string; activeIcon: string }[] = [
         { id: "projects", label: "Projects", icon: FolderOutlined, activeIcon: FolderFilled },
         { id: "clients", label: "Clients", icon: WorkOutlined, activeIcon: WorkFilled },
+        { id: "profiles", label: "Profiles", icon: Person, activeIcon: Person },
         { id: "preference", label: "Preference", icon: Tune, activeIcon: Tune },
         { id: "about", label: "About", icon: InfoOutlined, activeIcon: InfoFilled },
     ];
@@ -73,8 +83,14 @@
     let editingClient: Client | undefined = $state(undefined);
     let deleteClientTarget: Client | undefined = $state(undefined);
 
+    // profiles tab state
+    let profileView: ProfileView = $state("list");
+    let profiles: Profile[] = $state([]);
+    let editingProfile: Profile | undefined = $state(undefined);
+    let deleteProfileTarget: Profile | undefined = $state(undefined);
+
     onMount(async () => {
-        await Promise.all([loadProjects(), loadClients()]);
+        await Promise.all([loadProjects(), loadClients(), loadProfiles()]);
     });
 
     async function loadProjects() {
@@ -83,6 +99,10 @@
 
     async function loadClients() {
         clients = await getClients();
+    }
+
+    async function loadProfiles() {
+        profiles = await getProfiles();
     }
 
     function showAdd() {
@@ -204,6 +224,59 @@
             ?.dispatchEvent(new Event("submit", { cancelable: true }));
     }
 
+    // profiles handlers
+    function showProfileAdd() {
+        editingProfile = undefined;
+        profileView = "add";
+    }
+
+    function showProfileEdit(p: Profile) {
+        editingProfile = p;
+        profileView = "edit";
+    }
+
+    function showProfileList() {
+        editingProfile = undefined;
+        profileView = "list";
+    }
+
+    async function handleProfileSave(payload: Omit<Profile, "id" | "position">) {
+        if (profileView === "edit" && editingProfile?.id != null) {
+            await updateProfile(editingProfile.id, payload);
+        } else {
+            await createProfile(payload);
+        }
+        await loadProfiles();
+        showProfileList();
+    }
+
+    async function handleProfileReorder(reordered: Profile[]) {
+        const order = reordered.map((p, i) => ({ id: p.id!, position: i }));
+        await reorderProfiles(order);
+        await loadProfiles();
+    }
+
+    function requestProfileDelete(p: Profile) {
+        deleteProfileTarget = p;
+    }
+
+    async function confirmProfileDelete() {
+        if (deleteProfileTarget?.id == null) return;
+        await deleteProfile(deleteProfileTarget.id);
+        deleteProfileTarget = undefined;
+        await loadProfiles();
+    }
+
+    function cancelProfileDelete() {
+        deleteProfileTarget = undefined;
+    }
+
+    function submitProfileForm() {
+        document
+            .getElementById("profile-form")
+            ?.dispatchEvent(new Event("submit", { cancelable: true }));
+    }
+
     function selectTab(id: Tab) {
         goto(id === "projects" ? "/settings" : `?tab=${id}`, {
             replaceState: true,
@@ -215,6 +288,7 @@
     $effect(() => {
         if (activeTab !== "projects") showList();
         if (activeTab !== "clients") showClientList();
+        if (activeTab !== "profiles") showProfileList();
     });
 </script>
 
@@ -264,6 +338,30 @@
                         Cancel
                     </Button>
                     <Button size="xs" title="Save Client" onclick={submitClientForm}>
+                        Save
+                    </Button>
+                </div>
+            {/if}
+        {:else if activeTab === "profiles"}
+            {#if profileView === "list"}
+                {#if profiles.length > 0}
+                    <Button size="xs" title="Add New Profile" onclick={showProfileAdd}>
+                        <Icon path={Add} size="14" />
+                        <span>Add Profile</span>
+                    </Button>
+                {/if}
+            {:else}
+                <div class="actions">
+                    <Button
+                        size="xs"
+                        title="Cancel"
+                        bgColor={"var(--gray-60)"}
+                        fgColor={"var(--gray-10)"}
+                        onclick={showProfileList}
+                    >
+                        Cancel
+                    </Button>
+                    <Button size="xs" title="Save Profile" onclick={submitProfileForm}>
                         Save
                     </Button>
                 </div>
@@ -326,6 +424,22 @@
                         oncancel={showClientList}
                     />
                 {/if}
+            {:else if activeTab === "profiles"}
+                {#if profileView === "list"}
+                    <ProfileList
+                        {profiles}
+                        onedit={showProfileEdit}
+                        ondelete={requestProfileDelete}
+                        onreorder={handleProfileReorder}
+                        onadd={showProfileAdd}
+                    />
+                {:else}
+                    <ProfileForm
+                        profile={editingProfile}
+                        onsave={handleProfileSave}
+                        oncancel={showProfileList}
+                    />
+                {/if}
             {:else if activeTab === "preference"}
                 <PreferenceTab />
             {:else if activeTab === "about"}
@@ -350,6 +464,15 @@
         confirmLabel="Delete"
         onconfirm={confirmClientDelete}
         oncancel={cancelClientDelete}
+    />
+
+    <DialogConfirm
+        open={deleteProfileTarget != null}
+        title="Delete Profile"
+        message={`Are you sure you want to delete "${deleteProfileTarget?.label ?? ""}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onconfirm={confirmProfileDelete}
+        oncancel={cancelProfileDelete}
     />
 </main>
 

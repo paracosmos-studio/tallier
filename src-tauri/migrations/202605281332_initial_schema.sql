@@ -59,3 +59,15 @@ CREATE TABLE IF NOT EXISTS clients (
     "websites" TEXT,
     "invoice_id_prefix" TEXT
 );
+
+CREATE TABLE IF NOT EXISTS profiles (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "position" INTEGER NOT NULL DEFAULT 0,
+    "label" TEXT NOT NULL,
+    "business_name" TEXT NOT NULL,
+    "tax_id" TEXT,
+    "logo" TEXT,
+    "emails" TEXT,
+    "phones" TEXT,
+    "mailing_address" TEXT
+);

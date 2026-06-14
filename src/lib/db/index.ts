@@ -5,3 +5,4 @@ export { createEntry, updateEntrySummary, updateEntryBillable, getEntryByTimerId
 export { getSetting, setSetting } from "./settings";
 export { getReportEntries, getDailyProjectTotals, getProjectTotals, updateEntry, updateEntryTimes, deleteEntry, createManualEntry } from "./reports";
 export { getClients, getClient, createClient, updateClient, reorderClients, deleteClient } from "./clients";
+export { getProfiles, getProfile, createProfile, updateProfile, reorderProfiles, deleteProfile } from "./profiles";
