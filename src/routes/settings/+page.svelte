@@ -53,8 +53,8 @@
 
     const tabs: { id: Tab; label: string; icon: string; activeIcon: string }[] = [
         { id: "projects", label: "Projects", icon: FolderOutlined, activeIcon: FolderFilled },
-        { id: "clients", label: "Clients", icon: WorkOutlined, activeIcon: WorkFilled },
         { id: "profiles", label: "Profiles", icon: Person, activeIcon: Person },
+        { id: "clients", label: "Clients", icon: WorkOutlined, activeIcon: WorkFilled },
         { id: "preference", label: "Preference", icon: Tune, activeIcon: Tune },
         { id: "about", label: "About", icon: InfoOutlined, activeIcon: InfoFilled },
     ];

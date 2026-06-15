@@ -376,10 +376,12 @@
             <Icon path={Add} size="14" fill="currentColor" />
             <span>Add Column</span>
         </Button>
-        <Button size="xs" title="Add section" disabled={!hasData} bgColor="var(--gray-90)" fgColor="var(--gray-10)" onclick={addSection}>
-            <Icon path={Add} size="14" fill="currentColor" />
-            <span>Add Section</span>
-        </Button>
+        {#if hasData}
+            <Button size="xs" title="Add section" bgColor="var(--gray-90)" fgColor="var(--gray-10)" onclick={addSection}>
+                <Icon path={Add} size="14" fill="currentColor" />
+                <span>Add Section</span>
+            </Button>
+        {/if}
     </div>
 </div>
 

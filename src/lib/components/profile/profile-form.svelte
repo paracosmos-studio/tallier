@@ -5,6 +5,7 @@
     via the per-row remove button.
 
     @param {Profile} [profile] - Profile to edit. Omit for add mode.
+    @param {boolean} [hideTitle=false] - Hide the form's own heading (e.g. when the host dialog provides one).
     @param {(payload: Omit<Profile, "id" | "position">) => void} onsave - Callback on save.
     @param {() => void} oncancel - Callback when the form is cancelled.
 -->
@@ -18,11 +19,12 @@
 
     type Props = {
         profile?: Profile;
+        hideTitle?: boolean;
         onsave: (payload: Omit<Profile, "id" | "position">) => void;
         oncancel: () => void;
     };
 
-    let { profile, onsave, oncancel }: Props = $props();
+    let { profile, hideTitle = false, onsave, oncancel }: Props = $props();
 
     let isEdit: boolean = $derived(!!profile);
 
@@ -78,7 +80,9 @@
 </script>
 
 <section>
-    <p class="title">{isEdit ? "Edit" : "New"} Profile</p>
+    {#if !hideTitle}
+        <p class="title">{isEdit ? "Edit" : "New"} Profile</p>
+    {/if}
     <form id="profile-form" onsubmit={handleSubmit}>
         <div class="identity-row">
             <AvatarUpload bind:value={logo} bind:this={uploader} />

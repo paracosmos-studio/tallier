@@ -2,6 +2,7 @@
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import Stepper from "$lib/components/stepper.svelte";
     import ClientSelectList from "$lib/components/client/client-select-list.svelte";
+    import InvoiceDetails from "$lib/components/invoice/invoice-details.svelte";
     import Table from "$lib/components/table.svelte";
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
@@ -26,14 +27,18 @@
         rows: 2,
     };
 
-    // template + export steps aren't built yet
-    const WIP_FROM: number = 2;
+    // the template step body isn't built yet, but it unlocks once details are valid
+    const WIP_FROM: number = 4;
 
     let currentStep: number = $state(0);
+    let detailsValid: boolean = $state(false);
     let clients: Client[] = $state([]);
     let projects: Project[] = $state([]);
     let colorMap: Map<number, string> = $state(new Map());
     let selectedClientId: number | undefined = $state(undefined);
+    let selectedClient: Client | undefined = $derived(
+        clients.find((c) => c.id === selectedClientId),
+    );
     let generateOpen: boolean = $state(false);
     let itemsInit: TableInit = $state(EMPTY_ITEMS);
     let itemsHasData: boolean = $state(false);
@@ -49,6 +54,7 @@
     function gateMet(step: number): boolean {
         if (step === 1) return selectedClientId != null;
         if (step === 2) return itemsHasData;
+        if (step === 3) return detailsValid;
         return true;
     }
 
@@ -142,6 +148,8 @@
             {#key itemsInit}
                 <Table init={itemsInit} onchange={(s) => (itemsHasData = hasDataRow(s.rows))} />
             {/key}
+        {:else if currentStep === 2}
+            <InvoiceDetails client={selectedClient} onvalidchange={(v) => (detailsValid = v)} />
         {/if}
     </div>
 </main>

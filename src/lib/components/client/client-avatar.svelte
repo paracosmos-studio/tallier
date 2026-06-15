@@ -35,7 +35,7 @@
     });
 </script>
 
-<span class="avatar" style="--size: {size}px">
+<span class="avatar" class:placeholder={!url} style="--size: {size}px">
     {#if url}
         <img src={url} alt={name} />
     {:else}
@@ -53,6 +53,10 @@
         height: var(--size);
         border-radius: 6px;
         overflow: hidden;
+        background-color: var(--gray-90);
+    }
+
+    .avatar.placeholder {
         background-color: var(--color-background);
     }
 
