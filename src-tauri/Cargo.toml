@@ -22,16 +22,11 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["protocol-asset", "macos-private-api", "tray-icon", "image-png"] }
 tauri-plugin-opener = "2"
-tauri-plugin-sql = { version = "2", features = ["sqlite"] }
-tauri-plugin-dialog = "2.6.0"
+tauri-plugin-sql = { version = "2.4.0", features = ["sqlite"] }
+tauri-plugin-dialog = "2.7.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-objc2-app-kit = "0.3.2"
-objc2 = "0.6.3"
 tauri-plugin-notification = "2.3.3"
 typst = "=0.13.1"
 typst-pdf = "=0.13.1"
 typst-svg = "=0.13.1"
-
-[target."cfg(target_os = \"macos\")".dependencies]
-cocoa = "0.26"
