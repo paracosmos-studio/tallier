@@ -226,6 +226,8 @@
         {:else if currentStep === 2}
             <InvoiceDetails
                 client={selectedClient}
+                meta={invoiceMeta}
+                profile={senderProfile}
                 onvalidchange={(v) => (detailsValid = v)}
                 onchange={(m) => (invoiceMeta = m)}
                 onprofilechange={(p) => (senderProfile = p)}

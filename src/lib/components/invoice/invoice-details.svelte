@@ -6,6 +6,8 @@
     randomly generated; issue date defaults to today and due date to a week out.
 
     @param {Client} [client] - The invoice recipient (seeds the invoice number).
+    @param {InvoiceMeta} [meta] - Persisted field values to restore across remounts.
+    @param {Profile} [profile] - Persisted sender profile to restore across remounts.
     @param {(valid: boolean) => void} [onvalidchange] - Fires when required-field completeness changes.
     @param {(meta: InvoiceMeta) => void} [onchange] - Fires when the invoice number, dates or notes change.
     @param {(profile: Profile | undefined) => void} [onprofilechange] - Fires when the selected sender profile changes.
@@ -21,12 +23,15 @@
 
     type Props = {
         client?: Client;
+        meta?: InvoiceMeta | null;
+        profile?: Profile;
         onvalidchange?: (valid: boolean) => void;
         onchange?: (meta: InvoiceMeta) => void;
         onprofilechange?: (profile: Profile | undefined) => void;
     };
 
-    let { client, onvalidchange, onchange, onprofilechange }: Props = $props();
+    let { client, meta: initialMeta, profile: initialProfile, onvalidchange, onchange, onprofilechange }: Props =
+        $props();
 
     function isoInDays(days: number): string {
         const d = new Date();
@@ -35,13 +40,15 @@
     }
 
     let profiles: Profile[] = $state([]);
-    let selectedProfile: Profile | undefined = $state(undefined);
+    let selectedProfile: Profile | undefined = $state(
+        untrack(() => (initialProfile ? { ...initialProfile } : undefined)),
+    );
     let editOpen: boolean = $state(false);
 
-    let invoiceNo: string = $state(untrack(() => generateInvoiceNo(client)));
-    let issueDate: string = $state(isoInDays(0));
-    let dueDate: string = $state("");
-    let notes: string = $state("");
+    let invoiceNo: string = $state(untrack(() => initialMeta?.invoiceNo ?? generateInvoiceNo(client)));
+    let issueDate: string = $state(untrack(() => initialMeta?.issueDate ?? isoInDays(0)));
+    let dueDate: string = $state(untrack(() => initialMeta?.dueDate ?? ""));
+    let notes: string = $state(untrack(() => initialMeta?.notes ?? ""));
 
     // From (profile) and Invoice No are required to advance to the next step
     let valid: boolean = $derived(selectedProfile != null && invoiceNo.trim() !== "");
@@ -61,7 +68,7 @@
 
     onMount(async () => {
         profiles = await getProfiles();
-        if (profiles.length > 0) selectedProfile = { ...profiles[0] };
+        if (!selectedProfile && profiles.length > 0) selectedProfile = { ...profiles[0] };
     });
 
     // pick from the dropdown: copy so invoice-only edits never mutate the source
