@@ -7,6 +7,8 @@
 
     @param {Client} [client] - The invoice recipient (seeds the invoice number).
     @param {(valid: boolean) => void} [onvalidchange] - Fires when required-field completeness changes.
+    @param {(meta: InvoiceMeta) => void} [onchange] - Fires when the invoice number, dates or notes change.
+    @param {(profile: Profile | undefined) => void} [onprofilechange] - Fires when the selected sender profile changes.
 -->
 <script lang="ts">
     import { onMount, untrack } from "svelte";
@@ -15,14 +17,16 @@
     import { getProfiles, createProfile, updateProfile } from "$lib/db";
     import { generateInvoiceNo } from "$lib/helpers/invoice";
     import { formatDateISO } from "$lib/helpers/format";
-    import type { Client, Profile } from "$lib/types";
+    import type { Client, InvoiceMeta, Profile } from "$lib/types";
 
     type Props = {
         client?: Client;
         onvalidchange?: (valid: boolean) => void;
+        onchange?: (meta: InvoiceMeta) => void;
+        onprofilechange?: (profile: Profile | undefined) => void;
     };
 
-    let { client, onvalidchange }: Props = $props();
+    let { client, onvalidchange, onchange, onprofilechange }: Props = $props();
 
     function isoInDays(days: number): string {
         const d = new Date();
@@ -41,9 +45,18 @@
 
     // From (profile) and Invoice No are required to advance to the next step
     let valid: boolean = $derived(selectedProfile != null && invoiceNo.trim() !== "");
+    let meta: InvoiceMeta = $derived({ invoiceNo, issueDate, dueDate, notes });
 
     $effect(() => {
         onvalidchange?.(valid);
+    });
+
+    $effect(() => {
+        onchange?.(meta);
+    });
+
+    $effect(() => {
+        onprofilechange?.(selectedProfile);
     });
 
     onMount(async () => {
@@ -130,7 +143,7 @@
 
 <style>
     .details {
-        max-width: 560px;
+        max-width: 90%;
         margin: 0 auto;
         display: flex;
         flex-direction: column;

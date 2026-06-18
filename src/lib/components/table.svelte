@@ -37,7 +37,7 @@
 </script>
 
 <script lang="ts">
-    import { onDestroy, untrack } from "svelte";
+    import { onDestroy, onMount, untrack } from "svelte";
     import Button from "./button.svelte";
     import Icon from "./icon.svelte";
     import { Add, Drag, Delete } from "$lib/icons";
@@ -101,6 +101,9 @@
     function notify(): void {
         onchange?.({ columns, rows });
     }
+
+    // report the seeded state so consumers capture it without a first edit
+    onMount(notify);
 
     // structural actions
 

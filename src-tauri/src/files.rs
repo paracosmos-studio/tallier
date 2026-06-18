@@ -33,8 +33,20 @@ pub fn write_text_file(path: String, contents: String) -> Result<String, String>
     Ok(resolved.to_string_lossy().into_owned())
 }
 
+#[tauri::command]
+pub fn write_file(path: String, bytes: Vec<u8>) -> Result<String, String> {
+    let resolved = expand_tilde(&path)?;
+    if let Some(parent) = resolved.parent() {
+        if !parent.as_os_str().is_empty() && !parent.exists() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+    }
+    fs::write(&resolved, bytes).map_err(|e| e.to_string())?;
+    Ok(resolved.to_string_lossy().into_owned())
+}
+
 // resolve (and lazily create) the avatars directory inside the app data dir
-fn avatars_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+pub(crate) fn avatars_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let dir = app
         .path()
         .app_data_dir()
@@ -57,7 +69,7 @@ fn safe_ext(ext: &str) -> String {
 }
 
 // reject anything but a bare filename to block path traversal
-fn is_safe_name(name: &str) -> bool {
+pub(crate) fn is_safe_name(name: &str) -> bool {
     !name.is_empty()
         && !name.contains('/')
         && !name.contains('\\')

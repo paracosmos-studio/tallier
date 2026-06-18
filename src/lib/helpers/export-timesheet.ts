@@ -1,6 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import { formatDuration, roundTimeOfDay, timeToSeconds } from "./format";
+import { csvEscape } from "./csv";
+import { joinPath, pathExists } from "./fs";
 import type { ReportEntry } from "../types";
+
+export { pathExists };
 
 export type ExportFormat = "csv" | "json";
 
@@ -56,15 +60,6 @@ function buildRows(
         });
 }
 
-function csvEscape(value: string | number | null | undefined): string {
-    if (value === null || value === undefined) return "";
-    const s = String(value);
-    if (/[",\r\n]/.test(s)) {
-        return `"${s.replace(/"/g, '""')}"`;
-    }
-    return s;
-}
-
 function rowsToCsv(rows: ExportRow[], includeNotes: boolean): string {
     const headers: (keyof ExportRow)[] = [
         "date",
@@ -95,11 +90,6 @@ function rowsToJson(rows: ExportRow[], range: { start: string; end: string }): s
     ) + "\n";
 }
 
-function joinPath(dir: string, file: string): string {
-    const trimmed = dir.replace(/[\\/]+$/, "");
-    return `${trimmed}/${file}`;
-}
-
 function buildFilename(range: { start: string; end: string }, format: ExportFormat): string {
     return `timesheet_${range.start}_to_${range.end}.${format}`;
 }
@@ -114,14 +104,6 @@ export function targetPath(
     format: ExportFormat,
 ): string {
     return joinPath(location, buildFilename(range, format));
-}
-
-/**
- * Checks whether the given path already exists on disk. Expands a leading
- * `~/` via the Rust side.
- */
-export async function pathExists(path: string): Promise<boolean> {
-    return await invoke<boolean>("path_exists", { path });
 }
 
 /**

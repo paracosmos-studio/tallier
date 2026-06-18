@@ -1,4 +1,5 @@
 mod files;
+mod invoice;
 mod migrations;
 mod tray;
 mod util;
@@ -35,8 +36,11 @@ pub fn run() {
             window::set_compact_height,
             files::path_exists,
             files::write_text_file,
+            files::write_file,
             files::save_avatar,
             files::delete_avatar,
+            invoice::render_invoice_pdf,
+            invoice::render_invoice_svg,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

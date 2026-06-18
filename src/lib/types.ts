@@ -61,6 +61,24 @@ export interface Profile {
   mailing_address: string | null;
 }
 
+export interface InvoiceMeta {
+  invoiceNo: string;
+  issueDate: string; // ISO yyyy-mm-dd
+  dueDate: string; // ISO or "" when unset
+  notes: string;
+}
+
+export interface InvoiceData {
+  sender: Profile; // sender identity
+  recipient: Client; // invoice recipient
+  meta: InvoiceMeta;
+  items: {
+    columns: string[]; // header labels, display order
+    rows: string[][]; // data rows only, cells parallel to columns
+  };
+  totals: string[][]; // trailing totals rows, cells parallel to columns
+}
+
 export interface Entry {
   id?: number;
   timer_id: number;

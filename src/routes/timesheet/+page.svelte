@@ -21,8 +21,7 @@
     import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
     import FlyingAirplaneSuccess from "$lib/animations/flying-airplane-success.svelte";
     import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/helpers/export-timesheet";
-    import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
-    import { invoke } from "@tauri-apps/api/core";
+    import { notify } from "$lib/helpers/notify";
     import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
     import type { EntryOverride } from "$lib/helpers/timesheet";
@@ -104,14 +103,6 @@
     function handleExport(): void {
         exportError = null;
         exportOpen = true;
-    }
-
-    async function notify(title: string, body: string): Promise<void> {
-        let granted = await isPermissionGranted();
-        if (!granted) granted = (await requestPermission()) === "granted";
-        if (granted) {
-            await invoke("plugin:notification|notify", { options: { title, body } });
-        }
     }
 
     async function runExport(p: PendingExport): Promise<void> {
@@ -338,6 +329,12 @@
 
 <DialogExport
     open={exportOpen}
+    title="Export Timesheet"
+    formats={[
+        { value: "csv", label: "CSV" },
+        { value: "json", label: "JSON" },
+    ]}
+    showNotes
     error={exportError}
     onexport={handleExportConfirm}
     onclose={() => (exportOpen = false)}

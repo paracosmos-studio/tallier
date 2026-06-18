@@ -3,18 +3,25 @@
     import Stepper from "$lib/components/stepper.svelte";
     import ClientSelectList from "$lib/components/client/client-select-list.svelte";
     import InvoiceDetails from "$lib/components/invoice/invoice-details.svelte";
+    import InvoiceTemplate from "$lib/components/invoice/invoice-template.svelte";
     import Table from "$lib/components/table.svelte";
     import Button from "$lib/components/button.svelte";
     import Icon from "$lib/components/icon.svelte";
     import DialogGenerateInvoiceItems from "$lib/components/dialogs/dialog-generate-invoice-items.svelte";
     import type { GenerateOptions } from "$lib/components/dialogs/dialog-generate-invoice-items.svelte";
-    import type { TableInit } from "$lib/components/table.svelte";
+    import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
+    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
+    import type { TableInit, TableColumn, TableRow } from "$lib/components/table.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
-    import { Add, WandStars, WorkOutlined } from "$lib/icons";
+    import { Add, WandStars, WorkOutlined, Download } from "$lib/icons";
     import { getClients, getProjects, getReportEntries } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { buildInvoiceItems } from "$lib/helpers/invoice-items";
-    import type { Client, Project } from "$lib/types";
+    import { assembleInvoice } from "$lib/helpers/invoice-data";
+    import { exportInvoice, invoiceTargetPath, type InvoiceFormat } from "$lib/helpers/export-invoice";
+    import { pathExists } from "$lib/helpers/fs";
+    import { notify } from "$lib/helpers/notify";
+    import type { Client, InvoiceData, InvoiceMeta, Profile, Project } from "$lib/types";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
 
@@ -26,9 +33,6 @@
         ],
         rows: 2,
     };
-
-    // the template step body isn't built yet, but it unlocks once details are valid
-    const WIP_FROM: number = 4;
 
     let currentStep: number = $state(0);
     let detailsValid: boolean = $state(false);
@@ -42,12 +46,74 @@
     let generateOpen: boolean = $state(false);
     let itemsInit: TableInit = $state(EMPTY_ITEMS);
     let itemsHasData: boolean = $state(false);
+    let itemsSnapshot: { columns: TableColumn[]; rows: TableRow[] } | null = $state(null);
+    let invoiceMeta: InvoiceMeta | null = $state(null);
+    let senderProfile: Profile | undefined = $state(undefined);
+
+    // assembled once Client, Items and Details are all present; feeds the Template step
+    let invoiceData: InvoiceData | null = $derived(
+        selectedClient && senderProfile && invoiceMeta && itemsSnapshot
+            ? assembleInvoice(senderProfile, selectedClient, invoiceMeta, itemsSnapshot)
+            : null,
+    );
+
+    const INVOICE_FORMATS = [
+        { value: "pdf", label: "PDF" },
+        { value: "html", label: "HTML" },
+        { value: "csv", label: "CSV" },
+        { value: "txt", label: "Text" },
+    ];
+
+    let selectedTemplate: string = $state("classic");
+    let exportOpen: boolean = $state(false);
+    let exportError: string | null = $state(null);
+    let overwriteOpen: boolean = $state(false);
+    let exportBusy: boolean = $state(false);
+    let pendingExport: { format: InvoiceFormat; location: string } | null = $state(null);
+
+    async function runInvoiceExport(format: InvoiceFormat, location: string): Promise<void> {
+        if (!invoiceData) return;
+        exportBusy = true;
+        try {
+            const path = await exportInvoice(invoiceData, selectedTemplate, format, location);
+            exportOpen = false;
+            overwriteOpen = false;
+            pendingExport = null;
+            await notify("Invoice exported", path);
+        } catch (e) {
+            exportError = e instanceof Error ? e.message : String(e);
+            overwriteOpen = false;
+        } finally {
+            exportBusy = false;
+        }
+    }
+
+    async function handleExportConfirm(d: { format: string; location: string }): Promise<void> {
+        if (!invoiceData) return;
+        exportError = null;
+        const format = d.format as InvoiceFormat;
+        try {
+            if (await pathExists(invoiceTargetPath(d.location, invoiceData, format))) {
+                pendingExport = { format, location: d.location };
+                overwriteOpen = true;
+                return;
+            }
+            await runInvoiceExport(format, d.location);
+        } catch (e) {
+            exportError = e instanceof Error ? e.message : String(e);
+        }
+    }
 
     // true when at least one data row holds non-empty text
     function hasDataRow(rows: { kind?: string; cells: string[] }[]): boolean {
         return rows.some(
             (r) => (r.kind ?? "data") === "data" && r.cells.some((c) => c.trim() !== ""),
         );
+    }
+
+    function captureItems(state: { columns: TableColumn[]; rows: TableRow[] }): void {
+        itemsSnapshot = state;
+        itemsHasData = hasDataRow(state.rows);
     }
 
     // entry condition for a forward step; later steps gate on earlier ones
@@ -61,7 +127,6 @@
     // forward navigation is gated step-by-step; going back is always allowed
     function stepDisabled(i: number): boolean {
         if (i <= currentStep) return false;
-        if (i >= WIP_FROM) return true;
         for (let s = currentStep + 1; s <= i; s++) {
             if (!gateMet(s)) return true;
         }
@@ -95,6 +160,16 @@
             <Button size="xs" title="Auto generate invoice items" onclick={() => (generateOpen = true)}>
                 <Icon path={WandStars} size="14" fill="currentColor" />
                 <span>Auto Generate</span>
+            </Button>
+        {:else if currentStep === 3}
+            <Button
+                size="xs"
+                title="Export invoice"
+                onclick={() => ((exportError = null), (exportOpen = true))}
+                disabled={!invoiceData || exportBusy}
+            >
+                <Icon path={Download} size="14" fill="currentColor" />
+                <span>Export</span>
             </Button>
         {/if}
     </PageNavigation>
@@ -146,10 +221,17 @@
             {/if}
         {:else if currentStep === 1}
             {#key itemsInit}
-                <Table init={itemsInit} onchange={(s) => (itemsHasData = hasDataRow(s.rows))} />
+                <Table init={itemsInit} onchange={captureItems} />
             {/key}
         {:else if currentStep === 2}
-            <InvoiceDetails client={selectedClient} onvalidchange={(v) => (detailsValid = v)} />
+            <InvoiceDetails
+                client={selectedClient}
+                onvalidchange={(v) => (detailsValid = v)}
+                onchange={(m) => (invoiceMeta = m)}
+                onprofilechange={(p) => (senderProfile = p)}
+            />
+        {:else if currentStep === 3 && invoiceData}
+            <InvoiceTemplate data={invoiceData} bind:selected={selectedTemplate} />
         {/if}
     </div>
 </main>
@@ -159,6 +241,24 @@
     {projects}
     ongenerate={handleGenerate}
     onclose={() => (generateOpen = false)}
+/>
+
+<DialogExport
+    open={exportOpen}
+    title="Export Invoice"
+    formats={INVOICE_FORMATS}
+    error={exportError}
+    onexport={handleExportConfirm}
+    onclose={() => (exportOpen = false)}
+/>
+
+<DialogConfirm
+    open={overwriteOpen}
+    title="Overwrite file?"
+    message="A file with this name already exists at the destination. Overwrite it?"
+    confirmLabel={exportBusy ? "Exporting…" : "Overwrite"}
+    onconfirm={() => pendingExport && runInvoiceExport(pendingExport.format, pendingExport.location)}
+    oncancel={() => ((overwriteOpen = false), (pendingExport = null))}
 />
 
 <style>

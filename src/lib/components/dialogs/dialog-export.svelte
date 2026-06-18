@@ -1,15 +1,23 @@
 <!--
     @component
-    Dialog for exporting the current timesheet view. Collects format, an
-    "include notes" toggle, and a save location. The caller wires the actual
-    export pipeline via `onexport` and may pass an `error` message back to
-    surface failures inline.
+    Reusable export dialog. Collects a format, an optional "include notes"
+    toggle, and a save location. The caller supplies the format list and wires
+    the actual export pipeline via `onexport`, and may pass an `error` message
+    back to surface failures inline.
 
-    @param {boolean} open - controls dialog visibility.
-    @param {(data: { format: string; includeNotes: boolean; location: string }) => void} onexport - export callback.
-    @param {() => void} onclose - close callback.
-    @param {string | null} [error] - error message to display under the form.
+    @param {boolean} open - Controls dialog visibility.
+    @param {ExportFormatOption[]} formats - Selectable output formats.
+    @param {string} [title="Export"] - Dialog heading.
+    @param {string} [defaultFormat] - Initially selected format (defaults to the first enabled option).
+    @param {boolean} [showNotes=false] - Whether to show the "include title and summary" toggle.
+    @param {(data: { format: string; includeNotes: boolean; location: string }) => void} onexport - Export callback.
+    @param {() => void} onclose - Close callback.
+    @param {string | null} [error] - Error message to display under the form.
 -->
+<script lang="ts" module>
+    export type ExportFormatOption = { value: string; label: string; disabled?: boolean };
+</script>
+
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import RadioGroup from "$lib/components/radio-group.svelte";
@@ -19,28 +27,38 @@
 
     type Props = {
         open: boolean;
+        formats: ExportFormatOption[];
+        title?: string;
+        defaultFormat?: string;
+        showNotes?: boolean;
         onexport: (data: { format: string; includeNotes: boolean; location: string }) => void;
         onclose: () => void;
         error?: string | null;
     };
 
-    let { open, onexport, onclose, error = null }: Props = $props();
+    let {
+        open,
+        formats,
+        title = "Export",
+        defaultFormat,
+        showNotes = false,
+        onexport,
+        onclose,
+        error = null,
+    }: Props = $props();
 
     const DEFAULT_LOCATION: string = "~/Desktop";
 
-    const formatOptions = [
-        { value: "csv", label: "CSV" },
-        { value: "json", label: "JSON" },
-        { value: "pdf", label: "PDF", disabled: true },
-    ];
+    const initialFormat = (): string =>
+        defaultFormat ?? formats.find((f) => !f.disabled)?.value ?? "";
 
-    let format: string = $state("csv");
+    let format: string = $state(initialFormat());
     let includeNotes: boolean = $state(true);
     let location: string = $state(DEFAULT_LOCATION);
 
     $effect(() => {
         if (open) {
-            format = "csv";
+            format = initialFormat();
             includeNotes = true;
             location = DEFAULT_LOCATION;
         }
@@ -54,22 +72,19 @@
     }
 </script>
 
-<Dialog {open} title="Export Timesheet" width="480px" {onclose}>
+<Dialog {open} {title} width="480px" {onclose}>
     <div class="form">
         <div class="field">
             <span class="field-label">Format</span>
-            <RadioGroup
-                options={formatOptions}
-                name="export-format"
-                bind:value={format}
-                size="sm"
-            />
+            <RadioGroup options={formats} name="export-format" bind:value={format} size="sm" />
         </div>
 
-        <div class="toggle-row">
-            <span class="toggle-label">Include entry title and summary</span>
-            <Toggle bind:checked={includeNotes} />
-        </div>
+        {#if showNotes}
+            <div class="toggle-row">
+                <span class="toggle-label">Include entry title and summary</span>
+                <Toggle bind:checked={includeNotes} />
+            </div>
+        {/if}
 
         <div class="field">
             <span class="field-label">Save location</span>

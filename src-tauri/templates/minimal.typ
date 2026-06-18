@@ -1,0 +1,44 @@
+// minimal: mono labels, hairline rules, terse
+#let inv = json(bytes(sys.inputs.invoice))
+#let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
+#let label(t) = text(font: "DM Mono", size: 8pt, fill: luma(120), tracking: 0.08em, upper(t))
+
+#set document(title: "Invoice " + inv.meta.invoiceNo)
+#set page(paper: "a4", margin: 2.4cm)
+#set text(font: ("Instrument Sans", "Arial"), size: 10pt, fill: luma(20))
+#set table(stroke: none, inset: (x: 0pt, y: 6pt))
+
+#grid(
+  columns: (1fr, auto),
+  align: (left, right),
+  [
+    #if "/sender-logo" in sys.inputs { image("/sender-logo", width: 84pt); v(0.5em) }
+    #text(font: "DM Mono", size: 13pt)[#inv.sender.business_name]
+  ],
+  [
+    #label("Invoice") \
+    #text(font: "DM Mono")[#inv.meta.invoiceNo]
+  ],
+)
+
+#line(length: 100%, stroke: 0.5pt + luma(210))
+#v(0.8em)
+
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  [#label("Billed to") \ #inv.recipient.contact_name #if inv.recipient.company_name != none [ \ #inv.recipient.company_name ]],
+  [#label("Issued") \ #inv.meta.issueDate],
+  align(right)[#if inv.meta.dueDate != "" [ #label("Due") \ #inv.meta.dueDate ]],
+)
+
+#v(1.2em)
+#table(
+  columns: inv.items.columns.len(),
+  table.header(..inv.items.columns.map(c => label(c))),
+  table.hline(stroke: 0.5pt + luma(210)),
+  ..inv.items.rows.flatten(),
+  table.hline(stroke: 0.5pt + luma(210)),
+  ..inv.totals.map(r => r.map(c => strong(c))).flatten(),
+)
+
+#if inv.meta.notes != "" [ #v(1.4em) #line(length: 100%, stroke: 0.5pt + luma(210)) #v(0.6em) #text(size: 9pt, fill: luma(110))[#inv.meta.notes] ]
