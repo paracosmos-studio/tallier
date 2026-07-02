@@ -1,5 +1,16 @@
 import type { InvoiceData } from "$lib/types";
-import { colGroup, contactValues, docShell, escAddr, headerSpan, htmlEscape } from "./shared";
+import {
+  balanceValue,
+  contactValues,
+  docShell,
+  escAddr,
+  htmlEscape,
+  itemsTable,
+  links,
+  mailHref,
+  telHref,
+  webHref,
+} from "./shared";
 
 const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #991b1b; --green: #15803d; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; }
@@ -24,20 +35,6 @@ thead th { font-weight: 500; background: var(--fill); }
 .num { text-align: right; }`;
 
 /**
- * Renders contact values as anchors, one per address line.
- *
- * @param values - Display values.
- * @param href - Maps a value to its link target.
- */
-function links(values: string[], href: (v: string) => string): string {
-  return values.map((v) => `<a href="${htmlEscape(href(v))}">${htmlEscape(v)}</a>`).join("");
-}
-
-const mailHref = (v: string): string => `mailto:${v}`;
-const telHref = (v: string): string => `tel:${v.replace(/[^+\d]/g, "")}`;
-const webHref = (v: string): string => (/^https?:\/\//i.test(v) ? v : `https://${v}`);
-
-/**
  * Default HTML invoice: borderless letter layout with gray-fill hierarchy,
  * a four-up summary strip and in-place gray section/totals bands.
  *
@@ -47,30 +44,7 @@ const webHref = (v: string): string => (/^https?:\/\//i.test(v) ? v : `https://$
 export function defaultHtml(data: InvoiceData, logo?: string): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
-  const numFrom = Math.max(1, items.columns.length - 3);
-  const num = (i: number): string => (i >= numFrom ? ' class="num"' : "");
-  const colSpan = headerSpan(items.columns);
-  const head =
-    `<th scope="${colSpan > 1 ? "colgroup" : "col"}" colspan="${colSpan}">${e(items.columns[0] ?? "")}</th>` +
-    items.columns
-      .slice(colSpan)
-      .map((c, j) => `<th scope="col"${num(colSpan + j)}>${e(c)}</th>`)
-      .join("");
-  const rows = items.rows
-    .map((r) => {
-      if (r.kind === "header") {
-        const span = headerSpan(r.cells);
-        const rest = r.cells
-          .slice(span)
-          .map((c, j) => `<td${num(span + j)}>${e(c)}</td>`)
-          .join("");
-        return `<tr class="section"><th scope="row" colspan="${span}">${e(r.cells[0] ?? "")}</th>${rest}</tr>`;
-      }
-      return `<tr>${r.cells.map((c, i) => `<td${num(i)}>${e(c)}</td>`).join("")}</tr>`;
-    })
-    .join("");
-  const lastBand = [...items.rows].reverse().find((r) => r.kind === "header");
-  const balance = lastBand ? ([...lastBand.cells].reverse().find((c) => c !== "") ?? "") : "";
+  const balance = balanceValue(items.rows);
   const body = `<main class="invoice">
 <header class="head">
 ${logo ? `<img class="logo" src="${logo}" alt="">` : ""}
@@ -105,11 +79,7 @@ ${meta.dueDate ? `<div><dt>Due date</dt><dd>${e(meta.dueDate)}</dd></div>` : ""}
 <div${meta.dueDate ? "" : ' class="wide"'}><dt>Notes</dt><dd>${escAddr(meta.notes)}</dd></div>
 <div class="balance"><dt>Balance</dt><dd>${e(balance)}</dd></div>
 </dl>
-<table class="items">
-${colGroup(items.widths, items.columns.length)}
-<thead><tr>${head}</tr></thead>
-<tbody>${rows}</tbody>
-</table>
+${itemsTable(items, "items")}
 </main>`;
   return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
 }

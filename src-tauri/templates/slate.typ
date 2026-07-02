@@ -1,66 +1,64 @@
-// modern: green full-bleed band, decorative arc, chip summary, banded rows
+// slate: full-bleed charcoal panel, cards overlapping its edge, amber accent
 #let inv = json(bytes(sys.inputs.invoice))
-#let green = rgb("#3E6B34")
-#let tint = rgb("#9ECB78")
-#let pale = rgb("#F0F7EA")
-#let ink = rgb("#1F2430")
-#let muted = luma(140)
+#let charcoal = rgb("#1A1C1E")
+#let amber = rgb("#E8A13C")
+#let ghost = rgb("#C9CCD1")
+#let rowfill = rgb("#F1F2F3")
+#let ink = rgb("#1F2124")
+#let cardline = luma(216)
 #let edge = 44pt
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
 #let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
 #let web-url(v) = if v.starts-with("http") { v } else { "https://" + v }
 #let tel-url(v) = "tel:" + v.replace(regex("[^+0-9]"), "")
-#let caps(t) = text(size: 8.5pt, fill: muted, weight: "medium", tracking: 0.09em)[#upper(t)]
+#let caps(t, fill: ghost) = text(size: 8.5pt, fill: fill, weight: "medium", tracking: 0.09em)[#upper(t)]
 #let balance = {
   let bands = inv.items.rows.filter(r => r.kind == "header")
   let v = if bands.len() == 0 { none } else { bands.last().cells.rev().find(c => c != "") }
   if v == none { "" } else { v }
 }
 #let numeric-from = calc.max(1, inv.items.columns.len() - 3)
-#let hrow(cells, style) = {
+#let hrow2(cells, lead, rest) = {
   let gap = cells.slice(1).position(c => c != "")
   let span = if gap == none { cells.len() } else { gap + 1 }
-  (table.cell(colspan: span, style(cells.first())), ..cells.slice(span).map(style))
+  (table.cell(colspan: span, lead(cells.first())), ..cells.slice(span).map(rest))
 }
-#let chip(name, value, accent: ink) = block(
-  fill: pale, radius: 8pt, width: 100%, inset: (x: 11pt, y: 9pt),
-  stack(spacing: 5pt, caps(name), text(fill: accent, weight: "semibold", value)),
+#let card(name, value, accent: ink) = block(
+  fill: white, stroke: 0.5pt + cardline, radius: 6pt, width: 100%, inset: (x: 11pt, y: 10pt),
+  stack(spacing: 5pt, caps(name, fill: luma(140)), text(fill: accent, weight: "semibold", value)),
 )
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(paper: "a4", margin: (top: 0pt, x: 0pt, bottom: 36pt))
 #set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 10pt, fill: ink)
-#show link: set text(fill: green)
+#show link: set text(fill: amber)
 
-#block(width: 100%, fill: green, inset: (x: edge, top: 30pt, bottom: 30pt))[
-  #set text(fill: white)
+#block(width: 100%, fill: charcoal, inset: (x: edge, top: 34pt, bottom: 52pt))[
   #grid(
     columns: (1fr, auto),
     align: (left + horizon, right + horizon),
     [
       #if "/sender-logo" in sys.inputs {
-        image("/sender-logo", height: 42pt)
+        image("/sender-logo", height: 40pt)
       } else {
-        text(size: 19pt, weight: "bold")[#inv.sender.business_name]
+        text(fill: white, size: 19pt, weight: "bold")[#inv.sender.business_name]
       }
     ],
     [
-      #text(size: 27pt, weight: "bold")[Invoice] \
-      #text(size: 12pt, weight: "medium")[\##inv.meta.invoiceNo]
+      #text(fill: white, size: 26pt, weight: "bold")[INVOICE] \
+      #text(fill: ghost, size: 12pt, weight: "medium")[\##inv.meta.invoiceNo]
     ],
   )
-  #place(top + right, dx: 60pt, dy: -84pt, circle(radius: 116pt, fill: tint.transparentize(70%)))
-]
-
-#pad(x: edge, top: 26pt, bottom: 34pt)[
+  #v(30pt)
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 24pt,
     [
       #caps("From")
       #v(5pt)
-      #text(size: 12pt, weight: "semibold")[#inv.sender.business_name] \
+      #set text(fill: ghost)
+      #text(fill: white, size: 12pt, weight: "semibold")[#inv.sender.business_name] \
       #lines(
         block-addr(inv.sender.mailing_address),
         ..contacts(inv.sender.emails).map(c => link("mailto:" + c)[#c]),
@@ -71,9 +69,10 @@
     [
       #caps("Bill to")
       #v(5pt)
+      #set text(fill: ghost)
       #lines(
-        if inv.recipient.contact_name != none { text(size: 12pt, weight: "semibold")[#inv.recipient.contact_name] } else { none },
-        if inv.recipient.company_name != none { text(size: 12pt, weight: "semibold")[#inv.recipient.company_name] } else { none },
+        if inv.recipient.contact_name != none { text(fill: white, size: 12pt, weight: "semibold")[#inv.recipient.contact_name] } else { none },
+        if inv.recipient.company_name != none { text(fill: white, size: 12pt, weight: "semibold")[#inv.recipient.company_name] } else { none },
         block-addr(inv.recipient.mailing_address),
         ..contacts(inv.recipient.emails).map(c => link("mailto:" + c)[#c]),
         ..contacts(inv.recipient.phones).map(c => link(tel-url(c))[#c]),
@@ -81,34 +80,41 @@
       )
     ],
   )
+]
 
-  #v(24pt)
+#pad(x: edge)[
+  #v(-30pt)
   #grid(
     columns: (1fr, 1fr, 1fr, 1fr),
-    column-gutter: 8pt,
-    chip("Issue date", inv.meta.issueDate),
-    ..if inv.meta.dueDate != "" { (chip("Due date", inv.meta.dueDate),) } else { () },
+    column-gutter: 10pt,
+    card("Issue date", inv.meta.issueDate),
+    ..if inv.meta.dueDate != "" { (card("Due date", inv.meta.dueDate),) } else { () },
     grid.cell(
       colspan: if inv.meta.dueDate != "" { 1 } else { 2 },
-      chip("Notes", block-addr(inv.meta.notes)),
+      card("Notes", block-addr(inv.meta.notes)),
     ),
-    chip("Balance", balance, accent: green),
+    card("Balance", balance, accent: amber),
   )
+]
 
-  #v(26pt)
+#pad(x: edge, top: 26pt, bottom: 34pt)[
   #table(
     columns: inv.items.widths.map(w => w * 1fr),
     stroke: none,
     inset: (x: 10pt, y: 8pt),
-    row-gutter: 3pt,
     align: (x, _) => if x >= numeric-from { right } else { left },
     fill: (_, y) => if y == 0 { none } else {
       let r = inv.items.rows.at(y - 1)
-      if r.kind == "header" { pale }
+      if r.kind == "header" { rowfill }
     },
-    table.header(..hrow(inv.items.columns, c => text(fill: green, weight: "semibold", c))),
+    table.header(..hrow2(
+      inv.items.columns,
+      c => caps(c, fill: luma(120)),
+      c => caps(c, fill: luma(120)),
+    )),
+    table.hline(y: 1, stroke: 0.5pt + cardline),
     ..inv.items.rows.map(r => if r.kind == "header" {
-      hrow(r.cells, c => text(fill: green, weight: "semibold", c))
+      hrow2(r.cells, c => text(fill: amber, weight: "semibold", c), c => text(fill: ink, weight: "medium", c))
     } else { r.cells }).flatten(),
   )
 ]

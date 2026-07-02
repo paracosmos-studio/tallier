@@ -35,6 +35,36 @@ export function contactValues(items: ClientContact[] | null): string[] {
   return items ? items.map((c) => c.value) : [];
 }
 
+/** Maps an email address to its mailto target. */
+export const mailHref = (v: string): string => `mailto:${v}`;
+
+/** Maps a phone number to its tel target, keeping digits and the plus sign. */
+export const telHref = (v: string): string => `tel:${v.replace(/[^+\d]/g, "")}`;
+
+/** Maps a website to an absolute https url when the scheme is missing. */
+export const webHref = (v: string): string => (/^https?:\/\//i.test(v) ? v : `https://${v}`);
+
+/**
+ * Renders contact values as anchors, one per address line.
+ *
+ * @param values - Display values.
+ * @param href - Maps a value to its link target.
+ */
+export function links(values: string[], href: (v: string) => string): string {
+  return values.map((v) => `<a href="${htmlEscape(href(v))}">${htmlEscape(v)}</a>`).join("");
+}
+
+/**
+ * Balance shown by summary blocks: the trailing non-empty cell of the last
+ * header-kind row, or an empty string when no such row exists.
+ *
+ * @param rows - Ordered body rows of the items model.
+ */
+export function balanceValue(rows: InvoiceData["items"]["rows"]): string {
+  const last = [...rows].reverse().find((r) => r.kind === "header");
+  return last ? ([...last.cells].reverse().find((c) => c !== "") ?? "") : "";
+}
+
 /**
  * Maps fr column weights to a `colgroup` of percentage widths so fixed-layout
  * tables keep the editor's proportions.
@@ -66,17 +96,23 @@ export function headerSpan(cells: string[]): number {
  * whose row-scoped first cell spans the empty cells directly to its right.
  * A `colgroup` carries the fr weights as percentages so the fixed-layout
  * table fills its container in the same proportions as the editor and PDF.
+ * Emitted style hooks: cells of the trailing three columns carry `num` so
+ * template css can right-align numeric columns without a local builder.
+ * Every header-kind row renders identically; none is singled out as a total.
  *
  * @param items - Columns, fr widths and ordered body rows of the invoice model.
+ * @param cls - Optional class for the table element.
  */
-export function itemsTable(items: InvoiceData["items"]): string {
+export function itemsTable(items: InvoiceData["items"], cls: string = ""): string {
   const group = colGroup(items.widths, items.columns.length);
+  const numFrom = Math.max(1, items.columns.length - 3);
+  const num = (col: number): string => (col >= numFrom ? ' class="num"' : "");
   const colSpan = headerSpan(items.columns);
   const head =
-    `<th scope="${colSpan > 1 ? "colgroup" : "col"}" colspan="${colSpan}">${htmlEscape(items.columns[0] ?? "")}</th>` +
+    `<th scope="${colSpan > 1 ? "colgroup" : "col"}" colspan="${colSpan}"${num(0)}>${htmlEscape(items.columns[0] ?? "")}</th>` +
     items.columns
       .slice(colSpan)
-      .map((c) => `<th scope="col">${htmlEscape(c)}</th>`)
+      .map((c, j) => `<th scope="col"${num(colSpan + j)}>${htmlEscape(c)}</th>`)
       .join("");
   const body = items.rows
     .map((r) => {
@@ -84,14 +120,14 @@ export function itemsTable(items: InvoiceData["items"]): string {
         const span = headerSpan(r.cells);
         const rest = r.cells
           .slice(span)
-          .map((c) => `<td>${htmlEscape(c)}</td>`)
+          .map((c, j) => `<td${num(span + j)}>${htmlEscape(c)}</td>`)
           .join("");
-        return `<tr class="section"><th scope="row" colspan="${span}">${htmlEscape(r.cells[0] ?? "")}</th>${rest}</tr>`;
+        return `<tr class="section"><th scope="row" colspan="${span}"${num(0)}>${htmlEscape(r.cells[0] ?? "")}</th>${rest}</tr>`;
       }
-      return `<tr>${r.cells.map((c) => `<td>${htmlEscape(c)}</td>`).join("")}</tr>`;
+      return `<tr>${r.cells.map((c, j) => `<td${num(j)}>${htmlEscape(c)}</td>`).join("")}</tr>`;
     })
     .join("");
-  return `<table>${group}<thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  return `<table${cls ? ` class="${cls}"` : ""}>${group}<thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
 const BASE_CSS = `*, *::before, *::after { box-sizing: border-box; }

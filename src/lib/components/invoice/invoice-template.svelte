@@ -24,32 +24,39 @@
         { id: "classic", name: "Classic" },
         { id: "modern", name: "Modern" },
         { id: "minimal", name: "Minimal" },
+        { id: "studio", name: "Studio" },
+        { id: "slate", name: "Slate" },
+        { id: "terminal", name: "Terminal" },
+        { id: "compact", name: "Compact" },
+        { id: "soft", name: "Soft" },
     ] as const;
 
-    let svgs: Record<string, string> = $state({});
-    let rendering: boolean = $state(true);
+    let svgs: Record<string, string[]> = $state({});
+    let done: number = $state(0);
     let renderError: string | null = $state(null);
+    let percent: number = $derived(Math.round((done / TEMPLATES.length) * 100));
+    let rendering: boolean = $derived(done < TEMPLATES.length);
 
     const svgSrc = (svg: string): string =>
         `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
-    onMount(async () => {
-        try {
-            const rendered = await Promise.all(
-                TEMPLATES.map((t) =>
-                    invoke<string>("render_invoice_svg", {
-                        templateId: t.id,
-                        data: toInvoiceInput(data),
-                        senderLogo: data.sender.logo,
-                        recipientAvatar: data.recipient.avatar,
-                    }).then((svg) => [t.id, svg] as const),
-                ),
-            );
-            svgs = Object.fromEntries(rendered);
-        } catch (e) {
-            renderError = e instanceof Error ? e.message : String(e);
-        } finally {
-            rendering = false;
+    onMount(() => {
+        for (const t of TEMPLATES) {
+            invoke<string[]>("render_invoice_svg", {
+                templateId: t.id,
+                data: toInvoiceInput(data),
+                senderLogo: data.sender.logo,
+                recipientAvatar: data.recipient.avatar,
+            })
+                .then((pages) => {
+                    svgs = { ...svgs, [t.id]: pages };
+                })
+                .catch((e) => {
+                    renderError ??= e instanceof Error ? e.message : String(e);
+                })
+                .finally(() => {
+                    done += 1;
+                });
         }
     });
 </script>
@@ -72,10 +79,26 @@
     <div class="preview">
         {#if renderError}
             <p class="error" role="alert">{renderError}</p>
-        {:else if rendering}
-            <p class="loading">Rendering preview…</p>
-        {:else if svgs[selected]}
-            <img src={svgSrc(svgs[selected])} alt="Selected invoice preview" />
+        {/if}
+        {#if rendering && !svgs[selected]}
+            <div
+                class="progress"
+                role="progressbar"
+                aria-label="Rendering template previews"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow={percent}
+            >
+                <div class="track">
+                    <div class="fill" style:width="{percent}%"></div>
+                </div>
+                <span class="percent">{percent}%</span>
+            </div>
+        {/if}
+        {#if svgs[selected]?.length}
+            {#each svgs[selected] as page, i (i)}
+                <img src={svgSrc(page)} alt="Invoice preview page {i + 1}" />
+            {/each}
         {/if}
     </div>
 </div>
@@ -94,6 +117,8 @@
         display: flex;
         flex-direction: column;
         gap: 0.4rem;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     .tpl-nav :global(button) {
@@ -102,8 +127,9 @@
 
     .preview {
         display: flex;
-        align-items: flex-start;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
         min-width: 0;
         max-height: 60vh;
         overflow: auto;
@@ -116,17 +142,40 @@
         height: auto;
     }
 
-    .loading,
     .error {
         margin: 2rem 0;
         font-size: 0.85rem;
-    }
-
-    .error {
         color: var(--red);
     }
 
-    .loading {
+    .progress {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        width: 100%;
+        margin: 2rem 0;
+    }
+
+    .progress .track {
+        flex: 1;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--gray-90);
+        overflow: hidden;
+    }
+
+    .progress .fill {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--green);
+        transition: width 180ms ease;
+    }
+
+    .progress .percent {
+        min-width: 2.6em;
+        text-align: right;
+        font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
         color: var(--gray-40);
     }
 </style>

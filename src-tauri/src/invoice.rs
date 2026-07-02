@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use std::sync::OnceLock;
 
 use tauri::AppHandle;
 use typst::diag::{FileError, FileResult, SourceDiagnostic, Warned};
 use typst::foundations::{Bytes, Datetime, Dict, Value};
-use typst::layout::{Abs, PagedDocument};
+use typst::layout::PagedDocument;
 use typst::syntax::{FileId, Source, VirtualPath};
 use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
@@ -14,7 +15,7 @@ use crate::files::{avatars_dir, is_safe_name};
 
 const MAIN: &str = "/main.typ";
 
-// every bundled face, parsed once per compile (cheap; the engine memoizes layout)
+// every bundled face, parsed once per process (fonts are static; Font clones are cheap handles)
 macro_rules! fonts {
     ($($p:literal),* $(,)?) => {
         [$(include_bytes!($p).as_slice()),*]
@@ -24,8 +25,10 @@ macro_rules! fonts {
     };
 }
 
-fn load_fonts() -> Vec<Font> {
-    fonts![
+static FONTS: OnceLock<Vec<Font>> = OnceLock::new();
+
+fn load_fonts() -> &'static [Font] {
+    FONTS.get_or_init(|| fonts![
         "../fonts/instrument-sans/instrument-sans_regular.ttf",
         "../fonts/instrument-sans/instrument-sans_italic.ttf",
         "../fonts/instrument-sans/instrument-sans_medium.ttf",
@@ -40,6 +43,12 @@ fn load_fonts() -> Vec<Font> {
         "../fonts/dm-mono/dm-mono_italic.ttf",
         "../fonts/dm-mono/dm-mono_medium.ttf",
         "../fonts/dm-mono/dm-mono_medium-italic.ttf",
+        "../fonts/noto-serif/noto-serif_regular.ttf",
+        "../fonts/noto-serif/noto-serif_bold.ttf",
+        "../fonts/noto-serif/noto-serif_italic.ttf",
+        "../fonts/noto-serif/noto-serif_bold-italic.ttf",
+        "../fonts/nunito/nunito_regular.ttf",
+        "../fonts/nunito/nunito_bold.ttf",
         "../fonts/noto-sans/noto-sans_regular.ttf",
         "../fonts/noto-sans/noto-sans_bold.ttf",
         "../fonts/noto-sans/noto-sans-thai_regular.ttf",
@@ -47,7 +56,7 @@ fn load_fonts() -> Vec<Font> {
         "../fonts/noto-sans/noto-sans-khmer_regular.ttf",
         "../fonts/noto-sans/noto-sans-arabic_regular.ttf",
         "../fonts/noto-sans/noto-sans-armenian_regular.ttf",
-    ]
+    ])
 }
 
 fn template_src(id: &str) -> Result<&'static str, String> {
@@ -56,6 +65,11 @@ fn template_src(id: &str) -> Result<&'static str, String> {
         "classic" => Ok(include_str!("../templates/classic.typ")),
         "modern" => Ok(include_str!("../templates/modern.typ")),
         "minimal" => Ok(include_str!("../templates/minimal.typ")),
+        "studio" => Ok(include_str!("../templates/studio.typ")),
+        "slate" => Ok(include_str!("../templates/slate.typ")),
+        "terminal" => Ok(include_str!("../templates/terminal.typ")),
+        "compact" => Ok(include_str!("../templates/compact.typ")),
+        "soft" => Ok(include_str!("../templates/soft.typ")),
         _ => Err(format!("unknown template: {id}")),
     }
 }
@@ -123,7 +137,7 @@ fn compile(
     json: &str,
     logos: Vec<(&'static str, Vec<u8>)>,
 ) -> Result<PagedDocument, String> {
-    let fonts = load_fonts();
+    let fonts = load_fonts().to_vec();
     let book = FontBook::from_fonts(&fonts);
 
     let mut inputs = Dict::new();
@@ -180,7 +194,9 @@ fn resolve_logos(
     Ok(out)
 }
 
-#[tauri::command]
+// async: typst compiles are cpu-heavy; sync commands would run on the main
+// thread and freeze the ui for the whole render
+#[tauri::command(async)]
 pub fn render_invoice_pdf(
     app: AppHandle,
     template_id: String,
@@ -193,22 +209,36 @@ pub fn render_invoice_pdf(
     typst_pdf::pdf(&doc, &PdfOptions::default()).map_err(|d| stringify_diagnostics(&d))
 }
 
-#[tauri::command]
+// one svg per page: svg_merged leaves page backgrounds untransformed, which
+// blanks earlier pages in webview renderers on multi-page documents
+#[tauri::command(async)]
 pub fn render_invoice_svg(
     app: AppHandle,
     template_id: String,
     data: String,
     sender_logo: Option<String>,
     recipient_avatar: Option<String>,
-) -> Result<String, String> {
+) -> Result<Vec<String>, String> {
     let logos = resolve_logos(&app, sender_logo, recipient_avatar)?;
     let doc = compile(&template_id, &data, logos)?;
-    Ok(typst_svg::svg_merged(&doc, Abs::zero()))
+    Ok(doc.pages.iter().map(typst_svg::svg).collect())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const TEMPLATE_IDS: &[&str] = &[
+        "default",
+        "classic",
+        "modern",
+        "minimal",
+        "studio",
+        "slate",
+        "terminal",
+        "compact",
+        "soft",
+    ];
 
     // mirrors a real `toInvoiceInput` payload: optional fields null/blank,
     // a company-only recipient (contact_name is nullable), contact lists
@@ -246,11 +276,14 @@ mod tests {
 
     #[test]
     fn every_template_renders() {
-        for id in ["default", "classic", "modern", "minimal"] {
+        for &id in TEMPLATE_IDS {
             let doc = compile(id, SAMPLE, Vec::new()).unwrap_or_else(|e| panic!("{id}: {e}"));
             let pdf = typst_pdf::pdf(&doc, &PdfOptions::default()).expect("pdf bytes");
             assert!(!pdf.is_empty(), "{id}: empty pdf");
-            assert!(typst_svg::svg_merged(&doc, Abs::zero()).contains("<svg"), "{id}: no svg");
+            assert!(!doc.pages.is_empty(), "{id}: no pages");
+            for page in &doc.pages {
+                assert!(typst_svg::svg(page).contains("<svg"), "{id}: no svg");
+            }
         }
     }
 
@@ -258,6 +291,7 @@ mod tests {
     fn unknown_template_errors() {
         assert!(compile("nope", SAMPLE, Vec::new()).is_err());
     }
+
 
     // exercises the virtual-file logo path and each template's logo guard
     #[test]
@@ -270,7 +304,7 @@ mod tests {
             0x9c, 0x63, 0xf8, 0x0f, 0x04, 0x00, 0x09, 0xfb, 0x03, 0xfd, 0xfb, 0x5e, 0x6b, 0x2b,
             0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
         ];
-        for id in ["default", "classic", "modern", "minimal"] {
+        for &id in TEMPLATE_IDS {
             let doc = compile(id, SAMPLE, vec![("/sender-logo", PNG.to_vec())])
                 .unwrap_or_else(|e| panic!("{id} with logo: {e}"));
             assert!(!typst_pdf::pdf(&doc, &PdfOptions::default()).expect("pdf").is_empty());

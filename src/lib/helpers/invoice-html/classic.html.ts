@@ -1,53 +1,76 @@
 import type { InvoiceData } from "$lib/types";
-import { contactValues, docShell, escAddr, htmlEscape, itemsTable } from "./shared";
+import { balanceValue, contactValues, docShell, escAddr, htmlEscape, itemsTable } from "./shared";
 
-const CSS = `:root { --ink: #1e1e1e; --muted: #787878; --line: #bebebe; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; }
-.head { display: flex; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
-.head .meta { text-align: right; }
-.head h1 { margin: 0; font-size: 1.7rem; font-weight: 600; letter-spacing: 0.02em; }
-.head .meta p { margin: 0.1rem 0; }
-.from .logo { height: 40px; width: auto; margin-bottom: 0.4rem; }
-.billto { margin: 1.6rem 0 1.2rem; }
-.billto address { margin-top: 0.2rem; }
-th, td { padding: 0.5rem; text-align: left; border: 1px solid var(--line); }
-thead th, .section th, .section td { font-weight: 600; }
-.notes { margin-top: 1.2rem; color: var(--muted); }`;
+const CSS = `:root { --ink: #1a1a1a; --navy: #1b2a4a; --hair: #d0d0d0; --muted: #4a4a4a; --serif: Georgia, "Times New Roman", Times, serif; }
+.invoice { color: var(--ink); font-family: var(--serif); font-size: 0.95rem; line-height: 1.55; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 2.5rem; }
+.head .name { font-size: 1.45rem; font-variant: small-caps; letter-spacing: 0.06em; color: var(--navy); }
+.head .from address { margin-top: 0.5rem; font-size: 0.82rem; color: var(--muted); }
+.head .title { text-align: right; min-width: 11rem; }
+.head .title h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--navy); }
+.head .title .dbl { height: 3px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 0.45rem 0 0.5rem; }
+.head .title p { margin: 0; }
+.billto { margin: 1.9rem 0 1.5rem; }
+.billto h2 { margin: 0 0 0.3rem; font-size: 0.85rem; font-variant: small-caps; letter-spacing: 0.08em; color: var(--navy); }
+.summary { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 0 0 2.2rem; padding: 0.75rem 0; display: grid; grid-template-columns: auto 1fr; gap: 0.45rem 1.4rem; }
+.summary dt { margin: 0; font-weight: 700; }
+.summary dd { margin: 0; }
+.invoice th, .invoice td { padding: 0.55rem 0.6rem; text-align: left; }
+.invoice thead th { font-variant: small-caps; letter-spacing: 0.07em; font-weight: 700; font-size: 0.85rem; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.invoice tbody td, .invoice tbody th { border-bottom: 1px solid var(--hair); }
+.invoice tbody tr.section > * { font-weight: 700; color: var(--navy); }
+.invoice .num { text-align: right; }
+.notes { margin-top: 1.8rem; text-align: center; font-style: italic; color: var(--muted); }`;
 
 /**
- * Classic HTML invoice: formal two-column header and a fully ruled table.
+ * Classic HTML invoice: formal serif letter with small-caps headings, a
+ * double-ruled title, a ruled summary strip and a black-ruled items table
+ * whose grand-total row carries a double rule. Mirrors the classic PDF.
  *
  * @param data - Assembled invoice model.
- * @param logo - Sender logo as a data URI, omitted when unset.
+ * @param logo - Sender logo as a data URI, unused by this design.
  */
 export function classicHtml(data: InvoiceData, logo?: string): string {
+  void logo;
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
-  const contacts = [...contactValues(sender.emails), ...contactValues(sender.phones)];
+  const senderContacts = [...contactValues(sender.emails), ...contactValues(sender.phones)];
+  const recipContacts = [
+    ...contactValues(recipient.emails),
+    ...contactValues(recipient.phones),
+    ...contactValues(recipient.websites),
+  ];
+  const balance = balanceValue(items.rows);
   const body = `<main class="invoice">
 <header class="head">
-<address class="from">
-${logo ? `<img class="logo" src="${logo}" alt="">` : ""}
-<strong>${e(sender.business_name)}</strong>
+<div class="from">
+<span class="name">${e(sender.business_name)}</span>
+<address>
 ${sender.mailing_address ? `<span>${escAddr(sender.mailing_address)}</span>` : ""}
-${contacts.map((c) => `<span>${e(c)}</span>`).join("")}
+${senderContacts.map((c) => `<span>${e(c)}</span>`).join("")}
 ${sender.tax_id ? `<span>Tax ID: ${e(sender.tax_id)}</span>` : ""}
 </address>
-<div class="meta">
-<h1>INVOICE</h1>
+</div>
+<div class="title">
+<h1>Invoice</h1>
+<div class="dbl"></div>
 <p>#${e(meta.invoiceNo)}</p>
-<p>Issued: ${e(meta.issueDate)}</p>
-${meta.dueDate ? `<p>Due: ${e(meta.dueDate)}</p>` : ""}
 </div>
 </header>
 <section class="billto">
-<strong>Bill to</strong>
+<h2>Bill To</h2>
 <address>
 ${recipient.contact_name ? `<span>${e(recipient.contact_name)}</span>` : ""}
 ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${recipient.mailing_address ? `<span>${escAddr(recipient.mailing_address)}</span>` : ""}
+${recipContacts.map((c) => `<span>${e(c)}</span>`).join("")}
 </address>
 </section>
+<dl class="summary">
+<dt>Issue date</dt><dd>${e(meta.issueDate)}</dd>
+${meta.dueDate ? `<dt>Due date</dt><dd>${e(meta.dueDate)}</dd>` : ""}
+<dt>Balance</dt><dd>${e(balance)}</dd>
+</dl>
 ${itemsTable(items)}
 ${meta.notes ? `<footer class="notes">${escAddr(meta.notes)}</footer>` : ""}
 </main>`;

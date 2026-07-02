@@ -3,12 +3,22 @@ import { classicHtml } from "./classic.html";
 import { modernHtml } from "./modern.html";
 import { minimalHtml } from "./minimal.html";
 import { defaultHtml } from "./default.html";
+import { studioHtml } from "./studio.html";
+import { slateHtml } from "./slate.html";
+import { terminalHtml } from "./terminal.html";
+import { compactHtml } from "./compact.html";
+import { softHtml } from "./soft.html";
 
 const RENDERERS: Record<string, (data: InvoiceData, logo?: string) => string> = {
   default: defaultHtml,
   classic: classicHtml,
   modern: modernHtml,
   minimal: minimalHtml,
+  studio: studioHtml,
+  slate: slateHtml,
+  terminal: terminalHtml,
+  compact: compactHtml,
+  soft: softHtml,
 };
 
 /**
