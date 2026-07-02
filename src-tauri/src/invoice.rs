@@ -45,6 +45,7 @@ fn load_fonts() -> Vec<Font> {
 
 fn template_src(id: &str) -> Result<&'static str, String> {
     match id {
+        "default" => Ok(include_str!("../templates/default.typ")),
         "classic" => Ok(include_str!("../templates/classic.typ")),
         "modern" => Ok(include_str!("../templates/modern.typ")),
         "minimal" => Ok(include_str!("../templates/minimal.typ")),
@@ -233,7 +234,7 @@ mod tests {
 
     #[test]
     fn every_template_renders() {
-        for id in ["classic", "modern", "minimal"] {
+        for id in ["default", "classic", "modern", "minimal"] {
             let doc = compile(id, SAMPLE, Vec::new()).unwrap_or_else(|e| panic!("{id}: {e}"));
             let pdf = typst_pdf::pdf(&doc, &PdfOptions::default()).expect("pdf bytes");
             assert!(!pdf.is_empty(), "{id}: empty pdf");
@@ -257,7 +258,7 @@ mod tests {
             0x9c, 0x63, 0xf8, 0x0f, 0x04, 0x00, 0x09, 0xfb, 0x03, 0xfd, 0xfb, 0x5e, 0x6b, 0x2b,
             0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
         ];
-        for id in ["classic", "modern", "minimal"] {
+        for id in ["default", "classic", "modern", "minimal"] {
             let doc = compile(id, SAMPLE, vec![("/sender-logo", PNG.to_vec())])
                 .unwrap_or_else(|e| panic!("{id} with logo: {e}"));
             assert!(!typst_pdf::pdf(&doc, &PdfOptions::default()).expect("pdf").is_empty());

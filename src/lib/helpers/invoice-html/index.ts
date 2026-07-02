@@ -2,8 +2,10 @@ import type { InvoiceData } from "$lib/types";
 import { classicHtml } from "./classic.html";
 import { modernHtml } from "./modern.html";
 import { minimalHtml } from "./minimal.html";
+import { defaultHtml } from "./default.html";
 
 const RENDERERS: Record<string, (data: InvoiceData, logo?: string) => string> = {
+  default: defaultHtml,
   classic: classicHtml,
   modern: modernHtml,
   minimal: minimalHtml,

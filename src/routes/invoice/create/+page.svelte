@@ -77,7 +77,7 @@
         { value: "txt", label: "Text" },
     ];
 
-    let selectedTemplate: string = $state("classic");
+    let selectedTemplate: string = $state("default");
     let exportOpen: boolean = $state(false);
     let exportError: string | null = $state(null);
     let overwriteOpen: boolean = $state(false);

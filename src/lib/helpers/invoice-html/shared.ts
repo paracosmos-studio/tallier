@@ -36,6 +36,19 @@ export function contactValues(items: ClientContact[] | null): string[] {
 }
 
 /**
+ * Maps fr column weights to a `colgroup` of percentage widths so fixed-layout
+ * tables keep the editor's proportions.
+ *
+ * @param widths - fr weights, one per column.
+ * @param count - Column count, the fallback weight sum when widths are zero.
+ */
+export function colGroup(widths: number[], count: number): string {
+  const sum = widths.reduce((s, w) => s + w, 0) || count;
+  const cols = widths.map((w) => `<col style="width:${((w / sum) * 100).toFixed(3)}%">`).join("");
+  return `<colgroup>${cols}</colgroup>`;
+}
+
+/**
  * Renders the line-items grid as a semantic table. Header cells are column
  * scopes, the first totals cell is a row scope, and cells stay pre-formatted.
  * A `colgroup` carries the fr weights as percentages so the fixed-layout table
@@ -45,10 +58,7 @@ export function contactValues(items: ClientContact[] | null): string[] {
  * @param totals - Trailing totals rows, cells parallel to the columns.
  */
 export function itemsTable(items: InvoiceData["items"], totals: string[][]): string {
-  const sum = items.widths.reduce((s, w) => s + w, 0) || items.columns.length;
-  const group = items.widths
-    .map((w) => `<col style="width:${((w / sum) * 100).toFixed(3)}%">`)
-    .join("");
+  const group = colGroup(items.widths, items.columns.length);
   const head = items.columns.map((c) => `<th scope="col">${htmlEscape(c)}</th>`).join("");
   const body = items.rows
     .map((r) => `<tr>${r.map((c) => `<td>${htmlEscape(c)}</td>`).join("")}</tr>`)
@@ -63,7 +73,7 @@ export function itemsTable(items: InvoiceData["items"], totals: string[][]): str
           .join("")}</tr>`,
     )
     .join("");
-  return `<table><colgroup>${group}</colgroup><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot ? `<tfoot>${foot}</tfoot>` : ""}</table>`;
+  return `<table>${group}<thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot ? `<tfoot>${foot}</tfoot>` : ""}</table>`;
 }
 
 const BASE_CSS = `*, *::before, *::after { box-sizing: border-box; }

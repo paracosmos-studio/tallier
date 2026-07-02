@@ -6,7 +6,7 @@
     art). Export is driven by the page via the `PageNavigation` action.
 
     @param {InvoiceData} data - The invoice model assembled on entering the step.
-    @param {string} [selected="classic"] - Bindable id of the previewed template.
+    @param {string} [selected="default"] - Bindable id of the previewed template.
 -->
 <script lang="ts">
     import { onMount } from "svelte";
@@ -17,9 +17,10 @@
 
     type Props = { data: InvoiceData; selected?: string };
 
-    let { data, selected = $bindable("classic") }: Props = $props();
+    let { data, selected = $bindable("default") }: Props = $props();
 
     const TEMPLATES = [
+        { id: "default", name: "Default" },
         { id: "classic", name: "Classic" },
         { id: "modern", name: "Modern" },
         { id: "minimal", name: "Minimal" },
