@@ -216,7 +216,8 @@ mod tests {
         "recipient": {
             "id": 2, "position": 0, "contact_name": null,
             "company_name": "BobCo LLC", "mailing_address": "9 River Rd",
-            "emails": null, "phones": null, "websites": null, "invoice_id_prefix": null
+            "emails": null, "phones": [{"label": "Mobile", "value": "+1 555 0100"}],
+            "websites": null, "invoice_id_prefix": null
         },
         "meta": {
             "invoiceNo": "INV-1024", "issueDate": "2026-06-14",

@@ -58,6 +58,7 @@
       inv.recipient.company_name,
       block-addr(inv.recipient.mailing_address),
       ..contacts(inv.recipient.emails).map(c => link("mailto:" + c)[#c]),
+      ..contacts(inv.recipient.phones).map(c => link(tel-url(c))[#c]),
       ..contacts(inv.recipient.websites).map(c => link(web-url(c))[#c]),
     )
   ],
