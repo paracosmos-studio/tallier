@@ -13,18 +13,19 @@ const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #9
 .parties .name { font-size: 1.05rem; font-weight: 700; }
 .billto h2 { margin: 0 0 0.2rem; font-size: 0.95rem; font-weight: 700; }
 .summary { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 3px; margin: 0 0 3rem; }
-.summary dt { background: var(--fill); font-weight: 700; padding: 0.45rem 0.6rem; }
+.summary dt { background: var(--fill); font-weight: 500; padding: 0.45rem 0.6rem; }
 .summary dd { margin: 0; padding: 0.4rem 0.6rem; }
 .summary .wide { grid-column: span 2; }
 .summary .balance dd { color: var(--red); }
 th, td { padding: 0.5rem 0.6rem; text-align: left; }
-thead th { font-weight: 700; background: var(--fill); }
+thead th { font-weight: 500; background: var(--fill); }
+.items tbody td { padding-top: 6px; padding-bottom: 6px; }
 .num { text-align: right; }
 .totals { width: 30%; min-width: 15rem; margin: 2.5rem 0 0 auto; }
-.totals th { background: var(--fill); text-align: left; }
+.totals th { background: var(--fill); text-align: left; font-weight: 500; }
 .totals td { text-align: right; }
 .totals .neg th, .totals .neg td { color: var(--green); }
-.totals tr:last-child td { font-weight: 700; }`;
+.totals tr:last-child td { font-weight: 500; }`;
 
 /**
  * Splits a totals row into its label and trailing value cell.

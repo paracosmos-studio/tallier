@@ -1,5 +1,6 @@
 import type { TableColumn, TableRow } from "$lib/components/table.svelte";
 import type { Client, InvoiceData, InvoiceMeta, Profile } from "$lib/types";
+import { formatDateMedium } from "./format";
 
 type Snapshot = { columns: TableColumn[]; rows: TableRow[] };
 
@@ -8,11 +9,12 @@ type Snapshot = { columns: TableColumn[]; rows: TableRow[] };
  *
  * `rows[0]` is always the column-header row; `kind === "data"` rows are line
  * items; any `kind === "header"` rows after index 0 are totals rows. Cells stay
- * as pre-formatted strings - templates do layout only, never re-format.
+ * as pre-formatted strings - templates do layout only, never re-format. The
+ * ISO meta dates are formatted for display here, once, for the same reason.
  *
  * @param sender - Sender identity profile.
  * @param recipient - Invoice recipient client.
- * @param meta - Invoice number, dates and notes from the Details step.
+ * @param meta - Invoice number, ISO dates and notes from the Details step.
  * @param snapshot - Latest live state emitted by the items `Table`.
  */
 export function assembleInvoice(
@@ -26,7 +28,11 @@ export function assembleInvoice(
   return {
     sender,
     recipient,
-    meta,
+    meta: {
+      ...meta,
+      issueDate: formatDateMedium(meta.issueDate),
+      dueDate: meta.dueDate ? formatDateMedium(meta.dueDate) : "",
+    },
     items: {
       columns,
       widths: snapshot.columns.map((c) => c.width),

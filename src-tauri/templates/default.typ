@@ -19,7 +19,7 @@
 #let numeric-from = calc.max(1, inv.items.columns.len() - 3)
 #let strip(label, value, tint: ink) = stack(
   spacing: 3pt,
-  block(fill: gray, width: 100%, inset: (x: 8pt, y: 6pt), strong(label)),
+  block(fill: gray, width: 100%, inset: (x: 8pt, y: 6pt), text(weight: "medium", label)),
   block(width: 100%, inset: (x: 8pt, y: 4pt), text(fill: tint, value)),
 )
 
@@ -81,11 +81,11 @@
 #table(
   columns: inv.items.widths.map(w => w * 1fr),
   stroke: none,
-  inset: (x: 8pt, y: 7pt),
+  inset: (_, y) => (x: 8pt, y: if y == 0 { 7pt } else { 5.5pt }),
   row-gutter: 2.5pt,
   align: (x, _) => if x >= numeric-from { right } else { left },
   fill: (_, y) => if y == 0 { gray },
-  table.header(..inv.items.columns.map(c => strong(c))),
+  table.header(..inv.items.columns.map(c => text(weight: "medium", c))),
   ..inv.items.rows.flatten(),
 )
 
@@ -100,8 +100,8 @@
     ..inv.totals.enumerate().map(((i, r)) => {
       let (label, value) = row-pair(r)
       let tint = if negative(value) { green } else { ink }
-      let cell = text(fill: tint, value)
-      (strong(text(fill: tint, label)), if i == inv.totals.len() - 1 { strong(cell) } else { cell })
+      let weight = if i == inv.totals.len() - 1 { "medium" } else { "regular" }
+      (text(weight: "medium", fill: tint, label), text(weight: weight, fill: tint, value))
     }).flatten(),
   )))
 }

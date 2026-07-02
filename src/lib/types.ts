@@ -63,8 +63,8 @@ export interface Profile {
 
 export interface InvoiceMeta {
   invoiceNo: string;
-  issueDate: string; // ISO yyyy-mm-dd
-  dueDate: string; // ISO or "" when unset
+  issueDate: string; // ISO yyyy-mm-dd in the editor; "MMM DD, YYYY" once assembled
+  dueDate: string; // same as issueDate, or "" when unset
   notes: string;
 }
 

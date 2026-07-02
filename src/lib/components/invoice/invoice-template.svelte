@@ -107,9 +107,11 @@
         min-width: 0;
         max-height: 60vh;
         overflow: auto;
+        border-radius: 5px;
     }
 
     .preview img {
+        display: block;
         width: 100%;
         height: auto;
     }

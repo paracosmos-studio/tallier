@@ -203,7 +203,7 @@ pub fn render_invoice_svg(
 ) -> Result<String, String> {
     let logos = resolve_logos(&app, sender_logo, recipient_avatar)?;
     let doc = compile(&template_id, &data, logos)?;
-    Ok(typst_svg::svg_merged(&doc, Abs::pt(8.0)))
+    Ok(typst_svg::svg_merged(&doc, Abs::zero()))
 }
 
 #[cfg(test)]
@@ -228,7 +228,7 @@ mod tests {
             "websites": null, "invoice_id_prefix": null
         },
         "meta": {
-            "invoiceNo": "INV-1024", "issueDate": "2026-06-14",
+            "invoiceNo": "INV-1024", "issueDate": "Jun 14, 2026",
             "dueDate": "", "notes": "Thank you for your business."
         },
         "items": {
@@ -248,7 +248,7 @@ mod tests {
             let doc = compile(id, SAMPLE, Vec::new()).unwrap_or_else(|e| panic!("{id}: {e}"));
             let pdf = typst_pdf::pdf(&doc, &PdfOptions::default()).expect("pdf bytes");
             assert!(!pdf.is_empty(), "{id}: empty pdf");
-            assert!(typst_svg::svg_merged(&doc, Abs::pt(8.0)).contains("<svg"), "{id}: no svg");
+            assert!(typst_svg::svg_merged(&doc, Abs::zero()).contains("<svg"), "{id}: no svg");
         }
     }
 
