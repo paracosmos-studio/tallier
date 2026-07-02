@@ -14,21 +14,25 @@
     @param {number} [selectedId] - Id of the selected client (bindable, may be cleared).
     @param {(id: number | undefined) => void} [onchange] - Fires immediately when the selection changes.
     @param {(id: number) => void} [oncomplete] - Fires when the press animation finishes.
+    @param {(client: Client) => void} [onedit] - Renders an edit button per card; fires with that card's client.
 -->
 
 <script lang="ts">
     import type { Client } from "$lib/types";
     import { clientDisplayName, clientSubtext } from "$lib/helpers/clients";
     import ClientAvatar from "./client-avatar.svelte";
+    import Icon from "$lib/components/icon.svelte";
+    import { Edit } from "$lib/icons";
 
     type Props = {
         clients: Client[];
         selectedId?: number;
         onchange?: (id: number | undefined) => void;
         oncomplete?: (id: number) => void;
+        onedit?: (client: Client) => void;
     };
 
-    let { clients, selectedId = $bindable(), onchange, oncomplete }: Props = $props();
+    let { clients, selectedId = $bindable(), onchange, oncomplete, onedit }: Props = $props();
 
     let animatingId: number | undefined = $state(undefined);
 
@@ -78,6 +82,20 @@
                         <span class="cs-sub">{sub}</span>
                     {/if}
                 </span>
+                {#if onedit}
+                    <button
+                        type="button"
+                        class="cs-edit"
+                        title="Edit client"
+                        aria-label="Edit {clientDisplayName(client)}"
+                        onclick={(e: MouseEvent) => {
+                            e.stopPropagation();
+                            onedit?.(client);
+                        }}
+                    >
+                        <Icon path={Edit} size="16" fill="currentColor" />
+                    </button>
+                {/if}
                 <span class="indicator" aria-hidden="true"></span>
             </label>
         </li>
@@ -175,6 +193,26 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    .cs-edit {
+        display: flex;
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        color: var(--gray-30);
+        transition: color 0.2s ease;
+    }
+
+    .cs-edit:hover {
+        color: var(--yellow);
+    }
+
+    .cs-edit:focus-visible {
+        outline: 2px solid var(--green);
+        outline-offset: 2px;
     }
 
     .indicator {

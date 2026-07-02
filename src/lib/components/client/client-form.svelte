@@ -5,6 +5,7 @@
     via the per-row remove button.
 
     @param {Client} [client] - Client to edit. Omit for add mode.
+    @param {boolean} [hideTitle=false] - Hide the form's own heading (e.g. when the host dialog provides one).
     @param {(payload: Omit<Client, "id" | "position">) => void} onsave - Callback on save.
     @param {() => void} oncancel - Callback when the form is cancelled.
 -->
@@ -18,11 +19,12 @@
 
     type Props = {
         client?: Client;
+        hideTitle?: boolean;
         onsave: (payload: Omit<Client, "id" | "position">) => void;
         oncancel: () => void;
     };
 
-    let { client, onsave, oncancel }: Props = $props();
+    let { client, hideTitle = false, onsave, oncancel }: Props = $props();
 
     let isEdit: boolean = $derived(!!client);
 
@@ -92,7 +94,9 @@
 </script>
 
 <section>
-    <p class="title">{isEdit ? "Edit" : "New"} Client</p>
+    {#if !hideTitle}
+        <p class="title">{isEdit ? "Edit" : "New"} Client</p>
+    {/if}
     <form id="client-form" onsubmit={handleSubmit}>
         <div class="identity-row">
             <AvatarUpload bind:value={avatar} bind:this={uploader} />

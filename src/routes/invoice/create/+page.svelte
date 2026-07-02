@@ -11,10 +11,11 @@
     import type { GenerateOptions } from "$lib/components/dialogs/dialog-generate-invoice-items.svelte";
     import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
+    import DialogEditClient from "$lib/components/dialogs/dialog-edit-client.svelte";
     import type { TableInit, TableColumn, TableRow } from "$lib/components/table.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
     import { Add, WandStars, WorkOutlined, Download } from "$lib/icons";
-    import { getClients, getProjects, getReportEntries } from "$lib/db";
+    import { getClients, getProjects, getReportEntries, updateClient } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { buildInvoiceItems } from "$lib/helpers/invoice-items";
     import { assembleInvoice } from "$lib/helpers/invoice-data";
@@ -45,6 +46,7 @@
         clients.find((c) => c.id === selectedClientId),
     );
     let generateOpen: boolean = $state(false);
+    let editClient: Client | undefined = $state(undefined);
     let itemsInit: TableInit = $state(EMPTY_ITEMS);
     let itemsHasData: boolean = $state(false);
     let itemsSnapshot: { columns: TableColumn[]; rows: TableRow[] } | null = $state(null);
@@ -162,6 +164,23 @@
         return false;
     }
 
+    // persists to the DB only when asked; otherwise the edit lives in the local
+    // list, which selectedClient (and thus invoiceData) derives from
+    async function handleClientEditSave(
+        payload: Omit<Client, "id" | "position">,
+        updateOriginal: boolean,
+    ): Promise<void> {
+        const id = editClient?.id;
+        if (id == null) return;
+        if (updateOriginal) {
+            await updateClient(id, payload);
+            clients = await getClients();
+        } else {
+            clients = clients.map((c) => (c.id === id ? { ...c, ...payload } : c));
+        }
+        editClient = undefined;
+    }
+
     async function handleGenerate(opts: GenerateOptions): Promise<void> {
         generateOpen = false;
         const entries = await getReportEntries(opts.start, opts.end);
@@ -236,6 +255,7 @@
                         {clients}
                         bind:selectedId={selectedClientId}
                         oncomplete={() => (currentStep = 1)}
+                        onedit={(c) => (editClient = c)}
                     />
                 </div>
                 <div class="new-client">
@@ -275,6 +295,13 @@
     {projects}
     ongenerate={handleGenerate}
     onclose={() => (generateOpen = false)}
+/>
+
+<DialogEditClient
+    open={editClient != null}
+    client={editClient}
+    onsave={handleClientEditSave}
+    onclose={() => (editClient = undefined)}
 />
 
 <DialogExport
