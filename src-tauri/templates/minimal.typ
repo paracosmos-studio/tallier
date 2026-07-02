@@ -33,7 +33,7 @@
 
 #v(1.2em)
 #table(
-  columns: inv.items.columns.len(),
+  columns: inv.items.widths.map(w => w * 1fr),
   table.header(..inv.items.columns.map(c => label(c))),
   table.hline(stroke: 0.5pt + luma(210)),
   ..inv.items.rows.flatten(),

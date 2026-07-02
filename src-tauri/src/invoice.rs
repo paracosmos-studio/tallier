@@ -222,6 +222,7 @@ mod tests {
         },
         "items": {
             "columns": ["Date", "Project", "Hours", "Rate", "Total"],
+            "widths": [1.4, 1.4, 1, 1, 1],
             "rows": [
                 ["Jun 1", "Website", "2.00", "100.00", "200.00"],
                 ["Jun 2", "Website", "1.50", "100.00", "150.00"]

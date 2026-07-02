@@ -291,12 +291,12 @@
 </script>
 
 <div class="tbl">
-    <div class="grid" onpointerleave={() => (hoveredCol = null)}>
+    <div class="grid" role="presentation" onpointerleave={() => (hoveredCol = null)}>
         <div class="strip">
             <div class="corner left"></div>
             <div class="col-tools" bind:this={handlesEl} style:grid-template-columns={template}>
                 {#each columns as col, c (col.id)}
-                    <div class="col-h" class:over={overCol === c} onpointerenter={() => (hoveredCol = c)}>
+                    <div class="col-h" class:over={overCol === c} role="presentation" onpointerenter={() => (hoveredCol = c)}>
                         <button
                             type="button"
                             class="grip"
@@ -341,7 +341,7 @@
                     </div>
                     <div class="row-cells" style:grid-template-columns={template}>
                         {#each columns as col, c (col.id)}
-                            <div class="cell {row.kind}" onpointerenter={() => (hoveredCol = c)}>
+                            <div class="cell {row.kind}" role="presentation" onpointerenter={() => (hoveredCol = c)}>
                                 <div
                                     class="edit"
                                     role="textbox"

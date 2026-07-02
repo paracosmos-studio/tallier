@@ -74,6 +74,7 @@ export interface InvoiceData {
   meta: InvoiceMeta;
   items: {
     columns: string[]; // header labels, display order
+    widths: number[]; // fr weights parallel to columns, drive table layout
     rows: string[][]; // data rows only, cells parallel to columns
   };
   totals: string[][]; // trailing totals rows, cells parallel to columns

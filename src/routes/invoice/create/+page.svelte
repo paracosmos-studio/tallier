@@ -18,11 +18,12 @@
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { buildInvoiceItems } from "$lib/helpers/invoice-items";
     import { assembleInvoice } from "$lib/helpers/invoice-data";
+    import { generateInvoiceNo } from "$lib/helpers/invoice";
     import { exportInvoice, invoiceTargetPath, type InvoiceFormat } from "$lib/helpers/export-invoice";
     import { pathExists } from "$lib/helpers/fs";
     import { notify } from "$lib/helpers/notify";
     import type { Client, InvoiceData, InvoiceMeta, Profile, Project } from "$lib/types";
-    import { onMount } from "svelte";
+    import { onMount, untrack } from "svelte";
     import { goto } from "$app/navigation";
 
     const EMPTY_ITEMS: TableInit = {
@@ -49,6 +50,18 @@
     let itemsSnapshot: { columns: TableColumn[]; rows: TableRow[] } | null = $state(null);
     let invoiceMeta: InvoiceMeta | null = $state(null);
     let senderProfile: Profile | undefined = $state(undefined);
+
+    // reseed the persisted invoice number when the recipient changes after Details was filled
+    let metaClientId: number | undefined = undefined;
+    $effect(() => {
+        if (selectedClientId === metaClientId) return;
+        metaClientId = selectedClientId;
+        untrack(() => {
+            if (invoiceMeta) {
+                invoiceMeta = { ...invoiceMeta, invoiceNo: generateInvoiceNo(selectedClient) };
+            }
+        });
+    });
 
     // assembled once Client, Items and Details are all present; feeds the Template step
     let invoiceData: InvoiceData | null = $derived(

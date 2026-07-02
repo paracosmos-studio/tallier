@@ -13,7 +13,7 @@
   columns: (1fr, 1fr),
   align: (left, right),
   [
-    #if "/sender-logo" in sys.inputs { image("/sender-logo", width: 110pt); v(0.6em) }
+    #if "/sender-logo" in sys.inputs { image("/sender-logo", height: 38pt); v(0.6em) }
     #strong(inv.sender.business_name) \
     #block-addr(inv.sender.mailing_address)
     #for c in contacts(inv.sender.emails) [ \ #c ]
@@ -36,7 +36,7 @@
 
 #v(1.2em)
 #table(
-  columns: inv.items.columns.len(),
+  columns: inv.items.widths.map(w => w * 1fr),
   table.header(..inv.items.columns.map(c => strong(c))),
   ..inv.items.rows.flatten(),
   ..inv.totals.map(r => r.map(c => strong(c))).flatten(),

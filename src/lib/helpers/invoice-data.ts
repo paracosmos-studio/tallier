@@ -29,6 +29,7 @@ export function assembleInvoice(
     meta,
     items: {
       columns,
+      widths: snapshot.columns.map((c) => c.width),
       rows: body.filter((r) => r.kind === "data").map((r) => r.cells),
     },
     totals: body.filter((r) => r.kind === "header").map((r) => r.cells),

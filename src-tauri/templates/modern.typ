@@ -3,6 +3,7 @@
 #let accent = rgb("#2f6f4f")
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
+#let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(paper: "a4", margin: 2cm)
@@ -14,8 +15,17 @@
     columns: (1fr, auto),
     align: (left + horizon, right + horizon),
     [
-      #if "/sender-logo" in sys.inputs { image("/sender-logo", width: 96pt); v(0.5em) }
-      #text(size: 15pt, weight: "semibold")[#inv.sender.business_name]
+      #if "/sender-logo" in sys.inputs {
+        grid(
+          columns: (auto, auto),
+          column-gutter: 9pt,
+          align: horizon,
+          box(width: 30pt, height: 30pt, radius: 50%, clip: true, image("/sender-logo", width: 30pt, height: 30pt, fit: "cover")),
+          text(size: 15pt, weight: "semibold")[#inv.sender.business_name],
+        )
+      } else {
+        text(size: 15pt, weight: "semibold")[#inv.sender.business_name]
+      }
     ],
     [
       #text(size: 24pt, weight: "bold")[INVOICE] \
@@ -35,16 +45,18 @@
   ],
   align(right)[
     #text(fill: accent, weight: "semibold")[FROM] \
-    #block-addr(inv.sender.mailing_address)
-    #for c in contacts(inv.sender.emails) [ \ #c ]
-    Issued: #inv.meta.issueDate
-    #if inv.meta.dueDate != "" [ \ Due: #inv.meta.dueDate ]
+    #lines(
+      block-addr(inv.sender.mailing_address),
+      ..contacts(inv.sender.emails),
+      "Issued: " + inv.meta.issueDate,
+      if inv.meta.dueDate != "" { "Due: " + inv.meta.dueDate },
+    )
   ],
 )
 
 #v(1.4em)
 #table(
-  columns: inv.items.columns.len(),
+  columns: inv.items.widths.map(w => w * 1fr),
   table.header(..inv.items.columns.map(c => text(fill: accent, weight: "semibold", c))),
   table.hline(stroke: 1pt + accent),
   ..inv.items.rows.flatten(),

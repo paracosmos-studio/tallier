@@ -95,16 +95,6 @@
 </section>
 
 <style>
-    label {
-        display: flex;
-        flex-direction: column;
-        font-size: 0.8rem;
-        font-weight: 400;
-        color: var(--yellow);
-        margin: 0 0 0.4rem 0;
-        gap: 0.3rem;
-    }
-
     #preferences {
         display: flex;
         flex-direction: column;

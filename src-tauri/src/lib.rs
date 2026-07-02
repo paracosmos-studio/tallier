@@ -39,6 +39,7 @@ pub fn run() {
             files::write_file,
             files::save_avatar,
             files::delete_avatar,
+            files::read_avatar,
             invoice::render_invoice_pdf,
             invoice::render_invoice_svg,
         ])
