@@ -247,7 +247,7 @@
                     description="Save client contacts to attach them to invoices and keep billing details in one place."
                     actionLabel="Add Client"
                     actionIcon={Add}
-                    onaction={() => goto("/settings?tab=clients")}
+                    onaction={() => goto("/settings?tab=clients&view=add")}
                 />
             {:else}
                 <div class="client-select">
@@ -264,7 +264,7 @@
                         title="New Client"
                         bgColor={"var(--gray-90)"}
                         fgColor={"var(--gray-10)"}
-                        onclick={() => goto("/settings?tab=clients")}
+                        onclick={() => goto("/settings?tab=clients&view=add")}
                     >
                         <Icon path={Add} size="14" fill="currentColor" />
                         <span>Add Client</span>

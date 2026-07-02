@@ -91,6 +91,12 @@
     let deleteProfileTarget: Profile | undefined = $state(undefined);
 
     onMount(async () => {
+        // deep link: ?view=add opens the active tab's add form
+        if (page.url.searchParams.get("view") === "add") {
+            if (activeTab === "projects") showAdd();
+            else if (activeTab === "clients") showClientAdd();
+            else if (activeTab === "profiles") showProfileAdd();
+        }
         await Promise.all([loadProjects(), loadClients(), loadProfiles()]);
     });
 
