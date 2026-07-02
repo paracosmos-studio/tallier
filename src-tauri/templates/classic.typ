@@ -7,7 +7,7 @@
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(paper: "a4", margin: 2cm)
-#set text(font: ("Instrument Sans", "Arial"), size: 10pt, fill: luma(30))
+#set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 10pt, fill: luma(30))
 #set table(stroke: 0.5pt + luma(190), inset: 7pt)
 
 #grid(

@@ -25,7 +25,7 @@
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(paper: "us-letter", margin: 36pt)
-#set text(font: ("Instrument Sans", "Arial"), size: 10.5pt, fill: ink)
+#set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 10.5pt, fill: ink)
 #show link: set text(fill: blue)
 
 #grid(

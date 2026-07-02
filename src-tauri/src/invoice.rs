@@ -40,6 +40,13 @@ fn load_fonts() -> Vec<Font> {
         "../fonts/dm-mono/dm-mono_italic.ttf",
         "../fonts/dm-mono/dm-mono_medium.ttf",
         "../fonts/dm-mono/dm-mono_medium-italic.ttf",
+        "../fonts/noto-sans/noto-sans_regular.ttf",
+        "../fonts/noto-sans/noto-sans_bold.ttf",
+        "../fonts/noto-sans/noto-sans-thai_regular.ttf",
+        "../fonts/noto-sans/noto-sans-bengali_regular.ttf",
+        "../fonts/noto-sans/noto-sans-khmer_regular.ttf",
+        "../fonts/noto-sans/noto-sans-arabic_regular.ttf",
+        "../fonts/noto-sans/noto-sans-armenian_regular.ttf",
     ]
 }
 
@@ -205,7 +212,8 @@ mod tests {
 
     // mirrors a real `toInvoiceInput` payload: optional fields null/blank,
     // a company-only recipient (contact_name is nullable), contact lists
-    // present and absent, a multi-line address, totals row
+    // present and absent, a multi-line address, totals row, a non-latin
+    // currency symbol (exercises the noto fallback fonts)
     const SAMPLE: &str = r#"{
         "sender": {
             "id": 1, "position": 0, "label": "Main",
@@ -227,11 +235,11 @@ mod tests {
             "columns": ["Date", "Project", "Hours", "Rate", "Total"],
             "widths": [1.4, 1.4, 1, 1, 1],
             "rows": [
-                ["Jun 1", "Website", "2.00", "100.00", "200.00"],
-                ["Jun 2", "Website", "1.50", "100.00", "150.00"]
+                ["Jun 1", "Website", "2.00", "₹100.00", "₹200.00"],
+                ["Jun 2", "Website", "1.50", "₹100.00", "₹150.00"]
             ]
         },
-        "totals": [["Total", "", "3.50", "", "350.00"]]
+        "totals": [["Total", "", "3.50", "", "₹350.00"]]
     }"#;
 
     #[test]
