@@ -17,7 +17,6 @@ export function clientSubtext(c: Client): string | null {
 const AVATAR_MIME_EXT: Record<string, string> = {
     "image/jpeg": "jpg",
     "image/png": "png",
-    "image/webp": "webp",
 };
 const AVATAR_MAX_BYTES: number = 10 * 1024 * 1024;
 const AVATAR_MIN_DIM: number = 200;
@@ -61,7 +60,7 @@ function imageSize(file: File): Promise<{ w: number; h: number }> {
 export async function saveClientAvatar(file: File): Promise<string> {
     const ext = AVATAR_MIME_EXT[file.type];
     if (!ext) {
-        throw new Error("Use a JPG, PNG, or WEBP image");
+        throw new Error("Use a JPG or PNG image");
     }
     if (file.size > AVATAR_MAX_BYTES) {
         throw new Error("Image must be 10MB or smaller");
