@@ -129,6 +129,17 @@
         itemsHasData = hasDataRow(state.rows);
     }
 
+    // rebuild a table seed from the live snapshot so edits survive step remounts
+    function snapshotToInit(s: { columns: TableColumn[]; rows: TableRow[] }): TableInit {
+        const [header, ...rest] = s.rows;
+        return {
+            columns: s.columns.map((c, i) => ({ header: header?.cells[i] ?? "", width: c.width })),
+            rows: rest.map((r) => ({ kind: r.kind, cells: [...r.cells] })),
+        };
+    }
+
+    let tableInit: TableInit = $derived(itemsSnapshot ? snapshotToInit(itemsSnapshot) : itemsInit);
+
     // entry condition for a forward step; later steps gate on earlier ones
     function gateMet(step: number): boolean {
         if (step === 1) return selectedClientId != null;
@@ -157,6 +168,8 @@
         const filtered = opts.projectIds.length
             ? entries.filter((e) => opts.projectIds.includes(e.project_id))
             : entries;
+
+        itemsSnapshot = null;
         itemsInit = buildInvoiceItems(filtered, projects, parseInt(opts.roundTo), {
             cumulativeOnly: opts.cumulativeOnly,
             includeTitles: opts.includeTitles,
@@ -240,7 +253,7 @@
             {/if}
         {:else if currentStep === 1}
             {#key itemsInit}
-                <Table init={itemsInit} onchange={captureItems} />
+                <Table init={tableInit} onchange={captureItems} />
             {/key}
         {:else if currentStep === 2}
             <InvoiceDetails
