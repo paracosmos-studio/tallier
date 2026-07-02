@@ -43,7 +43,7 @@
         display: inline-block;
         width: 48px;
         height: 23px;
-        background-color: var(--gray-50);
+        background-color: var(--toggle-track-bg);
         border: none;
         border-radius: 20px;
         cursor: pointer;

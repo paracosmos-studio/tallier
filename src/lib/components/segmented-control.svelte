@@ -80,7 +80,7 @@
         display: inline-grid;
         grid-template-columns: repeat(var(--seg-count), 1fr);
         align-items: stretch;
-        background: var(--gray-90);
+        background: var(--field-bg);
         border: 1px solid var(--gray-70);
         border-radius: 6px;
         padding: var(--seg-pad);

@@ -118,7 +118,7 @@
 
     input,
     textarea {
-        background: var(--gray-90);
+        background: var(--field-bg);
         border: 1px solid var(--gray-60);
         padding: 8px;
         color: var(--gray-10);

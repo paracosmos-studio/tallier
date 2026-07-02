@@ -287,7 +287,7 @@
         padding: 6px;
         border: 1px solid var(--gray-70);
         border-radius: 4px;
-        background-color: var(--gray-90);
+        background-color: var(--field-bg);
         box-sizing: border-box;
         color: var(--gray-10);
         font-family: inherit;
@@ -309,7 +309,7 @@
         padding: 6px;
         border: 1px solid var(--gray-70);
         border-radius: 4px;
-        background-color: var(--gray-90);
+        background-color: var(--field-bg);
         box-sizing: border-box;
         color: var(--gray-10);
         font-family: inherit;

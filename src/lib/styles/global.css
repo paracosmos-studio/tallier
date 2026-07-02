@@ -12,6 +12,10 @@
     --gray-70: #262626;
     --gray-80: #1F1F1F;
     --gray-90: #1C1C1C;
+    --gray-100: #141414;
+
+    --field-bg: var(--gray-90);
+    --toggle-track-bg: var(--gray-50);
 
     --color-background: #090909;
     --color-text: var(--gray-10);

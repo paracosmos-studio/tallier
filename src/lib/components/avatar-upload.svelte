@@ -147,7 +147,7 @@
         width: 100%;
         aspect-ratio: 1 / 1;
         border-radius: 6px;
-        background-color: var(--gray-90);
+        background-color: var(--field-bg);
         border: 1px solid var(--gray-70);
         box-sizing: border-box;
         display: flex;

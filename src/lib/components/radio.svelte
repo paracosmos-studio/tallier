@@ -96,7 +96,7 @@
         height: 14px;
         border: 1.5px solid var(--gray-50);
         border-radius: 50%;
-        background: var(--gray-90);
+        background: var(--field-bg);
         box-sizing: border-box;
         position: relative;
         transition: border-color 0.15s ease;

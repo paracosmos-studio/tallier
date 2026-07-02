@@ -246,7 +246,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: var(--gray-90);
+        background: var(--field-bg);
         border: 1px solid var(--gray-70);
         border-radius: 6px;
         color: var(--color-text);
@@ -349,7 +349,7 @@
         width: 100%;
         max-height: 150px;
         overflow-y: auto;
-        background: var(--gray-90);
+        background: var(--field-bg);
         border: 1px solid var(--gray-70);
         border-radius: 0 0 6px 6px;
         margin: 0;

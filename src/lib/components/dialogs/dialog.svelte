@@ -109,6 +109,8 @@
     }
 
     .dialog-inner {
+        --field-bg: var(--gray-100);
+        --toggle-track-bg: var(--gray-60);
         background: var(--gray-80);
         border: 1px solid var(--gray-60);
         border-radius: 10px;

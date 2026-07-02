@@ -343,7 +343,7 @@
     .field input,
     .field textarea {
         width: 100%;
-        background: var(--gray-90);
+        background: var(--field-bg);
         border: 1px solid var(--gray-60);
         border-radius: 4px;
         color: var(--gray-10);

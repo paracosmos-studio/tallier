@@ -128,7 +128,7 @@
 
     .form :global(.sel-dir-path),
     .form :global(.sel-dir-action) {
-        background-color: var(--gray-90);
+        background-color: var(--field-bg);
         border: 1px solid var(--gray-60);
         margin: 0;
     }
