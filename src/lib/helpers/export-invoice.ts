@@ -53,8 +53,8 @@ export function toPlainText(data: InvoiceData): string {
   if (meta.dueDate) out.push(`Due: ${meta.dueDate}`);
   out.push("", `From: ${sender.business_name}`);
   if (sender.mailing_address) out.push(sender.mailing_address);
-  out.push("", `Bill to: ${recipient.contact_name}`);
-  if (recipient.company_name) out.push(recipient.company_name);
+  out.push("", `Bill to: ${recipient.contact_name ?? recipient.company_name ?? ""}`);
+  if (recipient.contact_name && recipient.company_name) out.push(recipient.company_name);
   if (recipient.mailing_address) out.push(recipient.mailing_address);
   out.push("", ...textTable([items.columns, ...items.rows, ...totals]));
   if (meta.notes) out.push("", meta.notes);

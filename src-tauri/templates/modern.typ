@@ -39,9 +39,11 @@
   columns: (1fr, 1fr),
   [
     #text(fill: accent, weight: "semibold")[BILL TO] \
-    #inv.recipient.contact_name
-    #if inv.recipient.company_name != none [ \ #inv.recipient.company_name ]
-    #if inv.recipient.mailing_address != none [ \ #block-addr(inv.recipient.mailing_address) ]
+    #lines(
+      inv.recipient.contact_name,
+      inv.recipient.company_name,
+      block-addr(inv.recipient.mailing_address),
+    )
   ],
   align(right)[
     #text(fill: accent, weight: "semibold")[FROM] \

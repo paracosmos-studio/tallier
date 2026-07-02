@@ -43,6 +43,13 @@
     // bound to the avatar picker; commit() on save keeps the uploaded file
     let uploader: { commit: () => void } | undefined = $state(undefined);
 
+    // anchors the native either-or validity popup; cleared as the user types
+    let contactInput: HTMLInputElement | undefined = $state(undefined);
+
+    function clearNameValidity(): void {
+        contactInput?.setCustomValidity("");
+    }
+
     function addRow(list: ClientContact[]): ClientContact[] {
         return [...list, { label: "", value: "" }];
     }
@@ -63,11 +70,17 @@
     function handleSubmit(e: SubmitEvent): void {
         e.preventDefault();
         const name = contactName.trim();
-        if (!name) return;
+        const company = companyName.trim();
+        if (!name && !company) {
+            contactInput?.setCustomValidity("Please fill in a contact or company name.");
+            contactInput?.reportValidity();
+            return;
+        }
+        clearNameValidity();
         uploader?.commit(); // the stored avatar is now referenced by a saved client
         onsave({
-            contact_name: name,
-            company_name: companyName.trim() || null,
+            contact_name: name || null,
+            company_name: company || null,
             mailing_address: mailingAddress.trim() || null,
             avatar,
             emails: compact(emails),
@@ -86,18 +99,25 @@
 
             <div class="fields-col">
                 <label>
-                    <span class="lbl">Contact Name *</span>
+                    <span class="lbl">Contact Name</span>
                     <input
                         type="text"
                         maxlength="40"
                         bind:value={contactName}
+                        bind:this={contactInput}
+                        oninput={clearNameValidity}
                         onkeydown={(e: KeyboardEvent) => { if (e.key === "Escape") oncancel(); }}
                     />
                 </label>
 
                 <label>
                     <span class="lbl">Company Name</span>
-                    <input type="text" maxlength="60" bind:value={companyName} />
+                    <input
+                        type="text"
+                        maxlength="60"
+                        bind:value={companyName}
+                        oninput={clearNameValidity}
+                    />
                 </label>
             </div>
         </div>

@@ -12,6 +12,11 @@ export function clientSubtext(c: Client): string | null {
     return firstContactValue(c.emails) ?? c.mailing_address ?? firstContactValue(c.phones);
 }
 
+/** display name for a client: contact name, falling back to company name. */
+export function clientDisplayName(c: Client): string {
+    return c.contact_name || c.company_name || "";
+}
+
 // single source of truth for allowed avatar types, mapped to the extension
 // used on disk. drives both the file picker and validation.
 const AVATAR_MIME_EXT: Record<string, string> = {

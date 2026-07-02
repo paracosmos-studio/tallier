@@ -13,7 +13,7 @@ async function storedAvatar(id: number): Promise<string | null> {
 interface ClientRow {
     id: number;
     position: number;
-    contact_name: string;
+    contact_name: string | null;
     company_name: string | null;
     mailing_address: string | null;
     avatar: string | null;

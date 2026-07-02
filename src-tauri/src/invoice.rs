@@ -204,7 +204,8 @@ mod tests {
     use super::*;
 
     // mirrors a real `toInvoiceInput` payload: optional fields null/blank,
-    // contact lists present and absent, a multi-line address, totals row
+    // a company-only recipient (contact_name is nullable), contact lists
+    // present and absent, a multi-line address, totals row
     const SAMPLE: &str = r#"{
         "sender": {
             "id": 1, "position": 0, "label": "Main",
@@ -213,7 +214,7 @@ mod tests {
             "phones": null, "mailing_address": "12 Market St\nSpringfield"
         },
         "recipient": {
-            "id": 2, "position": 0, "contact_name": "Bob Client",
+            "id": 2, "position": 0, "contact_name": null,
             "company_name": "BobCo LLC", "mailing_address": "9 River Rd",
             "emails": null, "phones": null, "websites": null, "invoice_id_prefix": null
         },

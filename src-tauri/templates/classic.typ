@@ -3,6 +3,7 @@
 #let opt(v) = if v == none { "" } else { v }
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
+#let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(paper: "a4", margin: 2cm)
@@ -30,9 +31,11 @@
 
 #v(1.6em)
 #strong[Bill to] \
-#inv.recipient.contact_name
-#if inv.recipient.company_name != none [ \ #inv.recipient.company_name ]
-#if inv.recipient.mailing_address != none [ \ #block-addr(inv.recipient.mailing_address) ]
+#lines(
+  inv.recipient.contact_name,
+  inv.recipient.company_name,
+  block-addr(inv.recipient.mailing_address),
+)
 
 #v(1.2em)
 #table(

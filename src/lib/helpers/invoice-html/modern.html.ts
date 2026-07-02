@@ -42,7 +42,7 @@ ${logo ? `<img class="logo" src="${logo}" alt="">` : ""}
 <div class="parties">
 <address class="to">
 <span class="lbl">BILL TO</span>
-<span>${e(recipient.contact_name)}</span>
+${recipient.contact_name ? `<span>${e(recipient.contact_name)}</span>` : ""}
 ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${recipient.mailing_address ? `<span>${escAddr(recipient.mailing_address)}</span>` : ""}
 </address>

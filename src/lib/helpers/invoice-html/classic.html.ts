@@ -43,7 +43,7 @@ ${meta.dueDate ? `<p>Due: ${e(meta.dueDate)}</p>` : ""}
 <section class="billto">
 <strong>Bill to</strong>
 <address>
-<span>${e(recipient.contact_name)}</span>
+${recipient.contact_name ? `<span>${e(recipient.contact_name)}</span>` : ""}
 ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${recipient.mailing_address ? `<span>${escAddr(recipient.mailing_address)}</span>` : ""}
 </address>

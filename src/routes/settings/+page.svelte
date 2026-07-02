@@ -45,6 +45,7 @@
         deleteProfile,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
+    import { clientDisplayName } from "$lib/helpers/clients";
 
     type Tab = "projects" | "clients" | "profiles" | "preference" | "about";
     type ProjectView = "list" | "add" | "edit";
@@ -460,7 +461,7 @@
     <DialogConfirm
         open={deleteClientTarget != null}
         title="Delete Client"
-        message={`Are you sure you want to delete "${deleteClientTarget?.contact_name ?? ""}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${deleteClientTarget ? clientDisplayName(deleteClientTarget) : ""}"? This action cannot be undone.`}
         confirmLabel="Delete"
         onconfirm={confirmClientDelete}
         oncancel={cancelClientDelete}

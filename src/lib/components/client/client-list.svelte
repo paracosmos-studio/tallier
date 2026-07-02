@@ -17,7 +17,7 @@
     import EmptyState from "$lib/components/empty-state.svelte";
     import ClientAvatar from "./client-avatar.svelte";
     import { Delete, WorkOutlined, Add, Drag } from "$lib/icons";
-    import { clientSubtext } from "$lib/helpers/clients";
+    import { clientDisplayName, clientSubtext } from "$lib/helpers/clients";
     import type { Client } from "$lib/types";
 
     type Props = {
@@ -109,11 +109,11 @@
                         onclick={() => onedit(client)}
                         title="Edit client"
                     >
-                        <ClientAvatar src={client.avatar} name={client.contact_name} />
+                        <ClientAvatar src={client.avatar} name={clientDisplayName(client)} />
                         <span class="cl-text">
                             <span class="cl-name">
-                                {client.contact_name}
-                                {#if client.company_name}
+                                {clientDisplayName(client)}
+                                {#if client.contact_name && client.company_name}
                                     <span class="cl-company">• {client.company_name}</span>
                                 {/if}
                             </span>

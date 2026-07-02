@@ -101,7 +101,7 @@ ${sender.tax_id ? `<span>Tax ID: ${e(sender.tax_id)}</span>` : ""}
 <section class="billto">
 <h2>Bill To</h2>
 <address>
-<span>${e(recipient.contact_name)}</span>
+${recipient.contact_name ? `<span>${e(recipient.contact_name)}</span>` : ""}
 ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${recipient.mailing_address ? `<span>${escAddr(recipient.mailing_address)}</span>` : ""}
 ${links(contactValues(recipient.emails), mailHref)}

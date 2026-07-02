@@ -43,7 +43,7 @@ ${logo ? `<img class="logo" src="${logo}" alt="">` : ""}
 <div class="meta">
 <address class="to">
 <span class="lbl">Billed to</span>
-<span>${e(recipient.contact_name)}</span>
+${recipient.contact_name ? `<span>${e(recipient.contact_name)}</span>` : ""}
 ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 </address>
 <div class="issued">

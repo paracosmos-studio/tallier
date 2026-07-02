@@ -18,7 +18,7 @@
 
 <script lang="ts">
     import type { Client } from "$lib/types";
-    import { clientSubtext } from "$lib/helpers/clients";
+    import { clientDisplayName, clientSubtext } from "$lib/helpers/clients";
     import ClientAvatar from "./client-avatar.svelte";
 
     type Props = {
@@ -66,11 +66,11 @@
                     disabled={animatingId !== undefined}
                     onchange={() => select(client.id!)}
                 />
-                <ClientAvatar src={client.avatar} name={client.contact_name} size={32} />
+                <ClientAvatar src={client.avatar} name={clientDisplayName(client)} size={32} />
                 <span class="cs-info">
                     <span class="cs-name">
-                        {client.contact_name}
-                        {#if client.company_name}
+                        {clientDisplayName(client)}
+                        {#if client.contact_name && client.company_name}
                             <span class="cs-company">• {client.company_name}</span>
                         {/if}
                     </span>

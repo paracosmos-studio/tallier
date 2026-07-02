@@ -1,6 +1,7 @@
 // minimal: mono labels, hairline rules, terse
 #let inv = json(bytes(sys.inputs.invoice))
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
+#let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
 #let label(t) = text(font: "DM Mono", size: 8pt, fill: luma(120), tracking: 0.08em, upper(t))
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
@@ -26,7 +27,7 @@
 
 #grid(
   columns: (1fr, 1fr, 1fr),
-  [#label("Billed to") \ #inv.recipient.contact_name #if inv.recipient.company_name != none [ \ #inv.recipient.company_name ]],
+  [#label("Billed to") \ #lines(inv.recipient.contact_name, inv.recipient.company_name)],
   [#label("Issued") \ #inv.meta.issueDate],
   align(right)[#if inv.meta.dueDate != "" [ #label("Due") \ #inv.meta.dueDate ]],
 )

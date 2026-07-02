@@ -39,7 +39,7 @@ export interface ClientContact {
 export interface Client {
   id?: number;
   position: number;
-  contact_name: string;
+  contact_name: string | null; // at least one of contact_name / company_name is set
   company_name: string | null;
   mailing_address: string | null;
   avatar: string | null;
