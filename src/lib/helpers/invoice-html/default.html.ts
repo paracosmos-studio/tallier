@@ -5,9 +5,9 @@ const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #9
 .invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; }
 .invoice a { color: var(--blue); text-decoration: none; }
 .head { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
-.head .logo { height: 52px; width: auto; }
+.head .logo { height: 64px; width: auto; }
 .head .no { margin-left: auto; text-align: right; }
-.head h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+.head h1 { margin: 0; padding: 0; font-size: 1.875rem; line-height: 1; font-weight: 700; }
 .head .no p { margin: 0.15rem 0 0; font-weight: 600; }
 .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0 3rem; }
 .parties .name { font-size: 1.05rem; font-weight: 700; }
