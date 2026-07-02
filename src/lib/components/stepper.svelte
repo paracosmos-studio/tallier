@@ -10,6 +10,8 @@
     @param {number} [current=0] - Zero-based index of the active step.
     @param {(index: number) => void} [onselect] - Fires with the clicked step index.
     @param {(index: number) => boolean} [isDisabled] - Returns true to block navigation to a step.
+    @param {(index: number) => boolean} [isComplete] - Returns true to mark a step complete
+        (its marker shows a check instead of the label).
 -->
 
 <script lang="ts">
@@ -25,13 +27,14 @@
         current?: number;
         onselect?: (index: number) => void;
         isDisabled?: (index: number) => boolean;
+        isComplete?: (index: number) => boolean;
     };
 
-    let { steps, current = 0, onselect, isDisabled }: Props = $props();
+    let { steps, current = 0, onselect, isDisabled, isComplete }: Props = $props();
 </script>
 
 {#snippet head(step: Step, i: number)}
-    <StepMarker label={step.label} current={i === current} />
+    <StepMarker label={step.label} current={i === current} complete={isComplete?.(i) ?? false} />
     <span class="step-title" class:current={i === current}>{step.title}</span>
 {/snippet}
 

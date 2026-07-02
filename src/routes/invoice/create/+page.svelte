@@ -137,6 +137,11 @@
         return true;
     }
 
+    // a step is complete once the gate for the step after it is met
+    function stepComplete(i: number): boolean {
+        return i < 3 && gateMet(i + 1);
+    }
+
     // forward navigation is gated step-by-step; going back is always allowed
     function stepDisabled(i: number): boolean {
         if (i <= currentStep) return false;
@@ -197,6 +202,7 @@
             current={currentStep}
             onselect={(i) => (currentStep = i)}
             isDisabled={stepDisabled}
+            isComplete={stepComplete}
         />
     </div>
 
