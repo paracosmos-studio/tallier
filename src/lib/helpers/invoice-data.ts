@@ -7,10 +7,10 @@ type Snapshot = { columns: TableColumn[]; rows: TableRow[] };
 /**
  * Splits a table snapshot into the canonical invoice model.
  *
- * `rows[0]` is always the column-header row; `kind === "data"` rows are line
- * items; any `kind === "header"` rows after index 0 are totals rows. Cells stay
- * as pre-formatted strings - templates do layout only, never re-format. The
- * ISO meta dates are formatted for display here, once, for the same reason.
+ * `rows[0]` is always the column-header row; the remaining rows keep their
+ * editor order and kind (`header` rows are sub-section or totals bands). Cells
+ * stay as pre-formatted strings - templates do layout only, never re-format.
+ * The ISO meta dates are formatted for display here, once, for the same reason.
  *
  * @param sender - Sender identity profile.
  * @param recipient - Invoice recipient client.
@@ -36,9 +36,8 @@ export function assembleInvoice(
     items: {
       columns,
       widths: snapshot.columns.map((c) => c.width),
-      rows: body.filter((r) => r.kind === "data").map((r) => r.cells),
+      rows: body.map((r) => ({ kind: r.kind, cells: r.cells })),
     },
-    totals: body.filter((r) => r.kind === "header").map((r) => r.cells),
   };
 }
 

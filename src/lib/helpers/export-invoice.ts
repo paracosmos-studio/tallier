@@ -24,12 +24,12 @@ export function invoiceTargetPath(location: string, data: InvoiceData, format: I
 }
 
 /**
- * Renders the items table (columns, rows, totals) as CSV.
+ * Renders the items table (columns, then body rows in editor order) as CSV.
  *
  * @param data - Assembled invoice model.
  */
 export function toCsv(data: InvoiceData): string {
-  const rows = [data.items.columns, ...data.items.rows, ...data.totals];
+  const rows = [data.items.columns, ...data.items.rows.map((r) => r.cells)];
   return rows.map((r) => r.map(csvEscape).join(",")).join("\n") + "\n";
 }
 
@@ -48,7 +48,7 @@ function textTable(rows: string[][]): string[] {
  * @param data - Assembled invoice model.
  */
 export function toPlainText(data: InvoiceData): string {
-  const { sender, recipient, meta, items, totals } = data;
+  const { sender, recipient, meta, items } = data;
   const out: string[] = [`INVOICE ${meta.invoiceNo}`, `Issued: ${meta.issueDate}`];
   if (meta.dueDate) out.push(`Due: ${meta.dueDate}`);
   out.push("", `From: ${sender.business_name}`);
@@ -56,7 +56,7 @@ export function toPlainText(data: InvoiceData): string {
   out.push("", `Bill to: ${recipient.contact_name ?? recipient.company_name ?? ""}`);
   if (recipient.contact_name && recipient.company_name) out.push(recipient.company_name);
   if (recipient.mailing_address) out.push(recipient.mailing_address);
-  out.push("", ...textTable([items.columns, ...items.rows, ...totals]));
+  out.push("", ...textTable([items.columns, ...items.rows.map((r) => r.cells)]));
   if (meta.notes) out.push("", meta.notes);
   return out.join("\n") + "\n";
 }

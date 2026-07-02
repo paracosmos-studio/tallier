@@ -15,7 +15,7 @@ const CSS = `:root { --ink: #232323; --muted: #787878; --accent: #2f6f4f; --sans
 th, td { padding: 0.55rem 0.4rem; text-align: left; }
 thead th { color: var(--accent); font-weight: 600; border-bottom: 1px solid var(--accent); }
 tbody { border-bottom: 1px solid var(--accent); }
-tfoot th, tfoot td { font-weight: 600; }
+.section th, .section td { font-weight: 600; }
 .notes { margin-top: 1.4rem; color: var(--muted); }`;
 
 /**
@@ -25,7 +25,7 @@ tfoot th, tfoot td { font-weight: 600; }
  * @param logo - Sender logo as a data URI, omitted when unset.
  */
 export function modernHtml(data: InvoiceData, logo?: string): string {
-  const { sender, recipient, meta, items, totals } = data;
+  const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const emails = contactValues(sender.emails);
   const body = `<main class="invoice">
@@ -54,7 +54,7 @@ ${emails.map((c) => `<span>${e(c)}</span>`).join("")}
 ${meta.dueDate ? `<span>Due: ${e(meta.dueDate)}</span>` : ""}
 </address>
 </div>
-${itemsTable(items, totals)}
+${itemsTable(items)}
 ${meta.notes ? `<footer class="notes">${escAddr(meta.notes)}</footer>` : ""}
 </main>`;
   return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);

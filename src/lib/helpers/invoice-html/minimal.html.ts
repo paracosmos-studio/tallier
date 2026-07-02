@@ -16,7 +16,7 @@ const CSS = `:root { --ink: #141414; --muted: #787878; --line: #d2d2d2; --sans: 
 th, td { padding: 0.4rem 0; text-align: left; }
 thead th { border-bottom: 1px solid var(--line); }
 tbody { border-bottom: 1px solid var(--line); }
-tfoot th, tfoot td { font-weight: 600; }
+.section th, .section td { font-weight: 600; }
 .notes { margin-top: 1.4rem; padding-top: 0.6rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }`;
 
 /**
@@ -26,7 +26,7 @@ tfoot th, tfoot td { font-weight: 600; }
  * @param logo - Sender logo as a data URI, omitted when unset.
  */
 export function minimalHtml(data: InvoiceData, logo?: string): string {
-  const { sender, recipient, meta, items, totals } = data;
+  const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const body = `<main class="invoice">
 <header class="head">
@@ -54,7 +54,7 @@ ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${meta.dueDate ? `<span class="lbl">Due</span><span>${e(meta.dueDate)}</span>` : ""}
 </div>
 </div>
-${itemsTable(items, totals)}
+${itemsTable(items)}
 ${meta.notes ? `<footer class="notes">${escAddr(meta.notes)}</footer>` : ""}
 </main>`;
   return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);

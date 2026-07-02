@@ -11,7 +11,7 @@ const CSS = `:root { --ink: #1e1e1e; --muted: #787878; --line: #bebebe; --sans: 
 .billto { margin: 1.6rem 0 1.2rem; }
 .billto address { margin-top: 0.2rem; }
 th, td { padding: 0.5rem; text-align: left; border: 1px solid var(--line); }
-thead th, tfoot th, tfoot td { font-weight: 600; }
+thead th, .section th, .section td { font-weight: 600; }
 .notes { margin-top: 1.2rem; color: var(--muted); }`;
 
 /**
@@ -21,7 +21,7 @@ thead th, tfoot th, tfoot td { font-weight: 600; }
  * @param logo - Sender logo as a data URI, omitted when unset.
  */
 export function classicHtml(data: InvoiceData, logo?: string): string {
-  const { sender, recipient, meta, items, totals } = data;
+  const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const contacts = [...contactValues(sender.emails), ...contactValues(sender.phones)];
   const body = `<main class="invoice">
@@ -48,7 +48,7 @@ ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${recipient.mailing_address ? `<span>${escAddr(recipient.mailing_address)}</span>` : ""}
 </address>
 </section>
-${itemsTable(items, totals)}
+${itemsTable(items)}
 ${meta.notes ? `<footer class="notes">${escAddr(meta.notes)}</footer>` : ""}
 </main>`;
   return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);

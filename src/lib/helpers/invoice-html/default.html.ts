@@ -1,5 +1,5 @@
 import type { InvoiceData } from "$lib/types";
-import { colGroup, contactValues, docShell, escAddr, htmlEscape } from "./shared";
+import { colGroup, contactValues, docShell, escAddr, headerSpan, htmlEscape } from "./shared";
 
 const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #991b1b; --green: #15803d; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; }
@@ -20,31 +20,8 @@ const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #9
 th, td { padding: 0.5rem 0.6rem; text-align: left; }
 thead th { font-weight: 500; background: var(--fill); }
 .items tbody td { padding-top: 6px; padding-bottom: 6px; }
-.num { text-align: right; }
-.totals { width: 30%; min-width: 15rem; margin: 2.5rem 0 0 auto; }
-.totals th { background: var(--fill); text-align: left; font-weight: 500; }
-.totals td { text-align: right; }
-.totals .neg th, .totals .neg td { color: var(--green); }
-.totals tr:last-child td { font-weight: 500; }`;
-
-/**
- * Splits a totals row into its label and trailing value cell.
- *
- * @param row - Totals row, cells parallel to the columns.
- */
-function rowPair(row: string[]): [string, string] {
-  const cells = row.filter((c) => c !== "");
-  return [cells[0] ?? "", cells.length > 1 ? cells[cells.length - 1] : ""];
-}
-
-/**
- * Reports whether a pre-formatted amount reads as negative.
- *
- * @param value - Pre-formatted cell text.
- */
-function isNegative(value: string): boolean {
-  return value.trim().startsWith("-");
-}
+.items .section th, .items .section td { background: var(--fill); font-weight: 500; padding: 0.5rem 0.6rem; }
+.num { text-align: right; }`;
 
 /**
  * Renders contact values as anchors, one per address line.
@@ -62,27 +39,38 @@ const webHref = (v: string): string => (/^https?:\/\//i.test(v) ? v : `https://$
 
 /**
  * Default HTML invoice: borderless letter layout with gray-fill hierarchy,
- * a four-up summary strip and a detached bottom-right totals block.
+ * a four-up summary strip and in-place gray section/totals bands.
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, omitted when unset.
  */
 export function defaultHtml(data: InvoiceData, logo?: string): string {
-  const { sender, recipient, meta, items, totals } = data;
+  const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const numFrom = Math.max(1, items.columns.length - 3);
   const num = (i: number): string => (i >= numFrom ? ' class="num"' : "");
-  const head = items.columns.map((c, i) => `<th scope="col"${num(i)}>${e(c)}</th>`).join("");
+  const colSpan = headerSpan(items.columns);
+  const head =
+    `<th scope="${colSpan > 1 ? "colgroup" : "col"}" colspan="${colSpan}">${e(items.columns[0] ?? "")}</th>` +
+    items.columns
+      .slice(colSpan)
+      .map((c, j) => `<th scope="col"${num(colSpan + j)}>${e(c)}</th>`)
+      .join("");
   const rows = items.rows
-    .map((r) => `<tr>${r.map((c, i) => `<td${num(i)}>${e(c)}</td>`).join("")}</tr>`)
-    .join("");
-  const totalRows = totals
     .map((r) => {
-      const [label, value] = rowPair(r);
-      return `<tr${isNegative(value) ? ' class="neg"' : ""}><th scope="row">${e(label)}</th><td>${e(value)}</td></tr>`;
+      if (r.kind === "header") {
+        const span = headerSpan(r.cells);
+        const rest = r.cells
+          .slice(span)
+          .map((c, j) => `<td${num(span + j)}>${e(c)}</td>`)
+          .join("");
+        return `<tr class="section"><th scope="row" colspan="${span}">${e(r.cells[0] ?? "")}</th>${rest}</tr>`;
+      }
+      return `<tr>${r.cells.map((c, i) => `<td${num(i)}>${e(c)}</td>`).join("")}</tr>`;
     })
     .join("");
-  const balance = totals.length ? rowPair(totals[totals.length - 1])[1] : "";
+  const lastBand = [...items.rows].reverse().find((r) => r.kind === "header");
+  const balance = lastBand ? ([...lastBand.cells].reverse().find((c) => c !== "") ?? "") : "";
   const body = `<main class="invoice">
 <header class="head">
 ${logo ? `<img class="logo" src="${logo}" alt="">` : ""}
@@ -122,7 +110,6 @@ ${colGroup(items.widths, items.columns.length)}
 <thead><tr>${head}</tr></thead>
 <tbody>${rows}</tbody>
 </table>
-${totalRows ? `<table class="totals"><tbody>${totalRows}</tbody></table>` : ""}
 </main>`;
   return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
 }

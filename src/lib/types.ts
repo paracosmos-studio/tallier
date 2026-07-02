@@ -68,6 +68,11 @@ export interface InvoiceMeta {
   notes: string;
 }
 
+export interface InvoiceRow {
+  kind: "data" | "header"; // header = sub-section or totals band
+  cells: string[]; // pre-formatted, parallel to columns
+}
+
 export interface InvoiceData {
   sender: Profile; // sender identity
   recipient: Client; // invoice recipient
@@ -75,9 +80,8 @@ export interface InvoiceData {
   items: {
     columns: string[]; // header labels, display order
     widths: number[]; // fr weights parallel to columns, drive table layout
-    rows: string[][]; // data rows only, cells parallel to columns
+    rows: InvoiceRow[]; // body rows in original editor order
   };
-  totals: string[][]; // trailing totals rows, cells parallel to columns
 }
 
 export interface Entry {

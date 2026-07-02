@@ -4,6 +4,11 @@
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
 #let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
+#let hrow(cells, style) = {
+  let gap = cells.slice(1).position(c => c != "")
+  let span = if gap == none { cells.len() } else { gap + 1 }
+  (table.cell(colspan: span, style(cells.first())), ..cells.slice(span).map(style))
+}
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(paper: "a4", margin: 2cm)
@@ -40,9 +45,8 @@
 #v(1.2em)
 #table(
   columns: inv.items.widths.map(w => w * 1fr),
-  table.header(..inv.items.columns.map(c => strong(c))),
-  ..inv.items.rows.flatten(),
-  ..inv.totals.map(r => r.map(c => strong(c))).flatten(),
+  table.header(..hrow(inv.items.columns, strong)),
+  ..inv.items.rows.map(r => if r.kind == "header" { hrow(r.cells, strong) } else { r.cells }).flatten(),
 )
 
 #if inv.meta.notes != "" [ #v(1.2em) #text(fill: luma(120))[#inv.meta.notes] ]
