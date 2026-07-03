@@ -124,6 +124,7 @@
 
     .tpl-nav :global(button) {
         width: 100%;
+        transform: translateZ(0);
     }
 
     .preview {
