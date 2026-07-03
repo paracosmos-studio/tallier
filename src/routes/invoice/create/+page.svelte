@@ -12,6 +12,8 @@
     import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
     import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
     import DialogEditClient from "$lib/components/dialogs/dialog-edit-client.svelte";
+    import DialogFullscreen from "$lib/components/dialogs/dialog-fullscreen.svelte";
+    import InvoiceExportSuccess from "$lib/animations/invoice-export-success.svelte";
     import type { TableInit, TableColumn, TableRow } from "$lib/components/table.svelte";
     import EmptyState from "$lib/components/empty-state.svelte";
     import { Add, WandStars, WorkOutlined, Download } from "$lib/icons";
@@ -85,6 +87,7 @@
     let overwriteOpen: boolean = $state(false);
     let exportBusy: boolean = $state(false);
     let pendingExport: { format: InvoiceFormat; location: string } | null = $state(null);
+    let successOpen: boolean = $state(false);
 
     async function runInvoiceExport(format: InvoiceFormat, location: string): Promise<void> {
         if (!invoiceData) return;
@@ -94,6 +97,7 @@
             exportOpen = false;
             overwriteOpen = false;
             pendingExport = null;
+            successOpen = true;
             await notify("Invoice exported", path);
         } catch (e) {
             exportError = e instanceof Error ? e.message : String(e);
@@ -322,6 +326,20 @@
     oncancel={() => ((overwriteOpen = false), (pendingExport = null))}
 />
 
+<DialogFullscreen
+    open={successOpen}
+    showCloseIcon={false}
+    autoCloseMs={5000}
+    onclose={() => (successOpen = false)}
+>
+    <div class="export-success">
+        {#if successOpen}
+            <InvoiceExportSuccess size={220} />
+        {/if}
+        <p class="success-text">Invoice Exported!</p>
+    </div>
+</DialogFullscreen>
+
 <style>
     .flow {
         width: 75%;
@@ -341,5 +359,37 @@
         display: flex;
         justify-content: center;
         margin-top: 16px;
+    }
+
+    .export-success {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .success-text {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 500;
+        color: var(--gray-10);
+        letter-spacing: 0.01em;
+        opacity: 0;
+        transform: translateY(4px);
+        animation: success-text-in 3.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+    }
+
+    /* matches the check phase inside invoice-export-success */
+    @keyframes success-text-in {
+        0%,
+        85% {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        94%,
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
