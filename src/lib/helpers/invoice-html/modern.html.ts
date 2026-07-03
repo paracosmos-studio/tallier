@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import {
   balanceValue,
   contactValues,
@@ -34,11 +35,10 @@ const CSS = `:root { --green: #3e6b34; --tint: rgba(158, 203, 120, 0.3); --pale:
 .summary .balance dd { color: var(--green); }
 .items { border-collapse: separate; border-spacing: 0 4px; }
 .items th, .items td { padding: 0.55rem 0.65rem; text-align: left; }
-.items thead th { color: var(--green); font-weight: 600; }
 .items .num { text-align: right; }
 .items tr.section th, .items tr.section td { background: var(--pale); color: var(--green); font-weight: 600; }
-.items tr.section th { border-radius: 6px 0 0 6px; }
-.items tr.section td:last-child { border-radius: 0 6px 6px 0; }`;
+.items tr.section > :first-child { border-start-start-radius: 6px; border-end-start-radius: 6px; }
+.items tr.section > :last-child { border-start-end-radius: 6px; border-end-end-radius: 6px; }`;
 
 /**
  * Modern HTML invoice: full-bleed green header band with a decorative arc,
@@ -47,8 +47,9 @@ const CSS = `:root { --green: #3e6b34; --tint: rgba(158, 203, 120, 0.3); --pale:
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, omitted when unset.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function modernHtml(data: InvoiceData, logo?: string): string {
+export function modernHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const balance = balanceValue(items.rows);
@@ -90,5 +91,5 @@ ${meta.dueDate ? `<div><dt>Due date</dt><dd>${e(meta.dueDate)}</dd></div>` : ""}
 </dl>
 ${itemsTable(items, "items")}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

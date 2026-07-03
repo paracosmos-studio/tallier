@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import { balanceValue, contactValues, docShell, escAddr, htmlEscape, itemsTable } from "./shared";
 
 const CSS = `:root { --ink: #1a1a1a; --dot: #9a9a9a; --dash: #333; --mono: "JetBrains Mono", "DM Mono", ui-monospace, Menlo, Consolas, monospace; }
@@ -16,19 +17,19 @@ const CSS = `:root { --ink: #1a1a1a; --dot: #9a9a9a; --dash: #333; --mono: "JetB
 .leader dd { margin: 0; white-space: nowrap; }
 .leader .dots { flex: 1; align-self: end; margin-bottom: 0.2em; border-bottom: 1px dotted var(--dot); }
 .invoice th, .invoice td { padding: 0.3rem 0.5rem; text-align: left; }
-.invoice thead th { text-transform: uppercase; font-weight: 500; border-bottom: 1px dashed var(--dash); }
 .invoice tbody tr.section > * { font-weight: 500; }
 .invoice .num { text-align: right; }`;
 
 /**
  * Terminal HTML invoice: monospace receipt with uppercase labels, dashed
- * section dividers, dotted-leader key/value pairs and a double-height grand
- * total between dashed rules. Mirrors the terminal PDF; the logo is skipped.
+ * section dividers, dotted-leader key/value pairs and medium-weight header
+ * bands. Mirrors the terminal PDF; the logo is skipped.
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, deliberately unused.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function terminalHtml(data: InvoiceData, logo?: string): string {
+export function terminalHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   void logo;
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
@@ -78,5 +79,5 @@ ${leader("Balance", balance)}
 <hr class="rule">
 ${itemsTable(items)}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

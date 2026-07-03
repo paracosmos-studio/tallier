@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import {
   balanceValue,
   contactValues,
@@ -35,11 +36,10 @@ const CSS = `:root { --charcoal: #1a1c1e; --amber: #e8a13c; --ghost: #c9ccd1; --
 .summary .balance dd { color: var(--amber); }
 .items { border-collapse: collapse; }
 .items th, .items td { padding: 0.6rem 0.65rem; text-align: left; }
-.items thead th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; border-bottom: 1px solid #e2e3e5; }
 .items .num { text-align: right; }
 .items tr.section { background: var(--rowfill); }
-.items tr.section th { color: var(--amber); font-weight: 600; }
-.items tr.section td { color: var(--ink); }`;
+.items tr.section > :first-child { color: var(--amber); font-weight: 600; }
+.items tr.section > :not(:first-child) { color: var(--ink); font-weight: 500; }`;
 
 /**
  * Slate HTML invoice: full-bleed charcoal panel holding the brand, invoice
@@ -48,8 +48,9 @@ const CSS = `:root { --charcoal: #1a1c1e; --amber: #e8a13c; --ghost: #c9ccd1; --
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, omitted when unset.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function slateHtml(data: InvoiceData, logo?: string): string {
+export function slateHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const balance = balanceValue(items.rows);
@@ -90,5 +91,5 @@ ${meta.dueDate ? `<div><dt>Due date</dt><dd>${e(meta.dueDate)}</dd></div>` : ""}
 </dl>
 ${itemsTable(items, "items")}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

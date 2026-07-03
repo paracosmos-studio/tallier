@@ -19,6 +19,7 @@
   if v == none { "" } else { v }
 }
 #let numeric-from = calc.max(1, inv.items.columns.len() - 3)
+#let all-rows = ((kind: "header", cells: inv.items.columns),) + inv.items.rows
 #let hrow2(cells, lead, rest) = {
   let gap = cells.slice(1).position(c => c != "")
   let span = if gap == none { cells.len() } else { gap + 1 }
@@ -103,17 +104,8 @@
     stroke: none,
     inset: (x: 10pt, y: 8pt),
     align: (x, _) => if x >= numeric-from { right } else { left },
-    fill: (_, y) => if y == 0 { none } else {
-      let r = inv.items.rows.at(y - 1)
-      if r.kind == "header" { rowfill }
-    },
-    table.header(..hrow2(
-      inv.items.columns,
-      c => caps(c, fill: luma(120)),
-      c => caps(c, fill: luma(120)),
-    )),
-    table.hline(y: 1, stroke: 0.5pt + cardline),
-    ..inv.items.rows.map(r => if r.kind == "header" {
+    fill: (_, y) => if all-rows.at(y).kind == "header" { rowfill },
+    ..all-rows.map(r => if r.kind == "header" {
       hrow2(r.cells, c => text(fill: amber, weight: "semibold", c), c => text(fill: ink, weight: "medium", c))
     } else { r.cells }).flatten(),
   )

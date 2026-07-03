@@ -7,6 +7,7 @@
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
 #let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
 #let numeric-from = calc.max(1, inv.items.columns.len() - 3)
+#let all-rows = ((kind: "header", cells: inv.items.columns),) + inv.items.rows
 #let hrow(cells, style) = {
   let gap = cells.slice(1).position(c => c != "")
   let span = if gap == none { cells.len() } else { gap + 1 }
@@ -78,10 +79,7 @@
   stroke: none,
   inset: (x: 7pt, y: 6.5pt),
   align: (x, _) => if x >= numeric-from { right } else { left },
-  table.hline(y: 0, stroke: 1pt + ink),
-  table.header(..hrow(inv.items.columns, c => sc(text(weight: "bold", size: 9.5pt, c)))),
-  table.hline(y: 1, stroke: 1pt + ink),
-  ..inv.items.rows.map(r => {
+  ..all-rows.map(r => {
     let styled = if r.kind == "header" {
       hrow(r.cells, c => text(weight: "bold", fill: navy, c))
     } else { r.cells }

@@ -11,6 +11,7 @@
 #let web-url(v) = if v.starts-with("http") { v } else { "https://" + v }
 #let tel-url(v) = "tel:" + v.replace(regex("[^+0-9]"), "")
 #let numeric-from = calc.max(1, inv.items.columns.len() - 3)
+#let all-rows = ((kind: "header", cells: inv.items.columns),) + inv.items.rows
 #let hrow(cells, style) = {
   let gap = cells.slice(1).position(c => c != "")
   let span = if gap == none { cells.len() } else { gap + 1 }
@@ -78,15 +79,9 @@
     bottom: 4.5pt,
   ),
   align: (x, _) => if x >= numeric-from { right } else { left },
-  stroke: (x, y) => if y == 1 { (top: 0.5pt + rule) },
-  fill: (_, y) => {
-    if y == 0 { none } else {
-      let r = inv.items.rows.at(y - 1)
-      if r.kind == "header" { none } else if calc.even(y) { zebra } else { none }
-    }
-  },
-  table.header(..hrow(inv.items.columns, c => label-txt(c))),
-  ..inv.items.rows.map(r => if r.kind == "header" {
+  stroke: none,
+  fill: (_, y) => if all-rows.at(y).kind != "header" and calc.even(y) { zebra },
+  ..all-rows.map(r => if r.kind == "header" {
     hrow(r.cells, c => text(weight: "bold", c))
   } else { r.cells }).flatten(),
 )

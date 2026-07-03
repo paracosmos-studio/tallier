@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import { contactValues, docShell, escAddr, htmlEscape, itemsTable, links, mailHref, telHref, webHref } from "./shared";
 
 const CSS = `:root { --ink: #1c1c1c; --muted: #808080; --line: #e2e0da; --accent: #d95d39; --paper: #fafaf7; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -14,8 +15,8 @@ body { background: var(--paper); }
 .block address { margin-top: 0.4rem; display: flex; flex-direction: column; gap: 0.15rem; }
 .block p { margin: 0.4rem 0 0; }
 .items { align-self: start; }
-.items thead th { text-align: left; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 0 0.5rem 0.7rem; }
 .items tbody th, .items tbody td { text-align: left; padding: 0.65rem 0.5rem; border-top: 1px solid var(--line); vertical-align: top; }
+.items tbody tr:first-child > * { border-top: 0; }
 .items th:first-child, .items td:first-child { padding-left: 0; }
 .items th:last-child, .items td:last-child { padding-right: 0; }
 .items tr.section th, .items tr.section td { font-weight: 700; }
@@ -30,8 +31,9 @@ body { background: var(--paper); }
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI; ignored, the design renders no logo.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function studioHtml(data: InvoiceData, logo?: string): string {
+export function studioHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   void logo;
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
@@ -75,5 +77,5 @@ ${itemsTable(items, "items")}
 </div>
 ${contact ? `<footer class="foot">${e(sender.business_name)} &middot; ${e(contact)}</footer>` : ""}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

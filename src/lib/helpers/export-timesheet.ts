@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { formatDuration, roundTimeOfDay, timeToSeconds } from "./format";
 import { csvEscape } from "./csv";
+import { buildExportStamp, type ExportStamp } from "./export-meta";
 import { joinPath, pathExists } from "./fs";
 import type { ReportEntry } from "../types";
 
@@ -77,11 +78,17 @@ function rowsToCsv(rows: ExportRow[], includeNotes: boolean): string {
     return lines.join("\n") + "\n";
 }
 
-function rowsToJson(rows: ExportRow[], range: { start: string; end: string }): string {
+function rowsToJson(
+    rows: ExportRow[],
+    range: { start: string; end: string },
+    stamp: ExportStamp,
+): string {
     return JSON.stringify(
         {
             range,
             generated_at: new Date().toISOString(),
+            generator: stamp.generated,
+            support: stamp.support,
             count: rows.length,
             entries: rows,
         },
@@ -115,7 +122,9 @@ export async function exportTimesheet(opts: ExportOptions): Promise<string> {
     const { entries, range, format, includeNotes, location, roundMinutes } = opts;
     const rows = buildRows(entries, includeNotes, roundMinutes);
     const contents =
-        format === "csv" ? rowsToCsv(rows, includeNotes) : rowsToJson(rows, range);
+        format === "csv"
+            ? rowsToCsv(rows, includeNotes)
+            : rowsToJson(rows, range, await buildExportStamp());
     const path = targetPath(location, range, format);
     return await invoke<string>("write_text_file", { path, contents });
 }

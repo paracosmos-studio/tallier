@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import {
   balanceValue,
   contactValues,
@@ -38,11 +39,10 @@ const CSS = `:root { --pblue: #eaf2ff; --mint: #e8f7ee; --peach: #fff1e8; --char
 .tablecard { border: 1px solid var(--line); border-radius: 16px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
 .items { border-collapse: separate; border-spacing: 0 3px; }
 .items th, .items td { padding: 0.55rem 0.65rem; text-align: left; }
-.items thead th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .items .num { text-align: right; }
 .items tr.section th, .items tr.section td { background: var(--pblue); font-weight: 700; }
-.items tr.section th { border-radius: 8px 0 0 8px; }
-.items tr.section td:last-child { border-radius: 0 8px 8px 0; }`;
+.items tr.section > :first-child { border-start-start-radius: 8px; border-end-start-radius: 8px; }
+.items tr.section > :last-child { border-start-end-radius: 8px; border-end-end-radius: 8px; }`;
 
 /**
  * Soft HTML invoice: friendly rounded sans, a pill invoice badge, pastel party
@@ -51,8 +51,9 @@ const CSS = `:root { --pblue: #eaf2ff; --mint: #e8f7ee; --peach: #fff1e8; --char
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, omitted when unset.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function softHtml(data: InvoiceData, logo?: string): string {
+export function softHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const balance = balanceValue(items.rows);
@@ -100,5 +101,5 @@ ${meta.dueDate ? `<div class="mint"><dt>Due date</dt><dd>${e(meta.dueDate)}</dd>
 ${itemsTable(items, "items")}
 </div>
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

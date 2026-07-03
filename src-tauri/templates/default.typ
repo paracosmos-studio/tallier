@@ -15,7 +15,8 @@
   if v == none { "" } else { v }
 }
 #let numeric-from = calc.max(1, inv.items.columns.len() - 3)
-#let band(y) = y == 0 or inv.items.rows.at(y - 1).kind == "header"
+#let all-rows = ((kind: "header", cells: inv.items.columns),) + inv.items.rows
+#let band(y) = all-rows.at(y).kind == "header"
 #let hrow(cells, style) = {
   let gap = cells.slice(1).position(c => c != "")
   let span = if gap == none { cells.len() } else { gap + 1 }
@@ -89,8 +90,7 @@
   row-gutter: 2.5pt,
   align: (x, _) => if x >= numeric-from { right } else { left },
   fill: (_, y) => if band(y) { gray },
-  table.header(..hrow(inv.items.columns, c => text(weight: "medium", c))),
-  ..inv.items.rows.map(r => if r.kind == "header" {
+  ..all-rows.map(r => if r.kind == "header" {
     hrow(r.cells, c => text(weight: "medium", c))
   } else { r.cells }).flatten(),
 )

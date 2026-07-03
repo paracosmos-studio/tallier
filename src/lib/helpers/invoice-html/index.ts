@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import { classicHtml } from "./classic.html";
 import { modernHtml } from "./modern.html";
 import { minimalHtml } from "./minimal.html";
@@ -9,7 +10,7 @@ import { terminalHtml } from "./terminal.html";
 import { compactHtml } from "./compact.html";
 import { softHtml } from "./soft.html";
 
-const RENDERERS: Record<string, (data: InvoiceData, logo?: string) => string> = {
+const RENDERERS: Record<string, (data: InvoiceData, logo?: string, stamp?: ExportStamp) => string> = {
   default: defaultHtml,
   classic: classicHtml,
   modern: modernHtml,
@@ -28,7 +29,13 @@ const RENDERERS: Record<string, (data: InvoiceData, logo?: string) => string> = 
  * @param data - Assembled invoice model.
  * @param templateId - Selected template id.
  * @param logo - Sender logo as a data URI, embedded inline when present.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function toHtml(data: InvoiceData, templateId: string, logo?: string): string {
-  return (RENDERERS[templateId] ?? classicHtml)(data, logo);
+export function toHtml(
+  data: InvoiceData,
+  templateId: string,
+  logo?: string,
+  stamp?: ExportStamp,
+): string {
+  return (RENDERERS[templateId] ?? classicHtml)(data, logo, stamp);
 }

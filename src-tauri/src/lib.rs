@@ -42,6 +42,7 @@ pub fn run() {
             files::read_avatar,
             invoice::render_invoice_pdf,
             invoice::render_invoice_svg,
+            util::os_descriptor,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

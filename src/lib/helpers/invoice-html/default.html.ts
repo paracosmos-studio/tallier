@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import {
   balanceValue,
   contactValues,
@@ -29,7 +30,6 @@ const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #9
 .summary .wide { grid-column: span 2; }
 .summary .balance dd { color: var(--red); }
 th, td { padding: 0.5rem 0.6rem; text-align: left; }
-thead th { font-weight: 500; background: var(--fill); }
 .items tbody td { padding-top: 6px; padding-bottom: 6px; }
 .items .section th, .items .section td { background: var(--fill); font-weight: 500; padding: 0.5rem 0.6rem; }
 .num { text-align: right; }`;
@@ -40,8 +40,9 @@ thead th { font-weight: 500; background: var(--fill); }
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, omitted when unset.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function defaultHtml(data: InvoiceData, logo?: string): string {
+export function defaultHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const balance = balanceValue(items.rows);
@@ -81,5 +82,5 @@ ${meta.dueDate ? `<div><dt>Due date</dt><dd>${e(meta.dueDate)}</dd></div>` : ""}
 </dl>
 ${itemsTable(items, "items")}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

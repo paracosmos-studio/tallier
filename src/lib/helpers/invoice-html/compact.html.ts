@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import { balanceValue, contactValues, docShell, escAddr, htmlEscape, itemsTable, links, mailHref, telHref, webHref } from "./shared";
 
 const CSS = `:root { --ink: #2a2a2a; --muted: #767676; --line: #cfcfcf; --zebra: #f7f7f7; --blue: #2563eb; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -13,9 +14,8 @@ const CSS = `:root { --ink: #2a2a2a; --muted: #767676; --line: #cfcfcf; --zebra:
 .head p { margin: 0; }
 .items { margin-top: 1.25rem; }
 .items th, .items td { padding: 0.28rem 0.5rem; vertical-align: top; }
-.items thead th { text-align: left; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
 .items tbody th { text-align: left; font-weight: 700; }
-.items tbody tr:nth-child(even):not(.section) { background: var(--zebra); }
+.items tbody tr:nth-child(odd):not(.section) { background: var(--zebra); }
 .items tr.section th, .items tr.section td { font-weight: 700; }
 .items .num { text-align: right; }
 .notes { margin: 1rem 0 0; color: var(--muted); font-size: 0.75rem; }
@@ -28,8 +28,9 @@ const CSS = `:root { --ink: #2a2a2a; --muted: #767676; --line: #cfcfcf; --zebra:
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, rendered small when present.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function compactHtml(data: InvoiceData, logo?: string): string {
+export function compactHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const balance = balanceValue(items.rows);
@@ -65,5 +66,5 @@ ${balance ? `<div><span class="lbl">Balance</span><strong>${e(balance)}</strong>
 ${itemsTable(items, "items")}
 ${meta.notes ? `<p class="notes">${escAddr(meta.notes)}</p>` : ""}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import { contactValues, docShell, escAddr, htmlEscape, itemsTable, links, mailHref, telHref, webHref } from "./shared";
 
 const CSS = `:root { --ink: #111111; --muted: #767676; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -18,7 +19,6 @@ const CSS = `:root { --ink: #111111; --muted: #767676; --sans: "Instrument Sans"
 .notes dd { margin: 0; }
 .items { margin-top: 3rem; }
 .items th, .items td { padding: 0.7rem 0.5rem; vertical-align: top; }
-.items thead th { text-align: left; font-weight: 700; border-bottom: 1px solid var(--ink); }
 .items tbody th { text-align: left; font-weight: 700; }
 .items tr.section th, .items tr.section td { font-weight: 700; }
 .items th:first-child, .items td:first-child { padding-left: 0; }
@@ -28,13 +28,14 @@ const CSS = `:root { --ink: #111111; --muted: #767676; --sans: "Instrument Sans"
 
 /**
  * Minimal HTML invoice: one sans face, pure black on white, whitespace-forward
- * stacked label/value pairs, and a plain items table ruled only under the
- * header and above the totals row.
+ * stacked label/value pairs, and an unruled items table with bold header
+ * bands.
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI; ignored, the design renders no logo.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function minimalHtml(data: InvoiceData, logo?: string): string {
+export function minimalHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   void logo;
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
@@ -72,5 +73,5 @@ ${meta.dueDate ? `<div><dt>Due date</dt><dd>${e(meta.dueDate)}</dd></div>` : ""}
 ${meta.notes ? `<dl class="notes"><dt class="lbl">Notes</dt><dd>${escAddr(meta.notes)}</dd></dl>` : ""}
 ${itemsTable(items, "items")}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { csvEscape } from "./csv";
+import { buildExportStamp, type ExportStamp } from "./export-meta";
 import { joinPath } from "./fs";
 import { toInvoiceInput } from "./invoice-data";
 import { toHtml } from "./invoice-html";
@@ -46,8 +47,11 @@ function textTable(rows: string[][]): string[] {
  * Renders the invoice as a readable plain-text document.
  *
  * @param data - Assembled invoice model.
+ * @param stamp - Provenance footer, appended when provided (plain text has no
+ * metadata layer, so the stamp is visible by necessity); the generated line
+ * only, without the support message.
  */
-export function toPlainText(data: InvoiceData): string {
+export function toPlainText(data: InvoiceData, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
   const out: string[] = [`INVOICE ${meta.invoiceNo}`, `Issued: ${meta.issueDate}`];
   if (meta.dueDate) out.push(`Due: ${meta.dueDate}`);
@@ -58,6 +62,7 @@ export function toPlainText(data: InvoiceData): string {
   if (recipient.mailing_address) out.push(recipient.mailing_address);
   out.push("", ...textTable([items.columns, ...items.rows.map((r) => r.cells)]));
   if (meta.notes) out.push("", meta.notes);
+  if (stamp) out.push("", stamp.generated);
   return out.join("\n") + "\n";
 }
 
@@ -78,12 +83,14 @@ export async function exportInvoice(
   location: string,
 ): Promise<string> {
   const path = invoiceTargetPath(location, data, format);
+  const stamp = await buildExportStamp();
   if (format === "pdf") {
     const bytes = await invoke<number[]>("render_invoice_pdf", {
       templateId,
       data: toInvoiceInput(data),
       senderLogo: data.sender.logo,
       recipientAvatar: data.recipient.avatar,
+      meta: `${stamp.generated}\n${stamp.support}`,
     });
     return await invoke<string>("write_file", { path, bytes });
   }
@@ -91,8 +98,8 @@ export async function exportInvoice(
     format === "csv"
       ? toCsv(data)
       : format === "txt"
-        ? toPlainText(data)
-        : toHtml(data, templateId, await logoDataUri(data.sender.logo));
+        ? toPlainText(data, stamp)
+        : toHtml(data, templateId, await logoDataUri(data.sender.logo), stamp);
   return await invoke<string>("write_text_file", { path, contents });
 }
 

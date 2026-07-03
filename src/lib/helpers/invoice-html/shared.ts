@@ -1,4 +1,5 @@
 import type { ClientContact, InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 
 const htmlEscapes: Record<string, string> = {
   "&": "&amp;",
@@ -90,15 +91,16 @@ export function headerSpan(cells: string[]): number {
 }
 
 /**
- * Renders the line-items grid as a semantic table. Header cells are column
- * scopes and cells stay pre-formatted. Body rows keep their editor order:
- * `header`-kind rows (sub-sections, totals) render in place as `tr.section`
- * whose row-scoped first cell spans the empty cells directly to its right.
- * A `colgroup` carries the fr weights as percentages so the fixed-layout
- * table fills its container in the same proportions as the editor and PDF.
- * Emitted style hooks: cells of the trailing three columns carry `num` so
- * template css can right-align numeric columns without a local builder.
- * Every header-kind row renders identically; none is singled out as a total.
+ * Renders the line-items grid as a semantic table. Cells stay pre-formatted
+ * and body rows keep their editor order. Every header row - the column-label
+ * row and `header`-kind rows (sub-sections, totals) alike - renders as an
+ * identical `tr.section` band whose first cell spans the empty cells directly
+ * to its right; no `thead` is emitted so nothing repeats across print pages.
+ * Label cells stay `th` column scopes for assistive tech. A `colgroup`
+ * carries the fr weights as percentages so the fixed-layout table fills its
+ * container in the same proportions as the editor and PDF. Cells of the
+ * trailing three columns carry `num` so template css can right-align numeric
+ * columns without a local builder.
  *
  * @param items - Columns, fr widths and ordered body rows of the invoice model.
  * @param cls - Optional class for the table element.
@@ -107,27 +109,27 @@ export function itemsTable(items: InvoiceData["items"], cls: string = ""): strin
   const group = colGroup(items.widths, items.columns.length);
   const numFrom = Math.max(1, items.columns.length - 3);
   const num = (col: number): string => (col >= numFrom ? ' class="num"' : "");
-  const colSpan = headerSpan(items.columns);
-  const head =
-    `<th scope="${colSpan > 1 ? "colgroup" : "col"}" colspan="${colSpan}"${num(0)}>${htmlEscape(items.columns[0] ?? "")}</th>` +
-    items.columns
-      .slice(colSpan)
-      .map((c, j) => `<th scope="col"${num(colSpan + j)}>${htmlEscape(c)}</th>`)
+  const section = (cells: string[], labels: boolean): string => {
+    const span = headerSpan(cells);
+    const scope = labels ? (span > 1 ? "colgroup" : "col") : "row";
+    const cell = (c: string, j: number): string =>
+      labels
+        ? `<th scope="col"${num(j)}>${htmlEscape(c)}</th>`
+        : `<td${num(j)}>${htmlEscape(c)}</td>`;
+    const rest = cells
+      .slice(span)
+      .map((c, j) => cell(c, span + j))
       .join("");
+    return `<tr class="section"><th scope="${scope}" colspan="${span}"${num(0)}>${htmlEscape(cells[0] ?? "")}</th>${rest}</tr>`;
+  };
   const body = items.rows
-    .map((r) => {
-      if (r.kind === "header") {
-        const span = headerSpan(r.cells);
-        const rest = r.cells
-          .slice(span)
-          .map((c, j) => `<td${num(span + j)}>${htmlEscape(c)}</td>`)
-          .join("");
-        return `<tr class="section"><th scope="row" colspan="${span}"${num(0)}>${htmlEscape(r.cells[0] ?? "")}</th>${rest}</tr>`;
-      }
-      return `<tr>${r.cells.map((c, j) => `<td${num(j)}>${htmlEscape(c)}</td>`).join("")}</tr>`;
-    })
+    .map((r) =>
+      r.kind === "header"
+        ? section(r.cells, false)
+        : `<tr>${r.cells.map((c, j) => `<td${num(j)}>${htmlEscape(c)}</td>`).join("")}</tr>`,
+    )
     .join("");
-  return `<table${cls ? ` class="${cls}"` : ""}>${group}<thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  return `<table${cls ? ` class="${cls}"` : ""}>${group}<tbody>${section(items.columns, true)}${body}</tbody></table>`;
 }
 
 const BASE_CSS = `*, *::before, *::after { box-sizing: border-box; }
@@ -144,13 +146,20 @@ th, td { overflow-wrap: break-word; vertical-align: top; }`;
  * @param title - Document title.
  * @param css - Template-specific stylesheet body.
  * @param body - Template-specific markup (the `.invoice` root).
+ * @param stamp - Provenance stamp, emitted as a `generator` meta tag plus a
+ * head comment; invisible when rendered, readable on view-source.
  */
-export function docShell(title: string, css: string, body: string): string {
+export function docShell(title: string, css: string, body: string, stamp?: ExportStamp): string {
+  const provenance = stamp
+    ? `
+<meta name="generator" content="${htmlEscape(stamp.generated)}">
+<!-- ${stamp.support} -->`
+    : "";
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">${provenance}
 <title>${htmlEscape(title)}</title>
 <style>
 ${BASE_CSS}

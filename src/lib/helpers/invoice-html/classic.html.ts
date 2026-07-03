@@ -1,4 +1,5 @@
 import type { InvoiceData } from "$lib/types";
+import type { ExportStamp } from "../export-meta";
 import { balanceValue, contactValues, docShell, escAddr, htmlEscape, itemsTable } from "./shared";
 
 const CSS = `:root { --ink: #1a1a1a; --navy: #1b2a4a; --hair: #d0d0d0; --muted: #4a4a4a; --serif: Georgia, "Times New Roman", Times, serif; }
@@ -16,7 +17,6 @@ const CSS = `:root { --ink: #1a1a1a; --navy: #1b2a4a; --hair: #d0d0d0; --muted: 
 .summary dt { margin: 0; font-weight: 700; }
 .summary dd { margin: 0; }
 .invoice th, .invoice td { padding: 0.55rem 0.6rem; text-align: left; }
-.invoice thead th { font-variant: small-caps; letter-spacing: 0.07em; font-weight: 700; font-size: 0.85rem; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
 .invoice tbody td, .invoice tbody th { border-bottom: 1px solid var(--hair); }
 .invoice tbody tr.section > * { font-weight: 700; color: var(--navy); }
 .invoice .num { text-align: right; }
@@ -24,13 +24,14 @@ const CSS = `:root { --ink: #1a1a1a; --navy: #1b2a4a; --hair: #d0d0d0; --muted: 
 
 /**
  * Classic HTML invoice: formal serif letter with small-caps headings, a
- * double-ruled title, a ruled summary strip and a black-ruled items table
- * whose grand-total row carries a double rule. Mirrors the classic PDF.
+ * double-ruled title, a ruled summary strip and a hairline-ruled items table
+ * with navy bold header bands. Mirrors the classic PDF.
  *
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, unused by this design.
+ * @param stamp - Provenance stamp, embedded as head metadata when provided.
  */
-export function classicHtml(data: InvoiceData, logo?: string): string {
+export function classicHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
   void logo;
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
@@ -74,5 +75,5 @@ ${meta.dueDate ? `<dt>Due date</dt><dd>${e(meta.dueDate)}</dd>` : ""}
 ${itemsTable(items)}
 ${meta.notes ? `<footer class="notes">${escAddr(meta.notes)}</footer>` : ""}
 </main>`;
-  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body);
+  return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }
