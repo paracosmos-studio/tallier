@@ -48,8 +48,7 @@ function textTable(rows: string[][]): string[] {
  *
  * @param data - Assembled invoice model.
  * @param stamp - Provenance footer, appended when provided (plain text has no
- * metadata layer, so the stamp is visible by necessity); the generated line
- * only, without the support message.
+ * metadata layer, so the stamp is visible by necessity).
  */
 export function toPlainText(data: InvoiceData, stamp?: ExportStamp): string {
   const { sender, recipient, meta, items } = data;
@@ -62,7 +61,7 @@ export function toPlainText(data: InvoiceData, stamp?: ExportStamp): string {
   if (recipient.mailing_address) out.push(recipient.mailing_address);
   out.push("", ...textTable([items.columns, ...items.rows.map((r) => r.cells)]));
   if (meta.notes) out.push("", meta.notes);
-  if (stamp) out.push("", stamp.generated);
+  if (stamp) out.push("", stamp);
   return out.join("\n") + "\n";
 }
 
@@ -90,7 +89,7 @@ export async function exportInvoice(
       data: toInvoiceInput(data),
       senderLogo: data.sender.logo,
       recipientAvatar: data.recipient.avatar,
-      meta: `${stamp.generated}\n${stamp.support}`,
+      meta: stamp,
     });
     return await invoke<string>("write_file", { path, bytes });
   }

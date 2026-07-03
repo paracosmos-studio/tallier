@@ -1,11 +1,9 @@
 <script lang="ts">
-    type Props = {
+    import type { HTMLButtonAttributes } from 'svelte/elements';
+
+    type Props = HTMLButtonAttributes & {
         children: () => any;
         onclick: () => void;
-        onkeydown?: (event: KeyboardEvent) => void;
-        disabled?: boolean;
-        type?: 'button' | 'submit' | 'reset';
-        title?: string;
         size?: 'xs' | 'sm' | 'md' | 'lg';
         bgColor?: string;
         fgColor?: string;
@@ -14,39 +12,33 @@
     let {
         children,
         onclick,
-        onkeydown,
-        disabled = false,
         type = 'button',
-        title = '',
         size = 'md',
         bgColor = 'var(--green)',
         fgColor = 'var(--color-background)',
+        ...rest
     }: Props = $props();
 </script>
 
 
 <!--
     @component
-    A customizable button component.
+    A customizable button component. Extra attributes (title, disabled,
+    aria-*, event handlers) pass through to the native button.
 
     @param {() => any} children Content to display inside the button.
-    @param {() => void} [onclick] Function to call on button click.
-    @param {(event: KeyboardEvent) => void} [onkeydown] Function to call on keydown event.
-    @param {boolean} [disabled] Boolean to disable the button.
+    @param {() => void} onclick Function to call on button click.
     @param {'button' | 'submit' | 'reset'} [type] Button type ('button', 'submit', 'reset').
-    @param {string} [title] Tooltip text for the button.
     @param {'xs' | 'sm' | 'md' | 'lg'} [size] Size of the button ('xs', 'sm', 'md', 'lg').
     @param {string} [bgColor] Background color of the button.
     @param {string} [fgColor] Foreground (text) color of the button.
 -->
 <button
+    {...rest}
     {onclick}
-    {onkeydown}
-    {disabled}
     {type}
-    {title}
     class={size}
-    style="background-color: {bgColor}; color: {fgColor};"
+    style="--btn-bg: {bgColor}; --btn-fg: {fgColor};"
 >
     {@render children()}
 </button>
@@ -65,18 +57,19 @@
         font-size: 1rem;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.2s ease;
+        background-color: var(--btn-bg);
+        color: var(--btn-fg);
+        transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     button:hover {
-        filter: brightness(1.1);
+        background-color: color-mix(in srgb, var(--btn-bg), white 10%);
     }
 
     button:disabled {
         background-color: var(--gray-50);
         color: var(--gray-30);
         cursor: not-allowed;
-        filter: none;
     }
 
     button.xs {

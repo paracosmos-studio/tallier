@@ -87,8 +87,7 @@ function rowsToJson(
         {
             range,
             generated_at: new Date().toISOString(),
-            generator: stamp.generated,
-            support: stamp.support,
+            generator: stamp,
             count: rows.length,
             entries: rows,
         },

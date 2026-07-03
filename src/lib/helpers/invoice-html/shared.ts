@@ -146,14 +146,13 @@ th, td { overflow-wrap: break-word; vertical-align: top; }`;
  * @param title - Document title.
  * @param css - Template-specific stylesheet body.
  * @param body - Template-specific markup (the `.invoice` root).
- * @param stamp - Provenance stamp, emitted as a `generator` meta tag plus a
- * head comment; invisible when rendered, readable on view-source.
+ * @param stamp - Provenance stamp, emitted as a `generator` meta tag;
+ * invisible when rendered, readable on view-source.
  */
 export function docShell(title: string, css: string, body: string, stamp?: ExportStamp): string {
   const provenance = stamp
     ? `
-<meta name="generator" content="${htmlEscape(stamp.generated)}">
-<!-- ${stamp.support} -->`
+<meta name="generator" content="${htmlEscape(stamp)}">`
     : "";
   return `<!doctype html>
 <html lang="en">

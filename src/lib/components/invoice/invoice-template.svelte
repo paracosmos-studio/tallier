@@ -67,6 +67,7 @@
             <Button
                 size="xs"
                 title={t.name}
+                aria-pressed={selected === t.id}
                 bgColor={selected === t.id ? "var(--green)" : "var(--gray-90)"}
                 fgColor={selected === t.id ? "var(--color-background)" : "var(--gray-10)"}
                 onclick={() => (selected = t.id)}
