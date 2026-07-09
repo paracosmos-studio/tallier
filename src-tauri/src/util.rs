@@ -13,6 +13,13 @@ pub(crate) fn now_ms() -> i64 {
 
 // human-readable os name + version (e.g. "macOS 14.6.1"), stamped into export
 // metadata by the frontend via `buildExportStamp`
+// whether this binary was built with the self-updater compiled in.
+// false in the App Store variant, where update UI must stay hidden.
+#[tauri::command]
+pub fn updater_available() -> bool {
+    cfg!(feature = "updater")
+}
+
 #[tauri::command]
 pub fn os_descriptor() -> String {
     let info = os_info::get();

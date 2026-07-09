@@ -1,0 +1,68 @@
+# Builds the GitHub-distribution variant (updater compiled in), signs the
+# updater artifacts, and publishes a draft release with latest.json to the
+# public paracosmos-studio/tallier repo.
+#
+# Required repository secrets:
+#   RELEASE_TOKEN                        fine-grained PAT, contents:write on paracosmos-studio/tallier
+#   TAURI_SIGNING_PRIVATE_KEY            contents of the key from `tauri signer generate`
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD   password chosen at key generation
+#
+# Apple Developer ID signing/notarization is a later step: add APPLE_CERTIFICATE,
+# APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY, APPLE_ID, APPLE_PASSWORD,
+# and APPLE_TEAM_ID to the tauri-action env below when available. Without them
+# the bundle is ad-hoc signed, which the in-app updater still accepts.
+#
+# Release flow: bump the version in tauri.conf.json + Cargo.toml + package.json,
+# tag vX.Y.Z, push the tag, then publish the draft release. latest.json is only
+# served from releases/latest/download after the release is published (and never
+# for prereleases).
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: --target universal-apple-darwin --config src-tauri/tauri.release.conf.json
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          owner: paracosmos-studio
+          repo: tallier
+          tagName: ${{ github.ref_name }}
+          releaseName: "Tallier v__VERSION__"
+          releaseDraft: true
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}

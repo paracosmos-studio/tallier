@@ -5,6 +5,8 @@
     import WindowControls from '$lib/components/window-controls.svelte';
     import WindowTitle from '$lib/components/window-title.svelte';
     import DialogConfirm from '$lib/components/dialogs/dialog-confirm.svelte';
+    import DialogUpdate from '$lib/components/dialogs/dialog-update.svelte';
+    import { runStartupUpdateCheck } from '$lib/updater.svelte';
     import { beforeNavigate, goto } from '$app/navigation';
     import { initDB, getRunningTimer, stopTimer } from '$lib/db';
     import { page } from '$app/state';
@@ -46,7 +48,11 @@
     });
 
     onMount(() => {
-        initDB().then(() => dbReady = true);
+        initDB().then(() => {
+            dbReady = true;
+            // needs the DB for the autoUpdate setting; fire-and-forget
+            runStartupUpdateCheck().catch(() => {});
+        });
 
         appWindow.onCloseRequested(async (e) => {
             const running = await getRunningTimer();
@@ -123,6 +129,8 @@
     onconfirm={forceClose}
     oncancel={() => showCloseConfirm = false}
 />
+
+<DialogUpdate />
 
 <style>
     .titlebar {

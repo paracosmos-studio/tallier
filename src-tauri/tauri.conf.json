@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tallier",
+  "productName": "Tallier",
   "version": "0.1.0",
   "identifier": "com.paracosmos.tallier",
   "build": {
@@ -45,5 +45,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY0Q0ZGNTE4MUVDMzYxMzkKUldRNVljTWVHUFhQOUR6Z0VSalJDRU5rVSs4cFF0bmZ1VVVqa21CdUFMaHZxaW5YeFE1dkNFVUcK",
+      "endpoints": [
+        "https://github.com/paracosmos-studio/tallier/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

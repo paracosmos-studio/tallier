@@ -4,15 +4,43 @@
     external links (feedback, support, privacy, terms).
 -->
 <script lang="ts">
+    import { onMount } from "svelte";
+    import { getVersion } from "@tauri-apps/api/app";
     import Icon from "$lib/components/icon.svelte";
     import IconGithub from "$lib/components/icons/icon-github.svelte";
     import IconStudio from "$lib/components/icons/icon-studio.svelte";
     import Button from "$lib/components/button.svelte";
     import { settings } from "$lib/config";
     import { ChatBubble, Donate, ShieldPerson, Contract, Refresh } from "$lib/icons";
+    import { updaterAvailable, checkForUpdate, openUpdatePrompt } from "$lib/updater.svelte";
 
     const currentYear: number = new Date().getFullYear();
     const copyrightYear: number = Math.max(currentYear, settings.releaseYear);
+
+    let version: string = $state("");
+    // false in the App Store build, which hides the check-for-updates row
+    let updaterSupported: boolean = $state(false);
+    let checking: boolean = $state(false);
+    let checkStatus: string = $state("");
+
+    onMount(async () => {
+        version = await getVersion();
+        updaterSupported = await updaterAvailable();
+    });
+
+    async function handleCheckForUpdates() {
+        checking = true;
+        checkStatus = "";
+        try {
+            const update = await checkForUpdate();
+            if (update) openUpdatePrompt(update);
+            else checkStatus = "You're up to date.";
+        } catch {
+            checkStatus = "Couldn't check for updates.";
+        } finally {
+            checking = false;
+        }
+    }
 </script>
 
 <section>
@@ -22,7 +50,7 @@
                 <img src="/favicon.png" alt="" width="18" height="18" />
                 <span>Tallier</span>
             </p>
-            <p class="line">version {settings.version}</p>
+            <p class="line">version {version}</p>
         </div>
         <div class="card-col right">
             <a href={settings.urls.homepage} target="_blank" rel="noopener noreferrer">
@@ -34,18 +62,24 @@
         </div>
     </div>
 
-    <div class="update-row">
-        <Button
-            size="xs"
-            title="Check for updates"
-            bgColor={"var(--gray-60)"}
-            fgColor={"var(--gray-10)"}
-            onclick={() => {}}
-        >
-            <Icon path={Refresh} size="14" fill="currentColor" />
-            <span>Check for updates</span>
-        </Button>
-    </div>
+    {#if updaterSupported}
+        <div class="update-row">
+            <Button
+                size="xs"
+                title="Check for updates"
+                bgColor={"var(--gray-60)"}
+                fgColor={"var(--gray-10)"}
+                disabled={checking}
+                onclick={handleCheckForUpdates}
+            >
+                <Icon path={Refresh} size="14" fill="currentColor" />
+                <span>{checking ? "Checking..." : "Check for updates"}</span>
+            </Button>
+            {#if checkStatus}
+                <span class="line">{checkStatus}</span>
+            {/if}
+        </div>
+    {/if}
 
     <div id="about-links" class="link-groups">
         <nav>
@@ -160,6 +194,8 @@
 
     .update-row {
         display: flex;
+        align-items: center;
+        gap: 0.75rem;
         margin-top: 0.75rem;
     }
 

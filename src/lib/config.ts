@@ -1,14 +1,15 @@
+const utmString = "?utm_source=application&utm_medium=settings";
+
 export const settings = {
-    version: "2.0.0",
     releaseYear: 2026,
     urls: {
-        homepage: "https://tallier.app?utm_source=application&utm_medium=settings",
-        paracosmos: "https://paracosmos.studio?utm_source=application&utm_medium=settings",
-        privacy: "https://tallier.app/privacy",
-        terms: "https://tallier.app/terms",
+        homepage: "https://tallier.app" + utmString,
+        paracosmos: "https://paracosmos.studio" + utmString,
+        privacy: "https://tallier.app/privacy" + utmString,
+        terms: "https://tallier.app/terms" + utmString,
         feedback: "mailto:hello@paracosmos.studio",
-        support: "https://tallier.app/support?utm_source=application&utm_medium=settings",
-        license: "https://tallier.app/license",
-        github: "https://github.com/paracosmos-studio/tallier"
+        support: "https://tallier.app/support" + utmString,
+        license: "https://tallier.app/license" + utmString,
+        github: "https://github.com/paracosmos-studio/tallier" + utmString,
     }
 }

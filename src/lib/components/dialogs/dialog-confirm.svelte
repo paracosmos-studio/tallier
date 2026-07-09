@@ -7,6 +7,7 @@
     @param {string} message - Confirmation message displayed in the body.
     @param {string} [confirmLabel="Confirm"] - Label for the confirm button.
     @param {string} [cancelLabel="Cancel"] - Label for the cancel button.
+    @param {string} [confirmColor="var(--red)"] - Background color of the confirm button.
     @param {() => void} onconfirm - Callback when confirmed.
     @param {() => void} oncancel - Callback when cancelled or closed.
 -->
@@ -21,6 +22,7 @@
         message: string;
         confirmLabel?: string;
         cancelLabel?: string;
+        confirmColor?: string;
         onconfirm: () => void;
         oncancel: () => void;
     };
@@ -31,6 +33,7 @@
         message,
         confirmLabel = "Confirm",
         cancelLabel = "Cancel",
+        confirmColor = "var(--red)",
         onconfirm,
         oncancel,
     }: Props = $props();
@@ -50,7 +53,7 @@
         </Button>
         <Button
             size="xs"
-            bgColor="var(--red)"
+            bgColor={confirmColor}
             fgColor="var(--gray-90)"
             onclick={onconfirm}
         >

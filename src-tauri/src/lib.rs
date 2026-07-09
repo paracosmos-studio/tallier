@@ -11,7 +11,8 @@ use window::{WindowProfile, WindowProfileState, apply_window_profile};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    #[cfg_attr(not(feature = "updater"), allow(unused_mut))]
+    let mut builder = tauri::Builder::default()
         .manage(TrayState::new())
         .manage(WindowProfileState::new(WindowProfile::Compact))
         .plugin(tauri_plugin_opener::init())
@@ -21,7 +22,18 @@ pub fn run() {
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:tallier.db", load_migrations())
                 .build()
-        )
+        );
+
+    // App Store builds must not self-update; the webview probes the variant
+    // via `util::updater_available`.
+    #[cfg(feature = "updater")]
+    {
+        builder = builder
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_process::init());
+    }
+
+    builder
         .setup(|app| {
             // source of truth for window bounds lives in WindowProfile.
             // re-apply at boot so tauri.conf.json drift cannot desync.
@@ -43,6 +55,7 @@ pub fn run() {
             invoice::render_invoice_pdf,
             invoice::render_invoice_svg,
             util::os_descriptor,
+            util::updater_available,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
