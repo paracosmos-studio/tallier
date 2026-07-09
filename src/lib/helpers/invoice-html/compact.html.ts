@@ -3,10 +3,10 @@ import type { ExportStamp } from "../export-meta";
 import { balanceValue, contactValues, docShell, escAddr, htmlEscape, itemsTable, links, mailHref, telHref, webHref } from "./shared";
 
 const CSS = `:root { --ink: #2a2a2a; --muted: #767676; --line: #cfcfcf; --zebra: #f7f7f7; --blue: #2563eb; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.82rem; line-height: 1.45; }
+.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.82rem; line-height: 1.45; margin: 2.5rem auto; padding: 0 1.75rem; }
 .invoice a { color: var(--blue); text-decoration: none; }
-.lbl { display: block; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
-.head { display: grid; grid-template-columns: 1.3fr 1fr 1fr 0.9fr; gap: 1.25rem; }
+.lbl { display: block; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.65rem; }
+.head { display: grid; grid-template-columns: 1.3fr 1.3fr 0.7fr 0.9fr; gap: 1.25rem; }
 .head .logo { display: block; height: 20px; width: auto; margin-bottom: 0.4rem; }
 .head address { display: flex; flex-direction: column; gap: 0.1rem; }
 .head .stack { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -29,8 +29,14 @@ const CSS = `:root { --ink: #2a2a2a; --muted: #767676; --line: #cfcfcf; --zebra:
  * @param data - Assembled invoice model.
  * @param logo - Sender logo as a data URI, rendered small when present.
  * @param stamp - Provenance stamp, embedded as head metadata when provided.
+ * @param avatar - Recipient avatar as a data URI, rendered small when present.
  */
-export function compactHtml(data: InvoiceData, logo?: string, stamp?: ExportStamp): string {
+export function compactHtml(
+  data: InvoiceData,
+  logo?: string,
+  stamp?: ExportStamp,
+  avatar?: string,
+): string {
   const { sender, recipient, meta, items } = data;
   const e = htmlEscape;
   const balance = balanceValue(items.rows);
@@ -47,6 +53,7 @@ ${sender.tax_id ? `<span>Tax ID: ${e(sender.tax_id)}</span>` : ""}
 </address>
 <address>
 <span class="lbl">Bill to</span>
+${avatar ? `<img class="logo" src="${avatar}" alt="">` : ""}
 ${recipient.contact_name ? `<strong>${e(recipient.contact_name)}</strong>` : ""}
 ${recipient.company_name ? `<span>${e(recipient.company_name)}</span>` : ""}
 ${recipient.mailing_address ? `<span>${escAddr(recipient.mailing_address)}</span>` : ""}

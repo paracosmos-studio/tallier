@@ -2,11 +2,12 @@
 #let inv = json(bytes(sys.inputs.invoice))
 #let charcoal = rgb("#1A1C1E")
 #let amber = rgb("#E8A13C")
+#let red = rgb("#D0342C")
 #let ghost = rgb("#C9CCD1")
 #let rowfill = rgb("#F1F2F3")
 #let ink = rgb("#1F2124")
 #let cardline = luma(216)
-#let edge = 44pt
+#let edge = 22pt
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
 #let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
@@ -25,13 +26,13 @@
   let span = if gap == none { cells.len() } else { gap + 1 }
   (table.cell(colspan: span, lead(cells.first())), ..cells.slice(span).map(rest))
 }
-#let card(name, value, accent: ink) = block(
+#let card(name, value, accent: ink, weight: "semibold") = block(
   fill: white, stroke: 0.5pt + cardline, radius: 6pt, width: 100%, inset: (x: 11pt, y: 10pt),
-  stack(spacing: 5pt, caps(name, fill: luma(140)), text(fill: accent, weight: "semibold", value)),
+  stack(spacing: 5pt, caps(name, fill: luma(140)), text(fill: accent, weight: weight, value)),
 )
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
-#set page(paper: "a4", margin: (top: 0pt, x: 0pt, bottom: 36pt))
+#set page(paper: "a4", margin: (top: 0pt, x: 0pt, bottom: 18pt))
 #set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 10pt, fill: ink)
 #show link: set text(fill: amber)
 
@@ -92,9 +93,9 @@
     ..if inv.meta.dueDate != "" { (card("Due date", inv.meta.dueDate),) } else { () },
     grid.cell(
       colspan: if inv.meta.dueDate != "" { 1 } else { 2 },
-      card("Notes", block-addr(inv.meta.notes)),
+      card("Notes", block-addr(inv.meta.notes), weight: "regular"),
     ),
-    card("Balance", balance, accent: amber),
+    card("Balance", balance, accent: red),
   )
 ]
 
@@ -106,7 +107,7 @@
     align: (x, _) => if x >= numeric-from { right } else { left },
     fill: (_, y) => if all-rows.at(y).kind == "header" { rowfill },
     ..all-rows.map(r => if r.kind == "header" {
-      hrow2(r.cells, c => text(fill: amber, weight: "semibold", c), c => text(fill: ink, weight: "medium", c))
+      hrow2(r.cells, c => text(fill: ink, weight: "semibold", c), c => text(fill: ink, weight: "medium", c))
     } else { r.cells }).flatten(),
   )
 ]

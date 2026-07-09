@@ -14,10 +14,10 @@ import {
 } from "./shared";
 
 const CSS = `:root { --green: #3e6b34; --tint: rgba(158, 203, 120, 0.3); --pale: #f0f7ea; --ink: #1f2430; --muted: #6b7280; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; }
+.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; padding: 0 1.85rem 1.5rem; }
 .invoice a { color: var(--green); text-decoration: none; }
-.band { position: relative; overflow: hidden; margin: 0 -1.75rem 2rem; padding: 2.25rem 1.75rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; background: var(--green); color: #fff; }
-.band::before { content: ""; position: absolute; top: -120px; right: -60px; width: 260px; height: 260px; border-radius: 50%; background: var(--tint); }
+.band { position: relative; overflow: hidden; margin: 0 -1.85rem 2.15rem; padding: 2.5rem 1.85rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; background: var(--green); color: #fff; }
+.band::before { content: ""; position: absolute; top: -48px; right: -36px; width: 240px; height: 240px; border-radius: 50%; background: var(--tint); }
 .band .ident { position: relative; display: flex; align-items: center; gap: 0.75rem; }
 .band .logo { height: 44px; width: auto; }
 .band .name { font-size: 1.35rem; font-weight: 700; }

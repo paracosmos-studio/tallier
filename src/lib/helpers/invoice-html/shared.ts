@@ -134,7 +134,7 @@ export function itemsTable(items: InvoiceData["items"], cls: string = ""): strin
 
 const BASE_CSS = `*, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; -webkit-font-smoothing: antialiased; }
-.invoice { max-width: 48rem; margin: 2.5rem auto; padding: 0 1.75rem; }
+.invoice { max-width: 48rem; margin: 0 auto; padding: 2.25rem; }
 address { font-style: normal; display: flex; flex-direction: column; gap: 0.1rem; }
 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 th, td { overflow-wrap: break-word; vertical-align: top; }`;

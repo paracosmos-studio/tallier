@@ -19,7 +19,7 @@
 }
 #let label-txt(t) = text(size: 8pt, tracking: 0.1em, fill: muted)[#upper(t)]
 #let meta-block(label, value) = if value == none { none } else {
-  block(below: 22pt, stack(spacing: 6pt, label-txt(label), text(size: 10.5pt, value)))
+  block(below: 22pt, stack(spacing: 9pt, label-txt(label), text(size: 10.5pt, value)))
 }
 #let first-contact = {
   let e = contacts(inv.sender.emails)
@@ -30,7 +30,7 @@
 #set document(title: "Invoice " + inv.meta.invoiceNo)
 #set page(
   paper: "us-letter",
-  margin: (x: 64pt, top: 64pt, bottom: 48pt),
+  margin: (x: 32pt, top: 32pt, bottom: 24pt),
   fill: paper,
   footer: if first-contact != none {
     text(size: 8pt, fill: muted)[#inv.sender.business_name #h(6pt) · #h(6pt) #first-contact]
@@ -39,10 +39,10 @@
 #set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 11pt, fill: ink)
 
 #text(size: 60pt, weight: "bold", tracking: -0.03em)[Invoice]
-#v(4pt)
+#v(-6pt)
 #text(size: 13pt, weight: "medium", fill: accent)[\##inv.meta.invoiceNo]
 
-#v(56pt)
+#v(30pt)
 #grid(
   columns: (30%, 1fr),
   column-gutter: 40pt,

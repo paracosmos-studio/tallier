@@ -19,7 +19,7 @@
 }
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
-#set page(paper: "us-letter", margin: 54pt)
+#set page(paper: "us-letter", margin: 27pt)
 #set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 11pt, fill: ink)
 
 #grid(
@@ -56,7 +56,7 @@
 #v(40pt)
 #grid(columns: meta-fields.map(_ => auto), column-gutter: 48pt, ..meta-fields)
 #if inv.meta.notes != "" {
-  v(28pt)
+  v(18pt)
   field("Notes", block-addr(inv.meta.notes))
 }
 
@@ -72,6 +72,6 @@
   align: (x, _) => if x >= numeric-from { right } else { left },
   stroke: none,
   ..all-rows.map(r => if r.kind == "header" {
-    hrow(r.cells, c => text(weight: "bold", c))
+    hrow(r.cells, c => text(weight: "semibold", c))
   } else { r.cells }).flatten(),
 )

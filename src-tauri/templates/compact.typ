@@ -27,7 +27,7 @@
 }
 #let label-txt(t) = text(size: 7.5pt, tracking: 0.08em, fill: muted)[#upper(t)]
 #let cell(label, value) = if value == none { none } else {
-  stack(spacing: 5pt, label-txt(label), value)
+  stack(spacing: 8pt, label-txt(label), value)
 }
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
@@ -36,7 +36,7 @@
 #show link: set text(fill: blue)
 
 #grid(
-  columns: (1.3fr, 1fr, 1fr, 0.9fr),
+  columns: (1.3fr, 1.3fr, 0.7fr, 0.9fr),
   column-gutter: 20pt,
   align: (left, left, left, right),
   cell([From], {
@@ -49,14 +49,17 @@
       if inv.sender.tax_id != none { "Tax ID: " + inv.sender.tax_id },
     )
   }),
-  cell([Bill to], lines(
-    if inv.recipient.contact_name != none { text(weight: "bold")[#inv.recipient.contact_name] } else { none },
-    inv.recipient.company_name,
-    block-addr(inv.recipient.mailing_address),
-    ..contacts(inv.recipient.emails).map(c => link("mailto:" + c)[#c]),
-    ..contacts(inv.recipient.phones).map(c => link(tel-url(c))[#c]),
-    ..contacts(inv.recipient.websites).map(c => link(web-url(c))[#c]),
-  )),
+  cell([Bill to], {
+    if "/recipient-avatar" in sys.inputs { image("/recipient-avatar", height: 20pt); v(5pt) }
+    lines(
+      if inv.recipient.contact_name != none { text(weight: "bold")[#inv.recipient.contact_name] } else { none },
+      inv.recipient.company_name,
+      block-addr(inv.recipient.mailing_address),
+      ..contacts(inv.recipient.emails).map(c => link("mailto:" + c)[#c]),
+      ..contacts(inv.recipient.phones).map(c => link(tel-url(c))[#c]),
+      ..contacts(inv.recipient.websites).map(c => link(web-url(c))[#c]),
+    )
+  }),
   stack(
     spacing: 12pt,
     cell([Invoice], text(weight: "bold")[\##inv.meta.invoiceNo]),

@@ -10,7 +10,9 @@ import { terminalHtml } from "./terminal.html";
 import { compactHtml } from "./compact.html";
 import { softHtml } from "./soft.html";
 
-const RENDERERS: Record<string, (data: InvoiceData, logo?: string, stamp?: ExportStamp) => string> = {
+type Renderer = (data: InvoiceData, logo?: string, stamp?: ExportStamp, avatar?: string) => string;
+
+const RENDERERS: Record<string, Renderer> = {
   default: defaultHtml,
   classic: classicHtml,
   modern: modernHtml,
@@ -30,12 +32,14 @@ const RENDERERS: Record<string, (data: InvoiceData, logo?: string, stamp?: Expor
  * @param templateId - Selected template id.
  * @param logo - Sender logo as a data URI, embedded inline when present.
  * @param stamp - Provenance stamp, embedded as head metadata when provided.
+ * @param avatar - Recipient avatar as a data URI, used by designs that render it.
  */
 export function toHtml(
   data: InvoiceData,
   templateId: string,
   logo?: string,
   stamp?: ExportStamp,
+  avatar?: string,
 ): string {
-  return (RENDERERS[templateId] ?? classicHtml)(data, logo, stamp);
+  return (RENDERERS[templateId] ?? classicHtml)(data, logo, stamp, avatar);
 }

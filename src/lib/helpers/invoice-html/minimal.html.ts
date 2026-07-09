@@ -15,12 +15,12 @@ const CSS = `:root { --ink: #111111; --muted: #767676; --sans: "Instrument Sans"
 .meta div { display: flex; flex-direction: column; gap: 0.35rem; }
 .meta dt { color: var(--muted); font-size: 0.8rem; }
 .meta dd { margin: 0; }
-.notes { display: flex; flex-direction: column; gap: 0.35rem; margin: 2rem 0 0; padding: 0; }
+.notes { display: flex; flex-direction: column; gap: 0.35rem; margin: 1.5rem 0 0; padding: 0; }
 .notes dd { margin: 0; }
 .items { margin-top: 3rem; }
 .items th, .items td { padding: 0.7rem 0.5rem; vertical-align: top; }
-.items tbody th { text-align: left; font-weight: 700; }
-.items tr.section th, .items tr.section td { font-weight: 700; }
+.items tbody th { text-align: left; font-weight: 600; }
+.items tr.section th, .items tr.section td { font-weight: 600; }
 .items th:first-child, .items td:first-child { padding-left: 0; }
 .items th:last-child, .items td:last-child { padding-right: 0; }
 .items .num { text-align: right; }
@@ -28,7 +28,7 @@ const CSS = `:root { --ink: #111111; --muted: #767676; --sans: "Instrument Sans"
 
 /**
  * Minimal HTML invoice: one sans face, pure black on white, whitespace-forward
- * stacked label/value pairs, and an unruled items table with bold header
+ * stacked label/value pairs, and an unruled items table with semibold header
  * bands.
  *
  * @param data - Assembled invoice model.

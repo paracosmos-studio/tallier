@@ -98,7 +98,13 @@ export async function exportInvoice(
       ? toCsv(data)
       : format === "txt"
         ? toPlainText(data, stamp)
-        : toHtml(data, templateId, await logoDataUri(data.sender.logo), stamp);
+        : toHtml(
+            data,
+            templateId,
+            await logoDataUri(data.sender.logo),
+            stamp,
+            await logoDataUri(data.recipient.avatar),
+          );
   return await invoke<string>("write_text_file", { path, contents });
 }
 

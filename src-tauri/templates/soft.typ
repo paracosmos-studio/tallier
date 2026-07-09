@@ -25,16 +25,16 @@
   (table.cell(colspan: span, style(cells.first())), ..cells.slice(span).map(style))
 }
 #let addr-card(fill, name, body) = block(
-  fill: fill, radius: 16pt, width: 100%, inset: (x: 15pt, y: 14pt),
+  fill: fill, radius: 12pt, width: 100%, inset: (x: 15pt, y: 14pt),
   stack(spacing: 6pt, caps(name), body),
 )
 #let chip(fill, name, value, accent: charcoal) = block(
-  fill: fill, radius: 14pt, width: 100%, inset: (x: 12pt, y: 11pt),
+  fill: fill, radius: 10pt, width: 100%, inset: (x: 12pt, y: 11pt),
   stack(spacing: 5pt, caps(name), text(fill: accent, weight: "bold", value)),
 )
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
-#set page(paper: "a4", margin: 2.2cm)
+#set page(paper: "a4", margin: 1.1cm)
 #set text(font: ("Nunito", "Noto Sans", "Arial"), size: 10pt, fill: charcoal)
 #show link: set text(fill: coral)
 
@@ -100,16 +100,14 @@
 )
 
 #v(18pt)
-#block(fill: white, stroke: 0.75pt + rgb("#ECEEF1"), radius: 16pt, width: 100%, inset: 12pt)[
-  #table(
-    columns: inv.items.widths.map(w => w * 1fr),
-    stroke: none,
-    inset: (x: 9pt, y: 8pt),
-    row-gutter: 3pt,
-    align: (x, _) => if x >= numeric-from { right } else { left },
-    fill: (_, y) => if all-rows.at(y).kind == "header" { pblue },
-    ..all-rows.map(r => if r.kind == "header" {
-      hrow(r.cells, c => text(weight: "bold", c))
-    } else { r.cells }).flatten(),
-  )
-]
+#table(
+  columns: inv.items.widths.map(w => w * 1fr),
+  stroke: none,
+  inset: (x: 9pt, y: 8pt),
+  row-gutter: 3pt,
+  align: (x, _) => if x >= numeric-from { right } else { left },
+  fill: (_, y) => if all-rows.at(y).kind == "header" { pblue },
+  ..all-rows.map(r => if r.kind == "header" {
+    hrow(r.cells, c => text(weight: "bold", c))
+  } else { r.cells }).flatten(),
+)

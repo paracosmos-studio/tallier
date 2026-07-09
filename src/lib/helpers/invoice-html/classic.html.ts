@@ -9,11 +9,11 @@ const CSS = `:root { --ink: #1a1a1a; --navy: #1b2a4a; --hair: #d0d0d0; --muted: 
 .head .from address { margin-top: 0.5rem; font-size: 0.82rem; color: var(--muted); }
 .head .title { text-align: right; min-width: 11rem; }
 .head .title h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--navy); }
-.head .title .dbl { height: 3px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 0.45rem 0 0.5rem; }
+.head .title .rule { border: 0; border-top: 1px solid var(--ink); margin: 0.45rem 0 0.5rem; }
 .head .title p { margin: 0; }
 .billto { margin: 1.9rem 0 1.5rem; }
 .billto h2 { margin: 0 0 0.3rem; font-size: 0.85rem; font-variant: small-caps; letter-spacing: 0.08em; color: var(--navy); }
-.summary { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 0 0 2.2rem; padding: 0.75rem 0; display: grid; grid-template-columns: auto 1fr; gap: 0.45rem 1.4rem; }
+.summary { border-top: 0.5px solid var(--ink); border-bottom: 0.5px solid var(--ink); margin: 0 0 2.2rem; padding: 0.75rem 0; display: grid; grid-template-columns: auto 1fr; gap: 0.45rem 1.4rem; }
 .summary dt { margin: 0; font-weight: 700; }
 .summary dd { margin: 0; }
 .invoice th, .invoice td { padding: 0.55rem 0.6rem; text-align: left; }
@@ -24,7 +24,7 @@ const CSS = `:root { --ink: #1a1a1a; --navy: #1b2a4a; --hair: #d0d0d0; --muted: 
 
 /**
  * Classic HTML invoice: formal serif letter with small-caps headings, a
- * double-ruled title, a ruled summary strip and a hairline-ruled items table
+ * single-ruled title, a hairline-ruled summary strip and a ruled items table
  * with navy bold header bands. Mirrors the classic PDF.
  *
  * @param data - Assembled invoice model.
@@ -54,7 +54,7 @@ ${sender.tax_id ? `<span>Tax ID: ${e(sender.tax_id)}</span>` : ""}
 </div>
 <div class="title">
 <h1>Invoice</h1>
-<div class="dbl"></div>
+<hr class="rule">
 <p>#${e(meta.invoiceNo)}</p>
 </div>
 </header>

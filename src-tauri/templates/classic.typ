@@ -21,7 +21,7 @@
 #let sc(s) = smallcaps(text(tracking: 0.09em, s))
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
-#set page(paper: "us-letter", margin: 54pt)
+#set page(paper: "us-letter", margin: 27pt)
 #set text(font: ("Noto Serif", "Noto Sans", "Arial"), size: 10.5pt, fill: ink)
 
 #grid(
@@ -42,8 +42,6 @@
     #text(size: 16pt, fill: navy, tracking: 0.2em)[#upper("Invoice")]
     #v(5pt)
     #line(length: 100%, stroke: 1pt + ink)
-    #v(1.6pt)
-    #line(length: 100%, stroke: 0.5pt + ink)
     #v(6pt)
     #text(size: 10pt)[\##inv.meta.invoiceNo]
   ],
@@ -62,7 +60,7 @@
 )
 
 #v(22pt)
-#line(length: 100%, stroke: 1pt + ink)
+#line(length: 100%, stroke: 0.5pt + ink)
 #block(inset: (y: 9pt), grid(
   columns: (auto, 1fr),
   row-gutter: 6pt,
@@ -71,7 +69,7 @@
   ..if inv.meta.dueDate != "" { (text(weight: "bold")[Due date], inv.meta.dueDate) } else { () },
   text(weight: "bold")[Balance], balance,
 ))
-#line(length: 100%, stroke: 1pt + ink)
+#line(length: 100%, stroke: 0.5pt + ink)
 
 #v(24pt)
 #table(

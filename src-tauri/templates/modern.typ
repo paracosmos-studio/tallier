@@ -5,7 +5,7 @@
 #let pale = rgb("#F0F7EA")
 #let ink = rgb("#1F2430")
 #let muted = luma(140)
-#let edge = 44pt
+#let edge = 22pt
 #let block-addr(v) = if v == none { none } else { v.split("\n").join(linebreak()) }
 #let contacts(items) = if items == none { () } else { items.map(it => it.value) }
 #let lines(..items) = items.pos().filter(x => x != none and x != "").map(x => [#x]).join(linebreak())
@@ -30,7 +30,7 @@
 )
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
-#set page(paper: "a4", margin: (top: 0pt, x: 0pt, bottom: 36pt))
+#set page(paper: "a4", margin: (top: 0pt, x: 0pt, bottom: 18pt))
 #set text(font: ("Instrument Sans", "Noto Sans", "Arial"), size: 10pt, fill: ink)
 #show link: set text(fill: green)
 
@@ -51,7 +51,7 @@
       #text(size: 12pt, weight: "medium")[\##inv.meta.invoiceNo]
     ],
   )
-  #place(top + right, dx: 60pt, dy: -84pt, circle(radius: 116pt, fill: tint.transparentize(70%)))
+  #place(top + right, dx: 45pt, dy: -66pt, circle(radius: 90pt, fill: tint.transparentize(70%)))
 ]
 
 #pad(x: edge, top: 26pt, bottom: 34pt)[

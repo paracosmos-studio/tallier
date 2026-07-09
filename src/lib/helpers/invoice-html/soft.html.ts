@@ -13,8 +13,8 @@ import {
   webHref,
 } from "./shared";
 
-const CSS = `:root { --pblue: #eaf2ff; --mint: #e8f7ee; --peach: #fff1e8; --charcoal: #3a3f47; --coral: #f2876b; --muted: #8a909b; --line: #eceef1; --rounded: Nunito, Quicksand, "Trebuchet MS", sans-serif; }
-.invoice { color: var(--charcoal); font-family: var(--rounded); font-size: 0.9rem; line-height: 1.55; }
+const CSS = `:root { --pblue: #eaf2ff; --mint: #e8f7ee; --peach: #fff1e8; --charcoal: #3a3f47; --coral: #f2876b; --muted: #8a909b; --rounded: Nunito, Quicksand, "Trebuchet MS", sans-serif; }
+.invoice { color: var(--charcoal); font-family: var(--rounded); font-size: 0.9rem; line-height: 1.55; padding: 2.6rem; }
 .invoice a { color: var(--coral); text-decoration: none; }
 .head { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; margin-bottom: 1.75rem; }
 .head .ident { display: flex; align-items: center; gap: 0.7rem; }
@@ -24,19 +24,18 @@ const CSS = `:root { --pblue: #eaf2ff; --mint: #e8f7ee; --peach: #fff1e8; --char
 .badge { display: inline-block; margin-top: 0.4rem; background: var(--pblue); color: var(--charcoal); font-weight: 700; border-radius: 999px; padding: 0.4rem 0.9rem; }
 .lbl { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-.card { border-radius: 16px; padding: 0.95rem 1.1rem; }
+.card { border-radius: 12px; padding: 0.95rem 1.1rem; }
 .card address { margin-top: 0.4rem; }
 .card .name { font-weight: 700; }
 .blue { background: var(--pblue); }
 .mint { background: var(--mint); }
 .peach { background: var(--peach); }
 .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin-bottom: 1.75rem; }
-.summary div { border-radius: 14px; padding: 0.75rem 0.9rem; }
+.summary div { border-radius: 10px; padding: 0.75rem 0.9rem; }
 .summary .wide { grid-column: span 2; }
 .summary dt { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .summary dd { margin: 0.3rem 0 0; font-weight: 700; }
 .summary .balance dd { color: var(--coral); }
-.tablecard { border: 1px solid var(--line); border-radius: 16px; padding: 0.75rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
 .items { border-collapse: separate; border-spacing: 0 3px; }
 .items th, .items td { padding: 0.55rem 0.65rem; text-align: left; }
 .items .num { text-align: right; }
@@ -46,7 +45,7 @@ const CSS = `:root { --pblue: #eaf2ff; --mint: #e8f7ee; --peach: #fff1e8; --char
 
 /**
  * Soft HTML invoice: friendly rounded sans, a pill invoice badge, pastel party
- * cards and summary chips, and a shadowed white table card whose header rows
+ * cards and summary chips, and a borderless items table whose header rows
  * render as blue bands.
  *
  * @param data - Assembled invoice model.
@@ -97,9 +96,7 @@ ${meta.dueDate ? `<div class="mint"><dt>Due date</dt><dd>${e(meta.dueDate)}</dd>
 <div class="peach${meta.dueDate ? "" : " wide"}"><dt>Notes</dt><dd>${escAddr(meta.notes)}</dd></div>
 <div class="peach balance"><dt>Balance</dt><dd>${e(balance)}</dd></div>
 </dl>
-<div class="tablecard">
 ${itemsTable(items, "items")}
-</div>
 </main>`;
   return docShell(`Invoice ${meta.invoiceNo}`, CSS, body, stamp);
 }

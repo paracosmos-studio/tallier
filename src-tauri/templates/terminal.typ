@@ -31,7 +31,7 @@
 }
 
 #set document(title: "Invoice " + inv.meta.invoiceNo)
-#set page(paper: "us-letter", margin: 48pt)
+#set page(paper: "us-letter", margin: 24pt)
 #set text(font: "DM Mono", size: 9.5pt, fill: ink)
 
 #grid(
@@ -70,25 +70,31 @@
   ],
 )
 
-#v(10pt)
-#rule
-#v(9pt)
+#v(12pt)
 #stack(
   spacing: 6pt,
   leader("Issue date", inv.meta.issueDate),
   leader("Due date", inv.meta.dueDate),
   leader("Balance", balance),
 )
-#v(9pt)
-#rule
 
 #v(13pt)
 #table(
   columns: inv.items.widths.map(w => w * 1fr),
   stroke: none,
-  inset: (x: 5pt, y: 5pt),
+  inset: (x, y) => (
+    left: if x == 0 { 0pt } else { 5pt },
+    right: if x == inv.items.columns.len() - 1 { 0pt } else { 5pt },
+    top: 5pt,
+    bottom: 5pt,
+  ),
   align: (x, _) => if x >= numeric-from { right } else { left },
   ..all-rows.map(r => if r.kind == "header" {
     hrow(r.cells, c => em(c))
   } else { r.cells }).flatten(),
 )
+
+#if inv.meta.notes != "" {
+  v(13pt)
+  text(fill: luma(120))[#block-addr(inv.meta.notes)]
+}

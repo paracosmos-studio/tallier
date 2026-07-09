@@ -14,7 +14,7 @@ import {
 } from "./shared";
 
 const CSS = `:root { --ink: #1a1a1a; --fill: #f2f2f2; --blue: #1d4ed8; --red: #991b1b; --green: #15803d; --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; }
+.invoice { color: var(--ink); font-family: var(--sans); font-size: 0.9rem; line-height: 1.5; margin: 2.5rem auto; padding: 0 1.75rem; }
 .invoice a { color: var(--blue); text-decoration: none; }
 .head { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
 .head .logo { height: 64px; width: auto; }
