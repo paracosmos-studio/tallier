@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Project row inside a timesheet day. Collapsed view shows project name and
     rounded total. Expanded view appends individual entry rows with edit/hide

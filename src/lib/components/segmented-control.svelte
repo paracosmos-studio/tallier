@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Animated segmented control. Renders a row of mutually-exclusive options inside
     a single rounded container, with an animated indicator sliding to the active

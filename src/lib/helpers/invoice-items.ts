@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 import { roundSeconds, formatDateMedium } from "./format";
 import { currencySymbol } from "./currency";
 import type { ReportEntry, Project } from "$lib/types";

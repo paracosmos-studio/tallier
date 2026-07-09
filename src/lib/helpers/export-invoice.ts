@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 import { invoke } from "@tauri-apps/api/core";
 import { csvEscape } from "./csv";
 import { buildExportStamp, type ExportStamp } from "./export-meta";

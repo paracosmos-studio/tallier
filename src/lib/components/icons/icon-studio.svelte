@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Paracosmos Studio brand glyph. Multi-path with a non-standard viewBox so
     it can't share `$lib/icons.ts`'s single-path Material Symbols pipeline.

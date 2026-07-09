@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Single radio button with a visible label. Use individually, or compose
     multiple sharing the same `name` to form a group; see `radio-group.svelte`

@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     A single step marker rendered as a circle. Default state is a brand gray
     circle with light text; the current step uses a green fill with dark text;

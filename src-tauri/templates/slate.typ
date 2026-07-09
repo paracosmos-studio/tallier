@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 // slate: full-bleed charcoal panel, cards overlapping its edge, amber accent
 #let inv = json(bytes(sys.inputs.invoice))
 #let charcoal = rgb("#1A1C1E")

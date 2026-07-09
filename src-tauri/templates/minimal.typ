@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 // minimal: single sans, black on white, whitespace-forward, two hairline rules
 #let inv = json(bytes(sys.inputs.invoice))
 #let ink = black

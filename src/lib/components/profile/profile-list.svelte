@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Displays a draggable list of saved sender profiles. Each row shows the logo
     and the profile label with the business name beside it. Clicking a row opens

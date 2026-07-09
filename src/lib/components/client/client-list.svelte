@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Displays a draggable list of saved clients. Each row shows the avatar, the
     contact name (with company name beside it when present) and one contact

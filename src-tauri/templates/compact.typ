@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 // compact: dense grayscale, zebra rows, four-column header, utility-blue links
 #let inv = json(bytes(sys.inputs.invoice))
 #let ink = luma(30)

@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Dialog for editing an existing log's project, title, summary, date, times, and reason.
     Supports stepping through a related group of entries (`siblings`) so a single

@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Generic stacked vertical bar chart with hover/focus tooltip showing
     color-coded segments and the column total.

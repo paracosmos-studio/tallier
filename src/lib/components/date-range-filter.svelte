@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Date range select paired with conditional custom-range date inputs. Used
     across the timesheet, reports, and invoice pages. Auto-seeds the custom

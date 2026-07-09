@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Renders the project groups + entry rows for a single day. Header-less;
     intended for the right-hand detail panel of a master/detail layout where

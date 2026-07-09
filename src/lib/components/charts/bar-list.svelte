@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Vertical list of items, each with a label, value, and a color-filled
     horizontal bar showing the item's share of the total.

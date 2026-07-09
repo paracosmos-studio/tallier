@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 use std::fs;
 use std::path::PathBuf;
 use tauri::Manager;

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 fn main() {
     // the updater capability references permissions from plugins that only
     // exist when the `updater` feature is on; including it in an App Store

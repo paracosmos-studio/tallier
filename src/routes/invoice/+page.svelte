@@ -1,3 +1,7 @@
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
 <script lang="ts">
     import PageNavigation from "$lib/components/page-navigation.svelte";
     import Stepper from "$lib/components/stepper.svelte";

@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Square image picker for an avatar/logo. Wraps the file input, validation,
     preview, and orphan-file cleanup so any form can store an image with one

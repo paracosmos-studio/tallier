@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 /**
  * Escapes a value for CSV: wraps in quotes and doubles inner quotes when it
  * contains a comma, quote or newline; null/undefined become an empty field.

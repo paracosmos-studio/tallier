@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 

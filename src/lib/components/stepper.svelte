@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Horizontal step-flow indicator: numbered markers, each with a title, joined by
     dashed connectors (e.g. "1 Title --- 2 Title"). The active step is highlighted.

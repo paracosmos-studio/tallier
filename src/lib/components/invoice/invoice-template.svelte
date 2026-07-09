@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     "Template" step of invoice creation. Renders the assembled invoice through
     each Typst template to a live SVG. A left column of template buttons selects

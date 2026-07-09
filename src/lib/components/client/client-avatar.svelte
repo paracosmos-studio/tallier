@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Square client avatar. Renders the profile image when present, otherwise a
     Person icon placeholder on the shared card background. `src` is a stored

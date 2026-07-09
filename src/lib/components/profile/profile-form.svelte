@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Form for adding or editing a sender profile. Emails and phones are each
     label/value pairs the user can grow with an "add another" button or trim

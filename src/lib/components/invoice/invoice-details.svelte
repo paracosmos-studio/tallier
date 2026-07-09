@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     "Details" step of invoice creation: choose an inline-editable sender profile,
     then set the invoice number, issue/due dates and notes. The invoice number is

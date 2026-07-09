@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Timesheet list view: per-day groups of project rows with rounded totals,
     plus a grand-total card at the bottom. Hidden and override state is owned

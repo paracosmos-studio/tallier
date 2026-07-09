@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 import { nextDateISO, timeToSeconds, SECONDS_PER_DAY } from "./format";
 import type { ReportEntry } from "$lib/types";
 

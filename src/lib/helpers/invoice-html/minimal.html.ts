@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 import type { InvoiceData } from "$lib/types";
 import type { ExportStamp } from "../export-meta";
 import { contactValues, docShell, escAddr, htmlEscape, itemsTable, links, mailHref, telHref, webHref } from "./shared";

@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Dialog wrapping the shared profile form for invoice creation. With a profile
     it edits inline and shows an "Update original profile" toggle: when on, Save

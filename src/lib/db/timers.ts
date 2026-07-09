@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 import { getDB } from "./connection";
 import { startOfWeek, endOfWeek } from "$lib/helpers/date-utils";
 import type { Timer } from "$lib/types";

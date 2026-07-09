@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Timesheet week view: per-week tables of project rows with decimal-hour
     cells across a 7-day span and a daily Total footer. The week anchor day is

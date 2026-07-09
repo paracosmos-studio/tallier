@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 pub(crate) fn load_migrations() -> Vec<Migration> {

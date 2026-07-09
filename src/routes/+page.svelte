@@ -1,3 +1,7 @@
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { listen } from "@tauri-apps/api/event";

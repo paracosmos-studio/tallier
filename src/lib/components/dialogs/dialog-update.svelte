@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     "Update available" prompt driven by the shared `updatePrompt` state in
     $lib/updater.svelte. Rendered once in the root layout; both the startup

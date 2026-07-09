@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Single-select list of clients rendered as cards, each with a checkbox marker
     on the right. Clicking a card toggles its selection (selecting clears any

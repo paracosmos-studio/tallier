@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     One-shot "invoice export success" animation: time-entry chips drop into an
     open-top box, the box collapses into an up arrow that rises and vanishes

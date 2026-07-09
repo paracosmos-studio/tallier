@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn format_elapsed(total: u64) -> String {

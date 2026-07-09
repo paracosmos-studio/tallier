@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Dialog wrapping the shared client form for invoice creation. It edits the
     given client inline and shows an "Update original client" toggle: when on,

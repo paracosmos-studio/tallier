@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 // modern: green full-bleed band, decorative arc, chip summary, banded rows
 #let inv = json(bytes(sys.inputs.invoice))
 #let green = rgb("#3E6B34")

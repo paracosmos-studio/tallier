@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Dialog for auto-generating invoice items from tracked time. Lets the user
     pick one or more projects (searchable), a custom start/end date range, and

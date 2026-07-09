@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     GitHub brand glyph. Renders the Octocat in `currentColor` so the parent
     controls the fill via CSS color. Uses its own viewBox so it can't be

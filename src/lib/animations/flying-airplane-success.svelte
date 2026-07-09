@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     One-shot "export success" animation: an outlined paper plane flies a figure-8,
     then a circle outline draws around the origin, a check appears, and the circle

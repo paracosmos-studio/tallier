@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (C) 2026 Paracosmos Studio Inc.
+
 // classic: formal serif, ruled table, navy headings, italic footer
 #let inv = json(bytes(sys.inputs.invoice))
 #let ink = luma(20)

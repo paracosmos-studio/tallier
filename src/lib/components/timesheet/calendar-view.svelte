@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Timesheet calendar view: a fixed 7-column week (anchored by the user's
     `weekStartsOn` setting) with hours down the left and daily totals across

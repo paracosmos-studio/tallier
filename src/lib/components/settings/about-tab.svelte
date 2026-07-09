@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     About panel for the Settings page. Surfaces app version, copyright, and
     external links (feedback, support, privacy, terms).
@@ -118,12 +122,13 @@
         <br />
         <p class="line">
             <span>
-                All rights reserved © {copyrightYear}
+                © {copyrightYear}
                 <a href={settings.urls.paracosmos} target="_blank" rel="noopener noreferrer">
                     Paracosmos Studio Inc.
                 </a>
             </span>
         </p>
+        <p class="line">Free software under the GNU GPL v3, with no warranty.</p>
     </div>
 </section>
 

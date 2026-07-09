@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Single profile chooser styled like one client-select card: avatar with the
     profile label and business name on the left, and on the right a control

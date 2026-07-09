@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Editable data table primitive. Defaults to a 2x2 grid (one header row, one
     data row) when instantiated with no params. Columns are resizable by dragging

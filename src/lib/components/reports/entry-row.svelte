@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Display-only entry row with edit and optional delete/hide action buttons.
     Each action button only renders when its callback is provided.

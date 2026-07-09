@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Radio button group: renders one Radio per option, laid out in a row or
     column. Pairs with `radio.svelte` for the atomic primitive.

@@ -1,3 +1,7 @@
+<!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
 <script lang="ts">
     import Icon from '$lib/components/icon.svelte';
     import { ChartBar, Alarm, Contract, Settings } from '$lib/icons';

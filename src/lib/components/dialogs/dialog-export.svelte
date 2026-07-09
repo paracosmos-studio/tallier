@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Reusable export dialog. Collects a format, an optional "include notes"
     toggle, and a save location. The caller supplies the format list and wires

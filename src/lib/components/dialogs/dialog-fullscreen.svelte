@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Full-window modal that fills the entire viewport with the app's background,
     keeping the window's edge border and corner radius.

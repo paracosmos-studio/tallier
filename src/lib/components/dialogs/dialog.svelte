@@ -1,4 +1,8 @@
 <!--
+    SPDX-License-Identifier: GPL-3.0-only
+    Copyright (C) 2026 Paracosmos Studio Inc.
+-->
+<!--
     @component
     Reusable modal dialog with header, body, and footer slots. An optional
     `headerExtras` snippet renders centered between the title and close icon;
