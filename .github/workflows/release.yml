@@ -18,6 +18,7 @@ permissions:
 
 jobs:
   publish:
+    environment: Production
     strategy:
       fail-fast: false
       matrix:
