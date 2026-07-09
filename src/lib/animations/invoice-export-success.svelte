@@ -6,7 +6,7 @@
     a dollar sign pops in and turns into a check. Pure CSS keyframes on an
     inline SVG; no JS animation runtime. Plays once and holds the final frame.
 
-    @param {number} [size=240] - square size of the rendered SVG, in px.
+    @param {number} [size=240] - rendered width of the SVG, in px; height follows the 240x170 viewBox.
     @param {string} [duration="3.5s"] - total animation duration (any CSS time value).
     @param {boolean} [playing=true] - pause/play toggle (bindable).
     @param {string} [accentColor] - stroke color for the box, arrow, and circle outline (defaults to `var(--yellow)`).
@@ -45,7 +45,7 @@
     "
 >
     <svg
-        viewBox="0 0 240 240"
+        viewBox="0 35 240 170"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         role="img"
@@ -153,7 +153,7 @@
 
     .export-anim svg {
         width: var(--size);
-        height: var(--size);
+        height: calc(var(--size) * 170 / 240);
         display: block;
         overflow: visible;
     }

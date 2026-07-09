@@ -5,7 +5,7 @@
     fills with the success color. Pure CSS keyframes on an inline SVG; no JS
     animation runtime.
 
-    @param {number} [size=240] - square size of the rendered SVG, in px.
+    @param {number} [size=240] - rendered width of the SVG, in px; height follows the 240x170 viewBox.
     @param {string} [duration="3s"] - total animation duration (any CSS time value).
     @param {boolean} [playing=true] - pause/play toggle (bindable).
     @param {boolean} [showControls=false] - show the built-in play/pause chip.
@@ -53,7 +53,7 @@
         --anim-knockout: {knockoutColor};
     "
 >
-    <svg viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 35 240 170" fill="none" xmlns="http://www.w3.org/2000/svg">
         <!-- svg-native blur for the plane glow; css `filter: blur()` is
              flaky on svg primitives in webkit. -->
         <defs>
@@ -160,7 +160,7 @@
 
     .export-anim svg {
         width: var(--size);
-        height: var(--size);
+        height: calc(var(--size) * 170 / 240);
         display: block;
         overflow: visible;
     }

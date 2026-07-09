@@ -1,6 +1,7 @@
 <!--
     @component
-    Full-window modal that fills the entire viewport with the app's background.
+    Full-window modal that fills the entire viewport with the app's background,
+    keeping the window's edge border and corner radius.
     A close icon sits in the top-right unless suppressed. Use this for
     celebratory or focused single-purpose scenes (e.g. export success
     animation); for forms or confirmations reach for `dialog.svelte` /
@@ -91,7 +92,8 @@
         max-height: calc(100vh - var(--titlebar-h));
         margin: 0;
         padding: 0;
-        border: none;
+        border: 1px solid var(--gray-60);
+        border-top: none;
         border-radius: 0 0 15px 15px;
         background: var(--color-background);
         color: var(--gray-10);
@@ -100,6 +102,7 @@
 
     /* match the layout's flattening when the OS window goes fullscreen */
     :global(body.is-fullscreen) dialog {
+        border: none;
         border-radius: 0;
     }
 
