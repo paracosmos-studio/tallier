@@ -17,13 +17,26 @@ with built-in invoicing.
 
 ## Why Tallier
 
-- **One click from the menu bar.** Start and stop timers from the tray without opening a window. The running total lives right in your menu bar.
-- **Set it and forget it.** Tallier auto-pauses when your machine sleeps and can cap projects with daily or weekly limits, so idle hours never pollute your timesheet.
-- **Timesheets that make sense.** Review your work as a list, a week grid, or a full calendar. Your week starts on whatever day you say it does.
-- **From hours to invoice in minutes.** Turn tracked entries into invoice line items automatically, pick one of nine designed templates, and export a PDF, HTML, CSV, or plain text.
-- **Clients and identities built in.** Store recipients and sender profiles once, with logos and contacts, and reuse them on every invoice.
-- **Yours, locally.** Everything is stored in a local SQLite database on your machine. No account, no sync, no telemetry.
-- **Small and native.** Built with Tauri and Rust, so it starts instantly and stays light on memory.
+- **One click from the menu bar.**  
+Start and stop timers from the tray without opening a window. The running total lives right in your menu bar.
+
+- **Set it and forget it.**  
+Tallier auto-pauses when your machine sleeps and can cap projects with daily or weekly limits, so idle hours never pollute your timesheet.
+
+- **Timesheets that make sense.**  
+Review your work as a list, a week grid, or a full calendar. Your week starts on whatever day you say it does.
+
+- **From hours to invoice in minutes.**  
+Turn tracked entries into invoice line items automatically, pick one of nine designed templates, and export a PDF, HTML, CSV, or plain text.
+
+- **Clients and identities built in.**  
+Store recipients and sender profiles once, with logos and contacts, and reuse them on every invoice.
+
+- **Yours, locally.**  
+Everything is stored in a local SQLite database on your machine. No account, no sync, no telemetry.
+
+- **Small and native.**  
+Built with Tauri and Rust, so it starts instantly and stays light on memory.
 
 ## Install
 
