@@ -51,7 +51,26 @@
         }
     });
 
+    const blockContextMenu = (e: MouseEvent) => {
+        const el = e.target instanceof HTMLElement ? e.target : null;
+        if (el && (el.isContentEditable || el.closest('input, textarea'))) return;
+        e.preventDefault();
+    };
+
+    const blockDevShortcuts = (e: KeyboardEvent) => {
+        const reload = e.code === 'F5' || ((e.metaKey || e.ctrlKey) && e.code === 'KeyR');
+        const devtools = e.code === 'F12'
+            || ((e.metaKey || e.ctrlKey) && e.shiftKey && ['KeyI', 'KeyJ', 'KeyC'].includes(e.code))
+            || (e.metaKey && e.altKey && e.code === 'KeyI');
+        if (reload || devtools) e.preventDefault();
+    };
+
     onMount(() => {
+        if (!import.meta.env.DEV) {
+            window.addEventListener('contextmenu', blockContextMenu);
+            window.addEventListener('keydown', blockDevShortcuts);
+        }
+
         initDB().then(() => {
             dbReady = true;
             // needs the DB for the autoUpdate setting; fire-and-forget
@@ -100,6 +119,8 @@
             unlisten?.();
             unlistenTray?.();
             unlistenResize?.();
+            window.removeEventListener('contextmenu', blockContextMenu);
+            window.removeEventListener('keydown', blockDevShortcuts);
         };
     });
 
