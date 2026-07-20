@@ -38,92 +38,26 @@ impl TrayState {
     }
 }
 
-// 3x5 pixel glyphs for the rendered time icon, one byte per row, low 3 bits
-const DIGIT_GLYPHS: [[u8; 5]; 10] = [
-    [0b111, 0b101, 0b101, 0b101, 0b111],
-    [0b010, 0b110, 0b010, 0b010, 0b111],
-    [0b111, 0b001, 0b111, 0b100, 0b111],
-    [0b111, 0b001, 0b111, 0b001, 0b111],
-    [0b101, 0b101, 0b111, 0b001, 0b001],
-    [0b111, 0b100, 0b111, 0b001, 0b111],
-    [0b111, 0b100, 0b111, 0b101, 0b111],
-    [0b111, 0b001, 0b010, 0b010, 0b010],
-    [0b111, 0b101, 0b111, 0b101, 0b111],
-    [0b111, 0b101, 0b111, 0b001, 0b111],
-];
-const COLON_GLYPH: [u8; 5] = [0b0, 0b1, 0b0, 0b1, 0b0];
-
-const ICON_SIZE: usize = 32;
-const GLYPH_SCALE: usize = 2;
-const GLYPH_GAP: usize = 1;
-
-fn glyph(ch: char) -> (&'static [u8; 5], usize) {
-    match ch.to_digit(10) {
-        Some(d) => (&DIGIT_GLYPHS[d as usize], 3),
-        None => (&COLON_GLYPH, 1),
+// windows logo reflects timer state: live variant while running.
+// no-op elsewhere (macos keeps the template icon set at build).
+fn set_logo(icon: &TrayIcon, running: bool) -> Result<(), String> {
+    if !cfg!(windows) {
+        return Ok(());
     }
+    let bytes: &[u8] = if running {
+        include_bytes!("../icons/tray_colored_live.png")
+    } else {
+        include_bytes!("../icons/tray_colored.png")
+    };
+    let logo = tauri::image::Image::from_bytes(bytes).map_err(|e| e.to_string())?;
+    icon.set_icon(Some(logo)).map_err(|e| e.to_string())
 }
 
-fn fill_rect(rgba: &mut [u8], x: i32, y: i32, w: i32, h: i32, color: [u8; 4]) {
-    let size = ICON_SIZE as i32;
-    for py in y.max(0)..(y + h).min(size) {
-        for px in x.max(0)..(x + w).min(size) {
-            let i = ((py * size + px) * 4) as usize;
-            rgba[i..i + 4].copy_from_slice(&color);
-        }
-    }
-}
-
-fn draw_line(rgba: &mut [u8], text: &str, top: usize) {
-    const OUTLINE: [u8; 4] = [0, 0, 0, 200];
-    const FILL: [u8; 4] = [255, 255, 255, 255];
-
-    let width: usize = text.chars().map(|c| glyph(c).1 * GLYPH_SCALE).sum::<usize>()
-        + (text.chars().count().saturating_sub(1)) * GLYPH_GAP;
-    let left = ICON_SIZE.saturating_sub(width) / 2;
-
-    // outline pass first so glyph fill overwrites it
-    for pass in 0..2 {
-        let mut x = left;
-        for ch in text.chars() {
-            let (rows, w) = glyph(ch);
-            for (ry, row) in rows.iter().enumerate() {
-                for rx in 0..w {
-                    if row >> (w - 1 - rx) & 1 == 1 {
-                        let px = (x + rx * GLYPH_SCALE) as i32;
-                        let py = (top + ry * GLYPH_SCALE) as i32;
-                        let s = GLYPH_SCALE as i32;
-                        if pass == 0 {
-                            fill_rect(rgba, px - 1, py - 1, s + 2, s + 2, OUTLINE);
-                        } else {
-                            fill_rect(rgba, px, py, s, s, FILL);
-                        }
-                    }
-                }
-            }
-            x += w * GLYPH_SCALE + GLYPH_GAP;
-        }
-    }
-}
-
-// h:mm on the top line, ticking seconds below; hours clamp to keep the line square
-fn render_time_icon(total: u64) -> tauri::image::Image<'static> {
-    let hours = (total / 3600).min(99);
-    let minutes = (total % 3600) / 60;
-    let seconds = total % 60;
-
-    let mut rgba = vec![0u8; ICON_SIZE * ICON_SIZE * 4];
-    draw_line(&mut rgba, &format!("{}:{:02}", hours, minutes), 4);
-    draw_line(&mut rgba, &format!("{:02}", seconds), 18);
-    tauri::image::Image::new_owned(rgba, ICON_SIZE as u32, ICON_SIZE as u32)
-}
-
-// platform time display: menu-bar title on macos/linux, digits rendered into
-// the tray icon plus a tooltip on windows (set_title is a no-op there).
-// cfg! keeps both branches typechecked on every platform.
+// platform time display: menu-bar title on macos/linux, hover tooltip on
+// windows (set_title is a no-op there). cfg! keeps both branches
+// typechecked on every platform.
 fn show_time(icon: &TrayIcon, total: u64) -> Result<(), String> {
     if cfg!(windows) {
-        icon.set_icon(Some(render_time_icon(total))).map_err(|e| e.to_string())?;
         icon.set_tooltip(Some(&format!("Tallier {}", format_elapsed(total))))
             .map_err(|e| e.to_string())
     } else {
@@ -133,9 +67,6 @@ fn show_time(icon: &TrayIcon, total: u64) -> Result<(), String> {
 
 fn clear_time(icon: &TrayIcon) -> Result<(), String> {
     if cfg!(windows) {
-        let logo = tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
-            .map_err(|e| e.to_string())?;
-        icon.set_icon(Some(logo)).map_err(|e| e.to_string())?;
         icon.set_tooltip(Some("Tallier")).map_err(|e| e.to_string())
     } else {
         icon.set_title(Some("")).map_err(|e| e.to_string())
@@ -391,6 +322,7 @@ pub fn set_tray_timer(
         inner.show_title.store(show_title, Ordering::Relaxed);
         inner.auto_pause_on_sleep.store(auto_pause_on_sleep, Ordering::Relaxed);
         inner.icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+        set_logo(&inner.icon, running)?;
 
         if show_title {
             show_time(&inner.icon, initial_total)?;
@@ -422,8 +354,12 @@ pub fn set_tray_timer(
     let is_running_clone = is_running.clone();
     let auto_pause_flag = Arc::new(AtomicBool::new(auto_pause_on_sleep));
 
-    let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
-        .map_err(|e| e.to_string())?;
+    let tray_icon = if cfg!(windows) {
+        tauri::image::Image::from_bytes(include_bytes!("../icons/tray_colored.png"))
+    } else {
+        tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
+    }
+    .map_err(|e| e.to_string())?;
 
     let icon = TrayIconBuilder::new()
         .icon(tray_icon)
@@ -471,6 +407,7 @@ pub fn set_tray_timer(
         .build(&app)
         .map_err(|e| e.to_string())?;
 
+    set_logo(&icon, running)?;
     if show_title {
         show_time(&icon, initial_total)?;
     }
@@ -536,14 +473,15 @@ pub fn set_tray_auto_pause(app: AppHandle, enabled: bool) -> Result<(), String> 
 
 #[cfg(test)]
 mod tests {
-    use super::render_time_icon;
-
     #[test]
-    fn time_icon_renders_glyphs() {
-        let img = render_time_icon(3723);
-        assert_eq!((img.width(), img.height()), (32, 32));
-        assert!(img.rgba().chunks(4).any(|p| p == [255, 255, 255, 255]));
-        assert!(img.rgba().chunks(4).any(|p| p == [0, 0, 0, 200]));
+    fn tray_logos_decode() {
+        for bytes in [
+            &include_bytes!("../icons/tray_colored.png")[..],
+            &include_bytes!("../icons/tray_colored_live.png")[..],
+            &include_bytes!("../icons/tray_128x128.png")[..],
+        ] {
+            assert!(tauri::image::Image::from_bytes(bytes).is_ok());
+        }
     }
 }
 
