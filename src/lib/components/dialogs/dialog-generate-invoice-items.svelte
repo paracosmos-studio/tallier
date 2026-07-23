@@ -185,7 +185,6 @@
         color-scheme: dark;
         font-size: 0.8rem;
         padding: 6px 8px;
-        font-family: inherit;
         box-sizing: border-box;
     }
 

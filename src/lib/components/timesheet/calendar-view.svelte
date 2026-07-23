@@ -504,7 +504,6 @@
         border-radius: 0;
         padding: 5px 5px 2px;
         text-align: left;
-        font-family: inherit;
         color: var(--gray-10);
         cursor: pointer;
         overflow: hidden;

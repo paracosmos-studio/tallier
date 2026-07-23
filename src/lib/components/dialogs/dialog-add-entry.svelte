@@ -209,7 +209,6 @@
         color: var(--gray-10);
         font-size: 0.8rem;
         padding: 6px 8px;
-        font-family: inherit;
         resize: none;
         box-sizing: border-box;
     }

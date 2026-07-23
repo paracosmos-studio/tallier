@@ -57,7 +57,6 @@
         padding: 0.6rem 1rem;
         border: none;
         border-radius: 4px;
-        font-family: 'Instrument Sans', sans-serif;
         font-size: 1rem;
         font-weight: 500;
         cursor: pointer;

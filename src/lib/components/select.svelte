@@ -325,7 +325,6 @@
         border: none;
         outline: none;
         color: var(--color-text);
-        font-family: inherit;
         padding: 0;
         pointer-events: auto;
     }
@@ -385,7 +384,6 @@
         border: none;
         border-radius: 0px;
         color: var(--gray-10);
-        font-family: inherit;
         text-align: left;
         cursor: pointer;
         transition: all 0.1s ease;

@@ -97,7 +97,6 @@
         padding: 8px 10px;
         background: none;
         border: none;
-        font-family: inherit;
         text-align: left;
         cursor: pointer;
         transition: all 0.12s ease;

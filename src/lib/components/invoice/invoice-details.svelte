@@ -188,7 +188,6 @@
         background-color: var(--gray-90);
         box-sizing: border-box;
         color: var(--gray-10);
-        font-family: inherit;
         font-size: 0.9rem;
         font-weight: 300;
         outline: none;

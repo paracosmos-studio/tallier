@@ -115,7 +115,6 @@
         background: transparent;
         border: none;
         color: var(--gray-30);
-        font-family: inherit;
         cursor: pointer;
         transition: color 0.2s ease;
         white-space: nowrap;

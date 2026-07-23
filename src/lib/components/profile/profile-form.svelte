@@ -265,7 +265,6 @@
         background-color: var(--field-bg);
         box-sizing: border-box;
         color: var(--gray-10);
-        font-family: inherit;
         font-size: 0.9rem;
         font-weight: 300;
         outline: none;
@@ -287,7 +286,6 @@
         background-color: var(--field-bg);
         box-sizing: border-box;
         color: var(--gray-10);
-        font-family: inherit;
         font-size: 0.9rem;
         font-weight: 300;
         outline: none;

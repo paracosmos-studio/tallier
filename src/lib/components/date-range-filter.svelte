@@ -92,7 +92,6 @@
         color-scheme: dark;
         font-size: 0.8rem;
         padding: 4px 6px;
-        font-family: inherit;
     }
 
     .custom-range input:focus {
