@@ -1,4 +1,8 @@
+# macos
 .DS_Store
+._*
+
+# app
 node_modules
 /build
 /.svelte-kit
@@ -9,3 +13,40 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vscode
+
+# ai
+.claude/
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.aider*
+.github/copilot-instructions.md
+.github/prompts/
+.github/instructions/
+.gemini/
+.codeium/
+.continue/
+.qodo/
+.roo/
+.roomodes
+.clinerules/
+.trae/
+.opencode/
+.codex/
+.mcp.json
+.vscode/mcp.json
+CLAUDE.md
+CLAUDE.local.md
+GEMINI.md
+AGENTS.md
+AGENT.md
+llms.txt
+opencode.json
+opencode.jsonc
+skills*.json
+
+# dev
+docs/
+tests/

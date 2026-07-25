@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Copyright (C) 2026 Paracosmos Studio Inc.
+// SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 // studio: editorial off-white, oversized display heading, burnt-orange accent
 #let inv = json(bytes(sys.inputs.invoice))
