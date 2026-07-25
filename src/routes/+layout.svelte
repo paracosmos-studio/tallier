@@ -129,7 +129,7 @@
         if (running?.id != null) await stopTimer(running.id);
         showCloseConfirm = false;
         unlisten?.();
-        appWindow.close();
+        await appWindow.destroy();
     }
 </script>
 
