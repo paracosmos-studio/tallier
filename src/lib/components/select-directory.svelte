@@ -8,43 +8,32 @@
     import { HardDrive, FolderOpen } from "$lib/icons";
 
     type Props = {
-        defaultDirectory?: string;
-        onselect: (path: string) => void;
+        value?: string;
         id?: string;
     };
 
-    let { defaultDirectory, onselect, id = "sel-dir" }: Props = $props();
+    let { value = $bindable(""), id = "sel-dir" }: Props = $props();
 
-    let selectedPath = $state("");
-
-    $effect(() => {
-        if (defaultDirectory && !selectedPath) {
-            selectedPath = defaultDirectory;
-        }
-    });
-
-    async function handleSelectDirectory() {
+    async function handleSelectDirectory(): Promise<void> {
         const result = await open({
             directory: true,
             multiple: false,
-            defaultPath: selectedPath || undefined
+            defaultPath: value || undefined
         });
 
         if (result) {
-            selectedPath = result;
-            onselect(result);
+            value = result;
         }
     }
 
-    let displayPath = $derived(selectedPath || "select directory");
+    let displayPath: string = $derived(value || "select directory");
 </script>
 
 <!--
     @component
     A directory selection component that allows users to choose a directory from their file system.
 
-    @param {string} [defaultDirectory] - The default directory path to display when the component is initialized.
-    @param {(path: string) => void} onselect - Callback function that is called when a directory is selected. Receives the selected directory path as an argument.
+    @param {string} [value=""] - Bindable selected directory path; also seeds the native dialog's starting location.
 -->
 <div class="sel-dir" id={id}>
     <div class="sel-dir-path">

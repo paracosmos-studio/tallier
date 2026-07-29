@@ -92,11 +92,7 @@
 
         <div class="field">
             <span class="field-label">Save location</span>
-            <SelectDirectory
-                id="exp-location"
-                defaultDirectory={DEFAULT_LOCATION}
-                onselect={(path) => (location = path)}
-            />
+            <SelectDirectory id="exp-location" bind:value={location} />
         </div>
         {#if error}
             <p class="error">{error}</p>
