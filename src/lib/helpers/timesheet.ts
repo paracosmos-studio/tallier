@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Copyright (C) 2026 Paracosmos Studio Inc.
+// SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { computeDuration, formatDateISO, roundSeconds, roundTimeOfDay, timeToSeconds } from "./format";
 import { splitCrossMidnight } from "./cross-midnight";

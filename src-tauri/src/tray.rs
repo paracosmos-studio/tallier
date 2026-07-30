@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Copyright (C) 2026 Paracosmos Studio Inc.
+// SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -35,6 +35,41 @@ pub(crate) struct TrayState(Mutex<Option<TrayInner>>);
 impl TrayState {
     pub(crate) fn new() -> Self {
         Self(Mutex::new(None))
+    }
+}
+
+// windows logo reflects timer state: live variant while running.
+// no-op elsewhere (macos keeps the template icon set at build).
+fn set_logo(icon: &TrayIcon, running: bool) -> Result<(), String> {
+    if !cfg!(windows) {
+        return Ok(());
+    }
+    let bytes: &[u8] = if running {
+        include_bytes!("../icons/tray_colored_live.png")
+    } else {
+        include_bytes!("../icons/tray_colored.png")
+    };
+    let logo = tauri::image::Image::from_bytes(bytes).map_err(|e| e.to_string())?;
+    icon.set_icon(Some(logo)).map_err(|e| e.to_string())
+}
+
+// platform time display: menu-bar title on macos/linux, hover tooltip on
+// windows (set_title is a no-op there). cfg! keeps both branches
+// typechecked on every platform.
+fn show_time(icon: &TrayIcon, total: u64) -> Result<(), String> {
+    if cfg!(windows) {
+        icon.set_tooltip(Some(&format!("Tallier {}", format_elapsed(total))))
+            .map_err(|e| e.to_string())
+    } else {
+        icon.set_title(Some(&format_elapsed(total))).map_err(|e| e.to_string())
+    }
+}
+
+fn clear_time(icon: &TrayIcon) -> Result<(), String> {
+    if cfg!(windows) {
+        icon.set_tooltip(Some("Tallier")).map_err(|e| e.to_string())
+    } else {
+        icon.set_title(Some("")).map_err(|e| e.to_string())
     }
 }
 
@@ -74,13 +109,12 @@ fn spawn_ticker(
 
             let live = ((now_ms() - started_at_ms) / 1000).max(0) as u64;
             let total = base + live;
-            let title = format_elapsed(total);
             let state = app.state::<TrayState>();
 
             if let Ok(guard) = state.0.lock() {
                 if let Some(ref inner) = *guard {
                     if inner.show_title.load(Ordering::Relaxed) {
-                        let _ = inner.icon.set_title(Some(&title));
+                        let _ = show_time(&inner.icon, total);
                     }
                 }
             }
@@ -275,6 +309,10 @@ pub fn set_tray_timer(
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
     let running = started_at_ms.is_some();
     let needs_ticker = running && (show_title || auto_pause_on_sleep);
+    let initial_total = base_elapsed
+        + started_at_ms
+            .map(|ms| ((now_ms() - ms) / 1000).max(0) as u64)
+            .unwrap_or(0);
 
     let menu = build_menu(&app, running, &projects, selected_id, limit_reached)?;
 
@@ -284,16 +322,12 @@ pub fn set_tray_timer(
         inner.show_title.store(show_title, Ordering::Relaxed);
         inner.auto_pause_on_sleep.store(auto_pause_on_sleep, Ordering::Relaxed);
         inner.icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+        set_logo(&inner.icon, running)?;
 
         if show_title {
-            let title = if let Some(ms) = started_at_ms {
-                format_elapsed(base_elapsed + ((now_ms() - ms) / 1000).max(0) as u64)
-            } else {
-                format_elapsed(base_elapsed)
-            };
-            inner.icon.set_title(Some(&title)).map_err(|e| e.to_string())?;
+            show_time(&inner.icon, initial_total)?;
         } else {
-            inner.icon.set_title(Some("")).map_err(|e| e.to_string())?;
+            clear_time(&inner.icon)?;
         }
 
         if needs_ticker {
@@ -320,26 +354,19 @@ pub fn set_tray_timer(
     let is_running_clone = is_running.clone();
     let auto_pause_flag = Arc::new(AtomicBool::new(auto_pause_on_sleep));
 
-    let tray_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
-        .map_err(|e| e.to_string())?;
+    let tray_icon = if cfg!(windows) {
+        tauri::image::Image::from_bytes(include_bytes!("../icons/tray_colored.png"))
+    } else {
+        tauri::image::Image::from_bytes(include_bytes!("../icons/tray_128x128.png"))
+    }
+    .map_err(|e| e.to_string())?;
 
-    let mut builder = TrayIconBuilder::new()
+    let icon = TrayIconBuilder::new()
         .icon(tray_icon)
         .icon_as_template(true)
         .tooltip("Tallier")
         .menu(&menu)
-        .show_menu_on_left_click(true);
-
-    if show_title {
-        let title = if let Some(ms) = started_at_ms {
-            format_elapsed(base_elapsed + ((now_ms() - ms) / 1000).max(0) as u64)
-        } else {
-            format_elapsed(base_elapsed)
-        };
-        builder = builder.title(&title);
-    }
-
-    let icon = builder
+        .show_menu_on_left_click(true)
         .on_menu_event(move |app, event| {
             let id = event.id().as_ref();
             match id {
@@ -380,6 +407,11 @@ pub fn set_tray_timer(
         .build(&app)
         .map_err(|e| e.to_string())?;
 
+    set_logo(&icon, running)?;
+    if show_title {
+        show_time(&icon, initial_total)?;
+    }
+
     let stop_signal = if needs_ticker {
         let ms = started_at_ms.unwrap();
         let stop = Arc::new(AtomicBool::new(false));
@@ -415,14 +447,14 @@ pub fn set_tray_show_title(app: AppHandle, show: bool) -> Result<(), String> {
     if let Some(ref mut inner) = *guard {
         inner.show_title.store(show, Ordering::Relaxed);
         if show {
-            inner.icon.set_title(Some(&format_elapsed(0))).map_err(|e| e.to_string())?;
+            show_time(&inner.icon, 0)?;
         } else {
             // keep ticker alive when auto-pause still needs sleep detection
             if !inner.auto_pause_on_sleep.load(Ordering::Relaxed) {
                 inner.stop_signal.store(true, Ordering::Relaxed);
                 inner.stop_signal = Arc::new(AtomicBool::new(true));
             }
-            inner.icon.set_title(Some("")).map_err(|e| e.to_string())?;
+            clear_time(&inner.icon)?;
         }
     }
 
@@ -438,3 +470,18 @@ pub fn set_tray_auto_pause(app: AppHandle, enabled: bool) -> Result<(), String> 
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn tray_logos_decode() {
+        for bytes in [
+            &include_bytes!("../icons/tray_colored.png")[..],
+            &include_bytes!("../icons/tray_colored_live.png")[..],
+            &include_bytes!("../icons/tray_128x128.png")[..],
+        ] {
+            assert!(tauri::image::Image::from_bytes(bytes).is_ok());
+        }
+    }
+}
+

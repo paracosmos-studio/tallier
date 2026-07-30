@@ -1,6 +1,6 @@
 <!--
     SPDX-License-Identifier: GPL-3.0-only
-    Copyright (C) 2026 Paracosmos Studio Inc.
+    SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <!--
     @component
@@ -39,6 +39,10 @@
     const FULL_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const weekStartOptions = FULL_DAYS.map((name, i) => ({ value: String(i), label: name }));
 
+    const trayTimeLabel: string = navigator.userAgent.includes("Windows")
+        ? "Display time in system tray"
+        : "Display time on menu bar";
+
     onMount(async () => {
         const taskbar = await getSetting("taskbarDisplay");
         if (taskbar !== null) settings.taskbarDisplay = taskbar === "true";
@@ -76,7 +80,7 @@
 <section>
     <div id="preferences">
         <div class="preference-item">
-            <span>Display time on menu bar</span>
+            <span>{trayTimeLabel}</span>
             <Toggle checked={settings.taskbarDisplay} onchange={handleTaskbarToggle} />
         </div>
 

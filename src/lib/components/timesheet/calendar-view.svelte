@@ -1,6 +1,6 @@
 <!--
     SPDX-License-Identifier: GPL-3.0-only
-    Copyright (C) 2026 Paracosmos Studio Inc.
+    SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <!--
     @component
@@ -504,7 +504,6 @@
         border-radius: 0;
         padding: 5px 5px 2px;
         text-align: left;
-        font-family: inherit;
         color: var(--gray-10);
         cursor: pointer;
         overflow: hidden;

@@ -1,18 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Copyright (C) 2026 Paracosmos Studio Inc.
+// SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 use std::fs;
 use std::path::PathBuf;
 use tauri::Manager;
 
-// expand leading "~/" or bare "~" using the HOME env var
+// platform home directory: HOME on unix, USERPROFILE on windows
+fn home_dir() -> Result<PathBuf, String> {
+    std::env::var("HOME")
+        .or_else(|_| std::env::var("USERPROFILE"))
+        .map(PathBuf::from)
+        .map_err(|_| "could not resolve the home directory".to_string())
+}
+
+// expand leading "~/" or bare "~" to the home directory
 fn expand_tilde(path: &str) -> Result<PathBuf, String> {
     if let Some(rest) = path.strip_prefix("~/") {
-        let home = std::env::var("HOME").map_err(|e| e.to_string())?;
-        Ok(PathBuf::from(home).join(rest))
+        Ok(home_dir()?.join(rest))
     } else if path == "~" {
-        let home = std::env::var("HOME").map_err(|e| e.to_string())?;
-        Ok(PathBuf::from(home))
+        home_dir()
     } else {
         Ok(PathBuf::from(path))
     }

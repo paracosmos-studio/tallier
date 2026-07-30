@@ -1,6 +1,6 @@
 <!--
     SPDX-License-Identifier: GPL-3.0-only
-    Copyright (C) 2026 Paracosmos Studio Inc.
+    SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
     import type { HTMLButtonAttributes } from 'svelte/elements';
@@ -57,7 +57,6 @@
         padding: 0.6rem 1rem;
         border: none;
         border-radius: 4px;
-        font-family: 'Instrument Sans', sans-serif;
         font-size: 1rem;
         font-weight: 500;
         cursor: pointer;

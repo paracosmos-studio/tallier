@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-// Copyright (C) 2026 Paracosmos Studio Inc.
+// SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 // terminal: monospace receipt, dashed rules, dot leaders, uppercase labels
 #let inv = json(bytes(sys.inputs.invoice))

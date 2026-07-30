@@ -1,6 +1,6 @@
 <!--
     SPDX-License-Identifier: GPL-3.0-only
-    Copyright (C) 2026 Paracosmos Studio Inc.
+    SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
     import { onMount, untrack } from 'svelte';
@@ -129,7 +129,7 @@
         if (running?.id != null) await stopTimer(running.id);
         showCloseConfirm = false;
         unlisten?.();
-        appWindow.close();
+        await appWindow.destroy();
     }
 </script>
 

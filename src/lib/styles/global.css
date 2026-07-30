@@ -61,6 +61,10 @@ body.is-fullscreen {
     border: none;
 }
 
+button, input, select, textarea {
+    font-family: inherit;
+}
+
 a {
     color: var(--color-text);
     text-decoration: none;

@@ -36,6 +36,7 @@
     "withGlobalTauri": true
   },
   "bundle": {
+    "publisher": "Paracosmos Studio",
     "category": "Utilities",
     "license": "GPL-3.0-only",
     "licenseFile": "../LICENSE",

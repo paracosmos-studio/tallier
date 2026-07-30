@@ -1,6 +1,6 @@
 <!--
     SPDX-License-Identifier: GPL-3.0-only
-    Copyright (C) 2026 Paracosmos Studio Inc.
+    SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <!--
     @component
@@ -92,11 +92,7 @@
 
         <div class="field">
             <span class="field-label">Save location</span>
-            <SelectDirectory
-                id="exp-location"
-                defaultDirectory={DEFAULT_LOCATION}
-                onselect={(path) => (location = path)}
-            />
+            <SelectDirectory id="exp-location" bind:value={location} />
         </div>
         {#if error}
             <p class="error">{error}</p>
