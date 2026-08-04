@@ -101,9 +101,9 @@
                 <Icon path={ChatBubble} size="14" fill="currentColor" />
                 <span>Feedback</span>
             </a>
-            <a href={settings.urls.support} target="_blank" rel="noopener noreferrer">
+            <a href={settings.urls.contribute} target="_blank" rel="noopener noreferrer">
                 <Icon path={Donate} size="14" fill="currentColor" />
-                <span>Support</span>
+                <span>Contribute</span>
             </a>
         </nav>
         <nav>

@@ -10,9 +10,9 @@ export const settings = {
         paracosmos: "https://paracosmos.studio" + utmString,
         privacy: "https://tallier.app/privacy" + utmString,
         terms: "https://tallier.app/terms" + utmString,
-        feedback: "mailto:hello@paracosmos.studio",
-        support: "https://tallier.app/support" + utmString,
-        license: "https://tallier.app/license" + utmString,
+        feedback: "https://github.com/paracosmos-studio/tallier/issues/new/choose",
+        contribute: "https://tallier.app/contribute" + utmString,
+        license: "https://github.com/paracosmos-studio/tallier/blob/main/LICENSE" + utmString,
         github: "https://github.com/paracosmos-studio/tallier" + utmString,
     }
 }
