@@ -55,4 +55,4 @@ Built with Tauri v2, SvelteKit, TypeScript, and Rust.
 
 Copyright (C) 2026 [Paracosmos Studio Inc.](https://paracosmos.studio)
 
-Tallier is free software, licensed under the [GNU AGPL v3](LICENSE). It is distributed WITHOUT ANY WARRANTY; see the license for details.
+Tallier is free software, licensed under the [GNU AGPL v3](LICENSE). It is distributed WITHOUT ANY WARRANTY; see the license and [NOTICE](NOTICE) for details.
