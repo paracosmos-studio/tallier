@@ -33,7 +33,7 @@ Turn tracked entries into invoice line items automatically, pick one of nine des
 Store recipients and sender profiles once, with logos and contacts, and reuse them on every invoice.
 
 - **Yours, locally.**  
-Everything is stored in a local SQLite database on your machine. No account, no sync, no telemetry.
+Everything is stored in a local SQLite database on your machine. No account, no sync, no telemetry by default. An optional anonymous daily ping (random ID, app version, OS) stays off unless you enable it in Settings.
 
 - **Small and native.**  
 Built with Tauri and Rust, so it starts instantly and stays light on memory.

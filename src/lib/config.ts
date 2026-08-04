@@ -5,6 +5,7 @@ const utmString = "?utm_source=application&utm_medium=settings";
 
 export const settings = {
     releaseYear: 2026,
+    api: import.meta.env.DEV ? "http://localhost:9999" : "https://api.tallier.app",
     urls: {
         homepage: "https://tallier.app" + utmString,
         paracosmos: "https://paracosmos.studio" + utmString,

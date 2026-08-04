@@ -23,3 +23,13 @@ export async function setSetting(key: string, value: string): Promise<void> {
         "INSERT OR REPLACE INTO settings (key, value) VALUES ($1, $2)", [key, value]
     );
 }
+
+
+/**
+ * Removes a setting row entirely. No-op if the key does not exist.
+ */
+export async function deleteSetting(key: string): Promise<void> {
+    await getDB().execute(
+        "DELETE FROM settings WHERE key = $1", [key]
+    );
+}
