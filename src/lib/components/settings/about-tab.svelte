@@ -128,7 +128,11 @@
                 </a>
             </span>
         </p>
-        <p class="line">Free software under the GNU GPL v3, with no warranty.</p>
+        <p class="line">
+            Free software under the
+            <a href={settings.urls.license} target="_blank" rel="noopener noreferrer">GNU AGPL v3</a>
+            with no warranty.
+        </p>
     </div>
 </section>
 
