@@ -17,7 +17,7 @@
     "tauri:build:release": "tauri build --config src-tauri/tauri.release.conf.json",
     "tauri:build:appstore": "tauri build --config src-tauri/tauri.appstore.conf.json -- --no-default-features"
   },
-  "license": "GPL-3.0-only",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-dialog": "^2.7.1",

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 export const Add = 'M445-445.5H245q-14.87 0-24.94-10.09-10.06-10.09-10.06-25t10.06-24.91q10.07-10 24.94-10h200v-200q0-14.88 10.09-24.94t25-10.06q14.91 0 24.91 10.06t10 24.94v200h200q14.88 0 24.94 10.09t10.06 25q0 14.91-10.06 24.91t-24.94 10H515v200q0 14.87-10.09 24.94-10.09 10.06-25 10.06T455-220.56q-10-10.07-10-24.94v-200Z';

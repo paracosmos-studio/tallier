@@ -1,5 +1,5 @@
 <!--
-    SPDX-License-Identifier: GPL-3.0-only
+    SPDX-License-Identifier: AGPL-3.0-only
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <!--
@@ -15,6 +15,7 @@
     import { getSetting, setSetting } from "$lib/db";
     import { setTrayShowTitle, setTrayAutoPause } from "$lib/tray";
     import { updaterAvailable, AUTO_UPDATE_SETTING_KEY } from "$lib/updater.svelte";
+    import { parseUsagePing, setUsagePingEnabled, runStartupUsagePing, USAGE_PING_SETTING_KEY } from "$lib/ping";
     import { WEEK_START_SETTING_KEY, DEFAULT_WEEK_START, parseWeekStartsOn } from "$lib/helpers/date-utils";
 
     type Settings = {
@@ -50,6 +51,7 @@
         if (autoPause !== null) settings.autoPauseOnSleep = autoPause === "true";
         const autoUpdate = await getSetting(AUTO_UPDATE_SETTING_KEY);
         if (autoUpdate !== null) settings.autoUpdate = autoUpdate === "true";
+        settings.sendAnonymousUsagePing = parseUsagePing(await getSetting(USAGE_PING_SETTING_KEY));
         settings.weekStartsOn = String(parseWeekStartsOn(await getSetting(WEEK_START_SETTING_KEY)));
         updaterSupported = await updaterAvailable();
     });
@@ -71,6 +73,12 @@
         await setSetting(AUTO_UPDATE_SETTING_KEY, String(checked));
     }
 
+    async function handleUsagePingToggle(checked: boolean) {
+        settings.sendAnonymousUsagePing = checked;
+        await setUsagePingEnabled(checked);
+        if (checked) runStartupUsagePing().catch(() => {});
+    }
+
     async function handleWeekStartChange(value: string) {
         settings.weekStartsOn = value;
         await setSetting(WEEK_START_SETTING_KEY, value);
@@ -85,8 +93,8 @@
         </div>
 
         <div class="preference-item">
-            <span>Send anonymous usage ping</span>
-            <Toggle bind:checked={settings.sendAnonymousUsagePing} />
+            <span>Send anonymous usage ping</span>    
+            <Toggle checked={settings.sendAnonymousUsagePing} onchange={handleUsagePingToggle} />
         </div>
 
         {#if updaterSupported}

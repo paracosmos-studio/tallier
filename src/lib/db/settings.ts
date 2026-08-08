@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-only
+// SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
@@ -21,5 +21,15 @@ export async function getSetting(key: string): Promise<string | null> {
 export async function setSetting(key: string, value: string): Promise<void> {
     await getDB().execute(
         "INSERT OR REPLACE INTO settings (key, value) VALUES ($1, $2)", [key, value]
+    );
+}
+
+
+/**
+ * Removes a setting row entirely. No-op if the key does not exist.
+ */
+export async function deleteSetting(key: string): Promise<void> {
+    await getDB().execute(
+        "DELETE FROM settings WHERE key = $1", [key]
     );
 }

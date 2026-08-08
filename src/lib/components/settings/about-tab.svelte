@@ -1,5 +1,5 @@
 <!--
-    SPDX-License-Identifier: GPL-3.0-only
+    SPDX-License-Identifier: AGPL-3.0-only
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <!--
@@ -101,9 +101,9 @@
                 <Icon path={ChatBubble} size="14" fill="currentColor" />
                 <span>Feedback</span>
             </a>
-            <a href={settings.urls.support} target="_blank" rel="noopener noreferrer">
+            <a href={settings.urls.contribute} target="_blank" rel="noopener noreferrer">
                 <Icon path={Donate} size="14" fill="currentColor" />
-                <span>Support</span>
+                <span>Contribute</span>
             </a>
         </nav>
         <nav>
@@ -128,7 +128,11 @@
                 </a>
             </span>
         </p>
-        <p class="line">Free software under the GNU GPL v3, with no warranty.</p>
+        <p class="line">
+            Free software under the
+            <a href={settings.urls.license} target="_blank" rel="noopener noreferrer">GNU AGPL v3</a>
+            with no warranty.
+        </p>
     </div>
 </section>
 

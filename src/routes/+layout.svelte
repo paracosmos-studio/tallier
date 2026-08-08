@@ -1,5 +1,5 @@
 <!--
-    SPDX-License-Identifier: GPL-3.0-only
+    SPDX-License-Identifier: AGPL-3.0-only
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
@@ -11,6 +11,7 @@
     import DialogConfirm from '$lib/components/dialogs/dialog-confirm.svelte';
     import DialogUpdate from '$lib/components/dialogs/dialog-update.svelte';
     import { runStartupUpdateCheck } from '$lib/updater.svelte';
+    import { runStartupUsagePing } from '$lib/ping';
     import { beforeNavigate, goto } from '$app/navigation';
     import { initDB, getRunningTimer, stopTimer } from '$lib/db';
     import { page } from '$app/state';
@@ -73,8 +74,9 @@
 
         initDB().then(() => {
             dbReady = true;
-            // needs the DB for the autoUpdate setting; fire-and-forget
+            // both need the DB for their settings; fire-and-forget
             runStartupUpdateCheck().catch(() => {});
+            runStartupUsagePing().catch(() => {});
         });
 
         appWindow.onCloseRequested(async (e) => {
