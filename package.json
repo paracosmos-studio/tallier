@@ -15,7 +15,8 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
     "tauri:build:release": "tauri build --config src-tauri/tauri.release.conf.json",
-    "tauri:build:appstore": "tauri build --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json -- --no-default-features"
+    "tauri:build:appstore": "tauri build --target universal-apple-darwin --config src-tauri/tauri.appstore.conf.json -- --no-default-features",
+    "tauri:pkg:appstore": "xcrun productbuild --sign '3rd Party Mac Developer Installer: Paracosmos Studio Inc. (DH55V4KQGD)' --component src-tauri/target/universal-apple-darwin/release/bundle/macos/Tallier.app /Applications src-tauri/target/Tallier.pkg"
   },
   "license": "AGPL-3.0-only",
   "dependencies": {
