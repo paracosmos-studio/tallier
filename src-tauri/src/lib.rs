@@ -9,6 +9,7 @@ mod util;
 mod window;
 
 use migrations::load_migrations;
+use tauri::Manager;
 use tray::TrayState;
 use window::{WindowProfile, WindowProfileState, apply_window_profile};
 
@@ -42,6 +43,12 @@ pub fn run() {
             // re-apply at boot so tauri.conf.json drift cannot desync.
             let _ = apply_window_profile(&app.handle(), WindowProfile::Compact);
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // tray menu glyphs are tinted per os appearance; re-tint on flips
+            if let tauri::WindowEvent::ThemeChanged(theme) = event {
+                let _ = tray::refresh_menu(window.app_handle(), *theme);
+            }
         })
         .invoke_handler(tauri::generate_handler![
             tray::set_tray_timer,

@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{
-    AppHandle, Emitter, Manager, Wry,
+    AppHandle, Emitter, Manager, Theme, Wry,
     menu::{CheckMenuItem, IconMenuItem, Menu, PredefinedMenuItem, Submenu},
     tray::{TrayIcon, TrayIconBuilder},
 };
@@ -22,8 +22,16 @@ pub struct TrayProject {
     name: String,
 }
 
+struct MenuSpec {
+    running: bool,
+    projects: Vec<TrayProject>,
+    selected_id: Option<i64>,
+    limit_reached: bool,
+}
+
 struct TrayInner {
     icon: TrayIcon,
+    menu_spec: MenuSpec,
     is_running: Arc<AtomicBool>,
     stop_signal: Arc<AtomicBool>,
     show_title: Arc<AtomicBool>,
@@ -36,6 +44,26 @@ impl TrayState {
     pub(crate) fn new() -> Self {
         Self(Mutex::new(None))
     }
+}
+
+fn current_theme(app: &AppHandle) -> Theme {
+    app.get_webview_window("main")
+        .and_then(|w| w.theme().ok())
+        .unwrap_or(Theme::Dark)
+}
+
+fn glyph_icon(bytes: &[u8], theme: Theme) -> Result<tauri::image::Image<'static>, String> {
+    let src = tauri::image::Image::from_bytes(bytes).map_err(|e| e.to_string())?;
+    if matches!(theme, Theme::Dark) {
+        return Ok(src);
+    }
+    let mut rgba = src.rgba().to_vec();
+    for px in rgba.chunks_exact_mut(4) {
+        px[0] = 255 - px[0];
+        px[1] = 255 - px[1];
+        px[2] = 255 - px[2];
+    }
+    Ok(tauri::image::Image::new_owned(rgba, src.width(), src.height()))
 }
 
 // windows logo reflects timer state: live variant while running.
@@ -131,20 +159,17 @@ fn spawn_ticker(
     });
 }
 
-fn build_menu(
-    app: &AppHandle,
-    running: bool,
-    projects: &[TrayProject],
-    selected_id: Option<i64>,
-    limit_reached: bool,
-) -> Result<Menu<Wry>, String> {
+fn build_menu(app: &AppHandle, spec: &MenuSpec, theme: Theme) -> Result<Menu<Wry>, String> {
+    let running = spec.running;
+    let projects: &[TrayProject] = &spec.projects;
+    let selected_id = spec.selected_id;
+    let limit_reached = spec.limit_reached;
 
-    // tray menu icons
     let stop_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray/pause.png")).map_err(|e| e.to_string())?;
     let start_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray/play.png")).map_err(|e| e.to_string())?;
-    let quit_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray/quit.png")).map_err(|e| e.to_string())?;
-    let open_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray/open.png")).map_err(|e| e.to_string())?;
-    let settings_icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray/settings.png")).map_err(|e| e.to_string())?;
+    let quit_icon = glyph_icon(include_bytes!("../icons/tray/quit.png"), theme)?;
+    let open_icon = glyph_icon(include_bytes!("../icons/tray/open.png"), theme)?;
+    let settings_icon = glyph_icon(include_bytes!("../icons/tray/settings.png"), theme)?;
 
     // stop / start toggle
     let toggle_label = if running { "Stop Timer" } else { "Start Timer" };
@@ -314,9 +339,11 @@ pub fn set_tray_timer(
             .map(|ms| ((now_ms() - ms) / 1000).max(0) as u64)
             .unwrap_or(0);
 
-    let menu = build_menu(&app, running, &projects, selected_id, limit_reached)?;
+    let spec = MenuSpec { running, projects, selected_id, limit_reached };
+    let menu = build_menu(&app, &spec, current_theme(&app))?;
 
     if let Some(ref mut inner) = *guard {
+        inner.menu_spec = spec;
         inner.stop_signal.store(true, Ordering::Relaxed);
         inner.is_running.store(running, Ordering::Relaxed);
         inner.show_title.store(show_title, Ordering::Relaxed);
@@ -430,12 +457,23 @@ pub fn set_tray_timer(
 
     *guard = Some(TrayInner {
         icon,
+        menu_spec: spec,
         is_running,
         stop_signal,
         show_title: Arc::new(AtomicBool::new(show_title)),
         auto_pause_on_sleep: auto_pause_flag,
     });
 
+    Ok(())
+}
+
+pub(crate) fn refresh_menu(app: &AppHandle, theme: Theme) -> Result<(), String> {
+    let state = app.state::<TrayState>();
+    let guard = state.0.lock().map_err(|e| e.to_string())?;
+    if let Some(ref inner) = *guard {
+        let menu = build_menu(app, &inner.menu_spec, theme)?;
+        inner.icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+    }
     Ok(())
 }
 
@@ -473,14 +511,55 @@ pub fn set_tray_auto_pause(app: AppHandle, enabled: bool) -> Result<(), String> 
 
 #[cfg(test)]
 mod tests {
+    use super::glyph_icon;
+    use tauri::Theme;
+
+    const GLYPHS: [&[u8]; 3] = [
+        include_bytes!("../icons/tray/open.png"),
+        include_bytes!("../icons/tray/settings.png"),
+        include_bytes!("../icons/tray/quit.png"),
+    ];
+
     #[test]
     fn tray_logos_decode() {
         for bytes in [
             &include_bytes!("../icons/tray_colored.png")[..],
             &include_bytes!("../icons/tray_colored_live.png")[..],
             &include_bytes!("../icons/tray_128x128.png")[..],
+            &include_bytes!("../icons/tray/play.png")[..],
+            &include_bytes!("../icons/tray/pause.png")[..],
         ] {
             assert!(tauri::image::Image::from_bytes(bytes).is_ok());
+        }
+    }
+
+    // light menus get the colour channels inverted, alpha (the mask) intact
+    #[test]
+    fn menu_glyphs_invert_for_light_menus() {
+        for bytes in GLYPHS {
+            let dark = glyph_icon(bytes, Theme::Dark).unwrap();
+            let light = glyph_icon(bytes, Theme::Light).unwrap();
+            assert_eq!((dark.width(), dark.height()), (light.width(), light.height()));
+            assert_eq!(dark.rgba().len(), light.rgba().len());
+            for (d, l) in dark.rgba().chunks_exact(4).zip(light.rgba().chunks_exact(4)) {
+                assert_eq!(d[3], l[3], "alpha mask must survive tinting");
+                assert_eq!(l[..3], [255 - d[0], 255 - d[1], 255 - d[2]]);
+            }
+        }
+    }
+
+    // shipped masks are drawn near-white so the dark path can pass them through
+    #[test]
+    fn menu_glyph_masks_are_white() {
+        for bytes in GLYPHS {
+            let img = glyph_icon(bytes, Theme::Dark).unwrap();
+            let visible = img.rgba().chunks_exact(4).filter(|px| px[3] > 0);
+            let mut n = 0;
+            for px in visible {
+                assert!(px[..3].iter().all(|c| *c >= 200), "glyph pixel {:?} is not near-white", px);
+                n += 1;
+            }
+            assert!(n > 0, "glyph has no visible pixels");
         }
     }
 }
