@@ -24,7 +24,7 @@ body:
     attributes:
       label: App version
       description: Shown in Settings under About.
-      placeholder: "0.1.0"
+      placeholder: "0.1.1"
     validations:
       required: true
   - type: dropdown
