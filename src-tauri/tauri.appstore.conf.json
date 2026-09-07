@@ -1,6 +1,13 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "bundle": {
-    "targets": ["app"]
+    "targets": ["app"],
+    "macOS": {
+      "signingIdentity": "Apple Distribution: Paracosmos Studio Inc. (DH55V4KQGD)",
+      "entitlements": "./Entitlements.plist",
+      "files": {
+        "embedded.provisionprofile": "./Tallier_AppStore.provisionprofile"
+      }
+    }
   }
 }
