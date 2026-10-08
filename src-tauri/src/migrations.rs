@@ -11,5 +11,11 @@ pub(crate) fn load_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/202605281332_initial_schema.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 2,
+            description: "create app usage tables",
+            sql: include_str!("../migrations/202610071200_app_usage.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
