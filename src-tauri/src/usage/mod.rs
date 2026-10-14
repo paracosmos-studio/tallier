@@ -20,6 +20,7 @@ mod tracker;
 #[cfg(windows)]
 mod windows;
 
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
 use std::thread::{self, JoinHandle};
@@ -29,6 +30,7 @@ use sqlx::{Pool, Sqlite};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_sql::{DbInstances, DbPool};
 
+use crate::files::base64_encode;
 use crate::util::now_ms;
 use platform::{MainThread, Platform, PlatformEvent};
 use store::SqliteStore;
@@ -167,6 +169,18 @@ pub(crate) async fn stop_usage_tracking(app: AppHandle, end_at_ms: Option<i64>) 
     let Some(active) = guard.take() else { return Ok(()) };
     let pool = pool(&app).await;
     finish(active, pool, end_at_ms).await
+}
+
+/// icons for `app_ids` as png data uris, keyed by app id. ids without a
+/// stored icon are left out; the webview renders initials for those.
+#[tauri::command]
+pub(crate) async fn read_app_icons(app: AppHandle, app_ids: Vec<String>) -> Result<HashMap<String, String>, String> {
+    let pool = pool(&app).await?;
+    let icons = store::read_icons(&pool, &app_ids).await?;
+    Ok(icons
+        .into_iter()
+        .map(|(id, png)| (id, format!("data:image/png;base64,{}", base64_encode(&png))))
+        .collect())
 }
 
 /// false on targets without a backend; the webview hides the toggle

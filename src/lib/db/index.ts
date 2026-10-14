@@ -10,3 +10,4 @@ export { getSetting, setSetting, deleteSetting } from "./settings";
 export { getReportEntries, getDailyProjectTotals, getProjectTotals, updateEntry, updateEntryTimes, deleteEntry, createManualEntry } from "./reports";
 export { getClients, getClient, createClient, updateClient, reorderClients, deleteClient } from "./clients";
 export { getProfiles, getProfile, createProfile, updateProfile, reorderProfiles, deleteProfile } from "./profiles";
+export { getAppUsageRows } from "./app-usage";

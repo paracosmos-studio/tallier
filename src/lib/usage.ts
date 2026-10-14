@@ -22,3 +22,22 @@ export async function startUsageTracking(timerId: number): Promise<void> {
 export async function stopUsageTracking(endAtMs?: number): Promise<void> {
     await invoke("stop_usage_tracking", { endAtMs: endAtMs ?? null });
 }
+
+const iconCache = new Map<string, string | null>();
+
+// png data uris for the given app ids, fetched once per id and cached for
+// the session. ids without a stored icon are absent from the result.
+export async function getAppIcons(appIds: string[]): Promise<Map<string, string>> {
+    const missing: string[] = [...new Set(appIds)].filter(id => !iconCache.has(id));
+    if (missing.length > 0) {
+        const fetched = await invoke<Record<string, string>>("read_app_icons", { appIds: missing })
+            .catch(() => ({} as Record<string, string>));
+        for (const id of missing) iconCache.set(id, fetched[id] ?? null);
+    }
+    const out = new Map<string, string>();
+    for (const id of appIds) {
+        const uri = iconCache.get(id);
+        if (uri) out.set(id, uri);
+    }
+    return out;
+}

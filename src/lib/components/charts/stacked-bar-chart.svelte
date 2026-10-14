@@ -9,16 +9,20 @@
 
     @param {StackedBarColumn[]} columns - the data columns to render.
     @param {string} [title] - optional section heading rendered above the chart.
+    @param {Snippet} [controls] - optional controls rendered beside the title.
     @param {string} [rangeLabel] - optional right-aligned label rendered in the title row.
     @param {(value: number) => string} [formatValue] - tooltip value formatter.
     @param {number} [maxBarHeight=120] - maximum bar height in pixels.
 -->
 <script lang="ts">
-    import type { StackedBarColumn } from "$lib/types";
+    import type { Snippet } from "svelte";
+    import Tooltip from "$lib/components/tooltip.svelte";
+    import type { StackedBarColumn, TooltipAnchor } from "$lib/types";
 
     type Props = {
         columns: StackedBarColumn[];
         title?: string;
+        controls?: Snippet;
         rangeLabel?: string;
         formatValue?: (value: number) => string;
         maxBarHeight?: number;
@@ -27,6 +31,7 @@
     let {
         columns,
         title,
+        controls,
         rangeLabel,
         formatValue = (v: number) => String(v),
         maxBarHeight = 120,
@@ -91,30 +96,31 @@
     }
 
     let hovered: { col: StackedBarColumn; total: number } | null = $state(null);
-    let tooltipX: number = $state(0);
-    let tooltipY: number = $state(0);
+    let anchor: TooltipAnchor | null = $state(null);
+
+    function pointAnchor(e: MouseEvent): TooltipAnchor {
+        return { x: e.clientX, y: e.clientY, width: 0, height: 0 };
+    }
 
     function showTooltip(col: StackedBarColumn, total: number, e: MouseEvent): void {
         hovered = { col, total };
-        tooltipX = e.clientX;
-        tooltipY = e.clientY;
+        anchor = pointAnchor(e);
     }
 
     function moveTooltip(e: MouseEvent): void {
-        tooltipX = e.clientX;
-        tooltipY = e.clientY;
+        anchor = pointAnchor(e);
+    }
+
+    function focusTooltip(col: StackedBarColumn, total: number, e: FocusEvent): void {
+        hovered = { col, total };
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        anchor = { x: r.x, y: r.y, width: r.width, height: r.height };
     }
 
     function hideTooltip(): void {
         hovered = null;
+        anchor = null;
     }
-
-    let flipX: boolean = $derived(
-        typeof window !== "undefined" && tooltipX > window.innerWidth - 220
-    );
-    let flipY: boolean = $derived(
-        typeof window !== "undefined" && tooltipY > window.innerHeight - 180
-    );
 
     function ariaLabel(col: StackedBarColumn, total: number): string {
         const parts = col.segments.map(s => `${s.label} ${formatValue(s.value)}`).join(", ");
@@ -124,9 +130,12 @@
 
 {#if columns.length > 0}
     <section class="chart-section">
-        {#if title || rangeLabel}
+        {#if title || controls || rangeLabel}
             <header>
-                {#if title}<h3>{title}</h3>{/if}
+                <div class="heading">
+                    {#if title}<h3>{title}</h3>{/if}
+                    {#if controls}{@render controls()}{/if}
+                </div>
                 {#if rangeLabel}<span class="range">{rangeLabel}</span>{/if}
             </header>
         {/if}
@@ -156,7 +165,7 @@
                         onmouseenter={(e) => showTooltip(col, totals[i], e)}
                         onmousemove={moveTooltip}
                         onmouseleave={hideTooltip}
-                        onfocus={(e) => showTooltip(col, totals[i], e as unknown as MouseEvent)}
+                        onfocus={(e) => focusTooltip(col, totals[i], e)}
                         onblur={hideTooltip}
                     >
                         <div class="stack" style:height="{barHeight(totals[i])}px">
@@ -179,29 +188,26 @@
         </div>
     </section>
 
-    {#if hovered}
-        <div
-            class="tooltip"
-            style:left="{tooltipX + (flipX ? -12 : 12)}px"
-            style:top="{tooltipY + (flipY ? -12 : 12)}px"
-            style:transform="translate({flipX ? '-100%' : '0'}, {flipY ? '-100%' : '0'})"
-        >
-            <div class="tip-date">{hovered.col.tooltipLabel}</div>
-            <ul class="tip-list">
-                {#each hovered.col.segments as seg (seg.key)}
-                    <li>
-                        <span class="dot" style:background-color={seg.color}></span>
-                        <span class="name">{seg.label}</span>
-                        <span class="time">{formatValue(seg.value)}</span>
-                    </li>
-                {/each}
-            </ul>
-            <div class="tip-total">
-                <span>Total</span>
-                <span>{formatValue(hovered.total)}</span>
+    <Tooltip open={hovered !== null} {anchor} placement="bottom" align="start" gap={12}>
+        {#if hovered}
+            <div class="tip">
+                <div class="tip-date">{hovered.col.tooltipLabel}</div>
+                <ul class="tip-list">
+                    {#each hovered.col.segments as seg (seg.key)}
+                        <li>
+                            <span class="dot" style:background-color={seg.color}></span>
+                            <span class="name">{seg.label}</span>
+                            <span class="time">{formatValue(seg.value)}</span>
+                        </li>
+                    {/each}
+                </ul>
+                <div class="tip-total">
+                    <span>Total</span>
+                    <span>{formatValue(hovered.total)}</span>
+                </div>
             </div>
-        </div>
-    {/if}
+        {/if}
+    </Tooltip>
 {/if}
 
 <style>
@@ -216,11 +222,19 @@
 
     header {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        flex-wrap: wrap;
+        gap: 6px 12px;
         margin-bottom: 10px;
         flex-shrink: 0;
+    }
+
+    .heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
     }
 
     h3 {
@@ -230,6 +244,7 @@
         text-transform: uppercase;
         letter-spacing: 0.03em;
         margin: 0;
+        white-space: nowrap;
     }
 
     .range {
@@ -354,19 +369,8 @@
         filter: brightness(1.15);
     }
 
-    .tooltip {
-        position: fixed;
-        z-index: 1000;
-        min-width: 160px;
-        max-width: 220px;
-        padding: 8px 10px;
-        background: var(--gray-90, #1a1a1a);
-        border: 1px solid var(--gray-70, #333);
-        border-radius: 6px;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-        pointer-events: none;
-        font-size: 0.7rem;
-        color: var(--gray-10);
+    .tip {
+        min-width: 150px;
     }
 
     .tip-date {
@@ -413,7 +417,7 @@
         display: flex;
         justify-content: space-between;
         padding-top: 6px;
-        border-top: 1px solid var(--gray-70, #333);
+        border-top: 1px solid var(--gray-70);
         font-weight: 600;
     }
 </style>

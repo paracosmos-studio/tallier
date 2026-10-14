@@ -70,6 +70,7 @@ pub fn run() {
             usage::start_usage_tracking,
             usage::stop_usage_tracking,
             usage::usage_tracking_supported,
+            usage::read_app_icons,
             util::os_descriptor,
             util::updater_available,
         ])

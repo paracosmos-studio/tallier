@@ -148,6 +148,25 @@ pub(crate) async fn clamp_timer(pool: &Pool<Sqlite>, timer_id: i64, end: i64) ->
     Ok(())
 }
 
+/// stored icons for `app_ids`, skipping ids with no row or a failed capture
+/// so the webview can fall back to initials. the id list is small (the apps
+/// on screen), so a dynamic `IN` list is cheaper than a full table scan.
+pub(crate) async fn read_icons(pool: &Pool<Sqlite>, app_ids: &[String]) -> Result<Vec<(String, Vec<u8>)>, String> {
+    if app_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    let placeholders = (1..=app_ids.len()).map(|i| format!("${i}")).collect::<Vec<_>>().join(", ");
+    let sql = format!("SELECT app_id, icon_png FROM app_icons WHERE icon_png IS NOT NULL AND app_id IN ({placeholders})");
+    let mut query = sqlx::query(&sql);
+    for id in app_ids {
+        query = query.bind(id);
+    }
+    let rows = query.fetch_all(pool).await.map_err(db_err)?;
+    rows.iter()
+        .map(|r| Ok((r.try_get::<String, _>(0).map_err(db_err)?, r.try_get::<Vec<u8>, _>(1).map_err(db_err)?)))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -256,6 +275,17 @@ mod tests {
         // a failed capture is recorded too, so it is not retried every session
         f.store.upsert_icon("x", None, 128, 9_000).unwrap();
         assert_eq!(f.store.icon_captured_at("x").unwrap(), Some(9_000));
+    }
+
+    #[test]
+    fn read_icons_skips_missing_and_failed_captures() {
+        let mut f = fixture();
+        f.store.upsert_icon("a", Some(&[1, 2]), 128, 1_000).unwrap();
+        f.store.upsert_icon("b", None, 128, 1_000).unwrap();
+        let ids = ["a", "b", "c"].map(String::from);
+        let got = tauri::async_runtime::block_on(read_icons(&f.pool, &ids)).unwrap();
+        assert_eq!(got, vec![("a".to_string(), vec![1, 2])]);
+        assert!(tauri::async_runtime::block_on(read_icons(&f.pool, &[])).unwrap().is_empty());
     }
 
     #[test]
