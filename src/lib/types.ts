@@ -23,6 +23,7 @@ export interface Project {
   max_weekly_alert: number | null;
   max_daily_enabled: boolean;
   max_weekly_enabled: boolean;
+  track_app_usage: boolean;
 }
 
 export interface ProjectLimits {

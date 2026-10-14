@@ -17,5 +17,11 @@ pub(crate) fn load_migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/202610071200_app_usage.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "add per-project app usage tracking flag",
+            sql: include_str!("../migrations/202610141536_project_track_app_usage.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }

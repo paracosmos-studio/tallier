@@ -11,7 +11,7 @@
     import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
     import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
-    import { startUsageTracking, stopUsageTracking, TRACK_APP_USAGE_SETTING_KEY } from "$lib/usage";
+    import { startUsageTracking, stopUsageTracking } from "$lib/usage";
     import Select from "$lib/components/select.svelte";
     import Menu from "$lib/components/menu.svelte";
     import Timer from "$lib/components/timer.svelte";
@@ -57,7 +57,6 @@
     let stoppedTimerId: number | null = $state(null);
     let showTrayTitle: boolean = $state(false);
     let autoPauseOnSleep: boolean = $state(false);
-    let trackAppUsage: boolean = $state(false);
     let weekStartsOn: number = $state(DEFAULT_WEEK_START);
     let unlistenTray: (() => void) | undefined;
     let limitCheckId: ReturnType<typeof setInterval> | null = null;
@@ -196,7 +195,6 @@
         trayOrder = projects.map(p => p.id!);
         showTrayTitle = (await getSetting("taskbarDisplay")) === "true";
         autoPauseOnSleep = (await getSetting("autoPauseOnSleep")) === "true";
-        trackAppUsage = (await getSetting(TRACK_APP_USAGE_SETTING_KEY)) === "true";
         weekStartsOn = parseWeekStartsOn(await getSetting(WEEK_START_SETTING_KEY));
 
         const existing = await getRunningTimer();
@@ -205,14 +203,14 @@
             const startedAt = new Date(`${existing.date}T${existing.start}`);
             running = { timerId: existing.id, startedAt };
 
-            // rust keeps tracking across route changes; this re-attach is a
-            // no-op for the same timer and closes stale rows after a crash
-            if (trackAppUsage) startUsageTracking(existing.id).catch(() => {});
-
             const entry = await getEntryByTimerId(existing.id);
             if (entry) {
                 selectedProject = String(entry.project_id);
             }
+
+            // rust keeps tracking across route changes; this re-attach is a
+            // no-op for the same timer and closes stale rows after a crash
+            if (getSelectedProject()?.track_app_usage) startUsageTracking(existing.id).catch(() => {});
         }
 
         await refreshTodayTotal();
@@ -289,7 +287,7 @@
             await createEntry(timerId, Number(selectedProject));
         }
 
-        if (trackAppUsage) startUsageTracking(timerId).catch(() => {});
+        if (proj?.track_app_usage) startUsageTracking(timerId).catch(() => {});
 
         startLimitChecking();
         syncTray();

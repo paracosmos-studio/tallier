@@ -37,6 +37,8 @@
         updateProjectName,
         deleteProject,
         reorderProjects,
+        getRunningTimer,
+        getEntryByTimerId,
         getClients,
         createClient,
         updateClient,
@@ -47,9 +49,11 @@
         updateProfile,
         reorderProfiles,
         deleteProfile,
+        type ProjectExtras,
     } from "$lib/db";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { clientDisplayName } from "$lib/helpers/clients";
+    import { startUsageTracking, stopUsageTracking } from "$lib/usage";
 
     type Tab = "projects" | "clients" | "profiles" | "preference" | "about";
     type ProjectView = "list" | "add" | "edit";
@@ -136,18 +140,27 @@
         projectView = "list";
     }
 
-    async function handleFormSave(
-        name: string,
-        limits: ProjectLimits,
-        extras: { color: string; hourlyRate: number | null; currency: string | null },
-    ) {
+    async function handleFormSave(name: string, limits: ProjectLimits, extras: ProjectExtras) {
         if (projectView === "edit" && editingProject?.id != null) {
             await updateProject(editingProject.id, name, limits, extras);
+            await syncUsageTracking(editingProject.id, !!extras.trackAppUsage);
         } else {
             await createProject(name, limits, extras);
         }
         await loadProjects();
         showList();
+    }
+
+    // the tracking flag takes effect immediately on a timer running for this project
+    async function syncUsageTracking(projectId: number, enabled: boolean) {
+        try {
+            const running = await getRunningTimer();
+            if (running?.id == null) return;
+            const entry = await getEntryByTimerId(running.id);
+            if (entry?.project_id !== projectId) return;
+            if (enabled) await startUsageTracking(running.id);
+            else await stopUsageTracking();
+        } catch {}
     }
 
     async function handleRename(id: number, name: string) {

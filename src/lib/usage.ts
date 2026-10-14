@@ -3,13 +3,10 @@
 
 import { invoke } from "@tauri-apps/api/core";
 
-// settings key; "true" / "false", default off
-export const TRACK_APP_USAGE_SETTING_KEY = "trackAppUsage";
-
 let supported: Promise<boolean> | undefined;
 
 // whether this build records the foreground app (macos + windows). false
-// elsewhere, where the preference toggle stays hidden.
+// elsewhere, where the project form toggle stays hidden.
 export function usageTrackingSupported(): Promise<boolean> {
     supported ??= invoke<boolean>("usage_tracking_supported").catch(() => false);
     return supported;
