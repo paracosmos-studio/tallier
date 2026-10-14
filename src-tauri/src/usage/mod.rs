@@ -8,7 +8,7 @@
 //! `app_usage` segments through the pool `tauri-plugin-sql` opened for the
 //! webview. the webview only calls `start_usage_tracking` / `stop_usage_tracking`
 //! around the timer; it survives route changes because nothing here depends on
-//! a page being mounted. see `docs/app-usage-tracking.md`.
+//! a page being mounted.
 
 mod denylist;
 mod idle;
