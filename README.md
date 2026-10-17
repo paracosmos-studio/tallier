@@ -46,7 +46,7 @@ Grab the latest build from the [releases page](https://github.com/paracosmos-stu
 
 ```bash
 npm install
-npm run tauri dev
+npm run tauri:dev
 ```
 
 Built with Tauri v2, SvelteKit, TypeScript, and Rust.

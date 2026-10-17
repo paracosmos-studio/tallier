@@ -12,6 +12,19 @@ export const PROJECT_COLORS: readonly string[] = [
     "#A8A0D6",
 ];
 
+export const APP_COLORS: readonly string[] = [
+    "#8FA3E6",
+    "#E8A46B",
+    "#C78ADB",
+    "#6CD4C5",
+    "#C9C9C9",
+    "#EEC675",
+    "#E16470",
+    "#9ECB78",
+    "#A8A0D6",
+    "#7AAFCF",
+];
+
 export function getProjectColor(index: number): string {
     return PROJECT_COLORS[index % PROJECT_COLORS.length];
 }

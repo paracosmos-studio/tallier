@@ -22,12 +22,14 @@
         updateEntryTimes,
         deleteEntry,
         createManualEntry,
+        getAppUsageRows,
     } from "$lib/db";
+    import { getAppIcons } from "$lib/usage";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "$lib/helpers/format";
     import { computeDateRange } from "$lib/helpers/date-range";
     import { loadRangeState, saveRangeState } from "$lib/helpers/range-storage";
-    import type { Project, ReportEntry } from "$lib/types";
+    import type { Project, ReportEntry, AppUsageRow } from "$lib/types";
 
     const persisted = loadRangeState();
     let selectedRange: string = $state(persisted.selectedRange ?? "30");
@@ -36,6 +38,8 @@
 
     let projects: Project[] = $state([]);
     let entries: ReportEntry[] = $state([]);
+    let usageRows: AppUsageRow[] = $state([]);
+    let icons: Map<string, string> = $state(new Map());
     let colorMap: Map<number, string> = $state(new Map());
     let selectedDate: string | null = $state(null);
     let loading: boolean = $state(true);
@@ -73,11 +77,34 @@
             : null
     );
 
+    let usageByTimer: Map<number, AppUsageRow[]> = $derived.by(() => {
+        const map = new Map<number, AppUsageRow[]>();
+        for (const r of usageRows) {
+            if (!map.has(r.timer_id)) map.set(r.timer_id, []);
+            map.get(r.timer_id)!.push(r);
+        }
+        return map;
+    });
+
+    // icons load lazily for the selected day's apps; the wrapper caches per id
+    $effect(() => {
+        if (!selectedDay) return;
+        const ids = new Set<string>();
+        for (const e of selectedDay.entries) {
+            for (const r of usageByTimer.get(e.timer_id) ?? []) ids.add(r.app_id);
+        }
+        if (ids.size === 0) return;
+        getAppIcons([...ids]).then(m => (icons = m));
+    });
+
     async function loadEntries(): Promise<void> {
         const range = computeDateRange(selectedRange, customStart, customEnd);
         if (!range) return;
         loading = true;
-        entries = await getReportEntries(range.start, range.end);
+        [entries, usageRows] = await Promise.all([
+            getReportEntries(range.start, range.end),
+            getAppUsageRows(range.start, range.end),
+        ]);
         // drop selection if the date no longer exists in the new range
         if (selectedDate && !entries.some(e => e.date === selectedDate)) {
             selectedDate = null;
@@ -219,6 +246,8 @@
                     <DayDetail
                         entries={selectedDay.entries}
                         {colorMap}
+                        {usageByTimer}
+                        {icons}
                         onedit={openEdit}
                         ondelete={requestDelete}
                     />

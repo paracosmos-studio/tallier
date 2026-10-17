@@ -5,15 +5,21 @@
 <!--
     @component
     Vertical list of items, each with a label, value, and a color-filled
-    horizontal bar showing the item's share of the total.
+    horizontal bar showing the item's share of the total. An optional
+    remainder row closes the list under a divider with a swatch instead of
+    a bar, for time that belongs to no item.
 
     @param {BarListItem[]} items - the data rows to render.
     @param {string} [title] - optional section heading rendered above the list.
     @param {'left' | 'right'} [titleAlign='left'] - alignment of the title.
     @param {number} [total] - explicit denominator for percentages; defaults to sum of values.
     @param {(value: number) => string} [formatValue] - value formatter shown beside each label.
+    @param {Snippet<[BarListItem]>} [itemIcon] - optional icon rendered before each label.
+    @param {BarListItem} [remainder] - optional last row, under a divider and without a bar.
+    @param {string} [emptyMessage] - shown in place of the rows when there are no items; without it the section is not rendered.
 -->
 <script lang="ts">
+    import type { Snippet } from "svelte";
     import type { BarListItem } from "$lib/types";
 
     type Props = {
@@ -22,6 +28,9 @@
         titleAlign?: 'left' | 'right';
         total?: number;
         formatValue?: (value: number) => string;
+        itemIcon?: Snippet<[BarListItem]>;
+        remainder?: BarListItem;
+        emptyMessage?: string;
     };
 
     let {
@@ -30,6 +39,9 @@
         titleAlign = 'left',
         total,
         formatValue = (v: number) => String(v),
+        itemIcon,
+        remainder,
+        emptyMessage,
     }: Props = $props();
 
     let denominator: number = $derived(
@@ -41,7 +53,7 @@
     }
 </script>
 
-{#if items.length > 0}
+{#if items.length > 0 || emptyMessage}
     <section class="bar-list">
         {#if title}
             <header class:right={titleAlign === 'right'}>
@@ -52,6 +64,7 @@
             {#each items as item (item.key)}
                 <div class="row">
                     <div class="info">
+                        {#if itemIcon}{@render itemIcon(item)}{/if}
                         <span class="name">{item.label}</span>
                         <span class="value">{formatValue(item.value)}</span>
                     </div>
@@ -63,7 +76,16 @@
                         ></div>
                     </div>
                 </div>
+            {:else}
+                <p class="empty">{emptyMessage}</p>
             {/each}
+            {#if remainder}
+                <div class="remainder">
+                    <span class="swatch" style:background-color={remainder.color}></span>
+                    <span class="name muted">{remainder.label}</span>
+                    <span class="value">{formatValue(remainder.value)}</span>
+                </div>
+            {/if}
         </div>
     </section>
 {/if}
@@ -147,10 +169,15 @@
         text-overflow: ellipsis;
     }
 
+    .name.muted {
+        color: var(--gray-30);
+    }
+
     .value {
         font-size: 0.75rem;
         color: var(--gray-30);
         flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
     }
 
     .track {
@@ -165,5 +192,29 @@
         border-radius: 3px;
         transition: width 0.3s ease;
         min-width: 2px;
+    }
+
+    .empty {
+        margin: 0;
+        padding-right: 6px;
+        font-size: 0.72rem;
+        line-height: 1.5;
+        color: var(--gray-30);
+    }
+
+    .remainder {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid var(--gray-70);
+    }
+
+    .swatch {
+        width: 18px;
+        height: 6px;
+        border-radius: 3px;
+        flex-shrink: 0;
     }
 </style>
