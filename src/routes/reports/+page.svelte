@@ -76,10 +76,6 @@
         uniqueDays > 0 ? Math.round(totalSeconds / uniqueDays) : 0
     );
 
-    let mostActiveProject: string = $derived(
-        projectTotals.length > 0 ? projectTotals[0].project_name : ""
-    );
-
     let dailyByDate: Map<string, DailyProjectTotal[]> = $derived.by(() => {
         const map = new Map<string, DailyProjectTotal[]>();
         for (const t of dailyTotals) {
@@ -105,6 +101,10 @@
     let appTotals: AppSeconds[] = $derived(mergeAppSeconds(dailyApps.values()));
     let appColors: Map<string, string> = $derived(rankAppColors(appTotals));
     let otherCount: number = $derived(Math.max(0, appTotals.length - appColors.size));
+
+    let mostActive: string = $derived.by(
+        () => (view === "apps" ? appTotals[0]?.app_name : projectTotals[0]?.project_name) ?? ""
+    );
 
     function buildColumns(segmentsFor: (date: string) => StackedBarSegment[]): StackedBarColumn[] {
         if (!activeRange.start) return [];
@@ -257,7 +257,7 @@
             <SummaryStats
                 {totalSeconds}
                 {avgDailySeconds}
-                {mostActiveProject}
+                {mostActive}
                 totalDays={uniqueDays}
             />
             <StackedBarChart

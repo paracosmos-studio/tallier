@@ -8,7 +8,7 @@
 
     @param {number} totalSeconds - total tracked seconds in the range.
     @param {number} avgDailySeconds - average seconds per active day.
-    @param {string} mostActiveProject - name of the most active project.
+    @param {string} mostActive - name of the most active project or app.
     @param {number} totalDays - number of days with tracked time.
 -->
 <script lang="ts">
@@ -17,14 +17,14 @@
     type Props = {
         totalSeconds: number;
         avgDailySeconds: number;
-        mostActiveProject: string;
+        mostActive: string;
         totalDays: number;
     };
 
     let {
         totalSeconds,
         avgDailySeconds,
-        mostActiveProject,
+        mostActive,
         totalDays
     }: Props = $props();
 </script>
@@ -40,7 +40,7 @@
     </div>
     <div class="stat">
         <span class="label">Most active</span>
-        <span class="value project">{mostActiveProject || "--"}</span>
+        <span class="value name">{mostActive || "--"}</span>
     </div>
     <div class="stat">
         <span class="label">Days tracked</span>
@@ -87,7 +87,7 @@
         overflow-wrap: anywhere;
     }
 
-    .value.project {
+    .value.name {
         font-size: 0.85rem;
         font-weight: 500;
     }
