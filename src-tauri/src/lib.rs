@@ -4,13 +4,16 @@
 mod files;
 mod invoice;
 mod migrations;
+mod sampler;
 mod tray;
+mod usage;
 mod util;
 mod window;
 
 use migrations::load_migrations;
 use tauri::Manager;
 use tray::TrayState;
+use usage::UsageState;
 use window::{WindowProfile, WindowProfileState, apply_window_profile};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,6 +22,7 @@ pub fn run() {
     let mut builder = tauri::Builder::default()
         .manage(TrayState::new())
         .manage(WindowProfileState::new(WindowProfile::Compact))
+        .manage(UsageState::new())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
@@ -64,6 +68,12 @@ pub fn run() {
             files::read_avatar,
             invoice::render_invoice_pdf,
             invoice::render_invoice_svg,
+            usage::start_usage_tracking,
+            usage::stop_usage_tracking,
+            usage::usage_tracking_supported,
+            usage::read_app_icons,
+            sampler::color_sampler_supported,
+            sampler::sample_screen_color,
             util::os_descriptor,
             util::updater_available,
         ])

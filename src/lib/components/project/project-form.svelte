@@ -3,17 +3,21 @@
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
-    import { untrack } from "svelte";
+    import { onMount, untrack } from "svelte";
     import type { Project, ProjectLimits } from "$lib/types";
     import { PROJECT_COLORS, getRandomProjectColor } from "$lib/helpers/colors";
     import { CURRENCIES } from "$lib/helpers/currency";
     import Select from "$lib/components/select.svelte";
+    import Toggle from "$lib/components/toggle.svelte";
+    import ColorPalette from "$lib/components/color-palette.svelte";
     import ProjectLimit from "./project-limit.svelte";
+    import { usageTrackingSupported } from "$lib/usage";
 
     export interface ProjectFormExtras {
         color: string;
         hourlyRate: number | null;
         currency: string | null;
+        trackAppUsage: boolean;
     }
 
     type Props = {
@@ -36,6 +40,13 @@
         project?.hourly_rate != null ? String(project.hourly_rate) : ""
     ));
     let currency: string = $state(untrack(() => project?.currency ?? ""));
+    let trackAppUsage: boolean = $state(untrack(() => project?.track_app_usage ?? false));
+    // false on targets without a foreground-app backend, which hides the toggle
+    let usageSupported: boolean = $state(false);
+
+    onMount(async () => {
+        usageSupported = await usageTrackingSupported();
+    });
 
     const currencyOptions = CURRENCIES.map(c => ({
         value: c.value,
@@ -90,6 +101,7 @@
             color,
             hourlyRate: rate,
             currency: rate != null ? (currency || null) : null,
+            trackAppUsage,
         });
     }
 </script>
@@ -100,7 +112,8 @@
 
     @param {Project} [project] - Project to edit. Omit for add mode.
     @param {string} name - Bindable project name.
-    @param {(name: string, limits: ProjectLimits) => void} onsave - Callback with name and limits on save.
+    @param {string} [currentColor] - Color shown for the project in lists, the edit-mode default.
+    @param {(name: string, limits: ProjectLimits, extras: ProjectFormExtras) => void} onsave - Callback with name, limits, and extras (color, rate, currency, app tracking) on save.
     @param {() => void} oncancel - Callback when the form is cancelled.
 -->
 <section>
@@ -113,7 +126,7 @@
                 title="Project color"
                 style="background-color: {color};"
                 aria-label="Pick project color"
-                aria-haspopup="listbox"
+                aria-haspopup="dialog"
                 aria-expanded={pickerOpen}
                 onclick={() => (pickerOpen = !pickerOpen)}
             ></button>
@@ -128,22 +141,13 @@
                 }}
             />
             {#if pickerOpen}
-                <ul class="swatches" role="listbox" aria-label="Color presets">
-                    {#each PROJECT_COLORS as preset (preset)}
-                        <li>
-                            <button
-                                type="button"
-                                class="swatch"
-                                class:selected={color === preset}
-                                style="background-color: {preset};"
-                                aria-label={preset}
-                                aria-selected={color === preset}
-                                role="option"
-                                onclick={() => { color = preset; pickerOpen = false; }}
-                            ></button>
-                        </li>
-                    {/each}
-                </ul>
+                <div class="palette-popover">
+                    <ColorPalette
+                        bind:value={color}
+                        presets={PROJECT_COLORS}
+                        onselect={() => (pickerOpen = false)}
+                    />
+                </div>
             {/if}
         </div>
         <ProjectLimit
@@ -154,7 +158,7 @@
             bind:notifyDaily
             bind:notifyWeekly
         />
-        <div class="rate-row">
+        <div class="field-row">
             <label for="rate-currency">Hourly rate</label>
 
             <div class="rate-form">
@@ -189,6 +193,12 @@
                 </div>
             </div>
         </div>
+        {#if usageSupported}
+            <div class="field-row">
+                <span>Track active apps while timer runs</span>
+                <Toggle bind:checked={trackAppUsage} />
+            </div>
+        {/if}
     </form>
 </section>
 
@@ -254,41 +264,14 @@
         filter: brightness(1.15);
     }
 
-    .swatches {
+    .palette-popover {
         position: absolute;
         top: calc(100% + 4px);
         left: 0;
         z-index: 5;
-        display: grid;
-        grid-template-columns: repeat(8, 1fr);
-        gap: 0.3rem;
-        margin: 0;
-        padding: 0.4rem;
-        list-style: none;
-        background-color: var(--gray-90);
-        border: 1px solid var(--gray-70);
-        border-radius: 4px;
     }
 
-    .swatch {
-        width: 20px;
-        height: 20px;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        padding: 0;
-        cursor: pointer;
-        transition: transform 0.1s ease, border-color 0.1s ease;
-    }
-
-    .swatch:hover {
-        transform: scale(1.08);
-    }
-
-    .swatch.selected {
-        border-color: var(--gray-10);
-    }
-
-    .rate-row {
+    .field-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -296,7 +279,12 @@
         margin-top: 2rem;
     }
 
-    .rate-row label {
+    .field-row + .field-row {
+        margin-top: 0.75rem;
+    }
+
+    .field-row label,
+    .field-row > span {
         color: var(--gray-30);
         font-weight: 300;
         font-size: 0.9rem;

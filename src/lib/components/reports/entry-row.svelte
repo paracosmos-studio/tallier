@@ -5,19 +5,23 @@
 <!--
     @component
     Display-only entry row with edit and optional delete/hide action buttons.
-    Each action button only renders when its callback is provided.
+    Each action button only renders when its callback is provided. When the
+    entry has recorded app usage, a per-app bar renders under the text.
 
     @param {ReportEntry} entry - the entry data to display.
     @param {() => void} onedit - callback to open edit dialog.
     @param {() => void} [ondelete] - callback to trigger delete confirmation.
     @param {boolean} [hidden=false] - whether the entry is currently hidden from totals.
     @param {() => void} [onhide] - callback to toggle the hidden state.
+    @param {StackedBarSegment[]} [usage=[]] - per-app slices for the usage bar; empty hides it.
+    @param {Map<string, string>} [icons] - app id to png data uri for the usage tooltip.
 -->
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
+    import EntryUsageBar from "./entry-usage-bar.svelte";
     import { Edit, Delete, VisibilityOff } from "$lib/icons";
     import { formatDuration, formatTimeOfDay } from "$lib/helpers/format";
-    import type { ReportEntry } from "$lib/types";
+    import type { ReportEntry, StackedBarSegment } from "$lib/types";
 
     type Props = {
         entry: ReportEntry;
@@ -25,9 +29,23 @@
         ondelete?: () => void;
         hidden?: boolean;
         onhide?: () => void;
+        usage?: StackedBarSegment[];
+        icons?: Map<string, string>;
     };
 
-    let { entry, onedit, ondelete, hidden = false, onhide }: Props = $props();
+    const NO_ICONS: Map<string, string> = new Map();
+
+    let {
+        entry,
+        onedit,
+        ondelete,
+        hidden = false,
+        onhide,
+        usage = [],
+        icons = NO_ICONS,
+    }: Props = $props();
+
+    const formatUsage = (v: number): string => formatDuration(v, true);
 </script>
 
 <div class="row" class:hidden>
@@ -46,6 +64,11 @@
         </span>
         {#if entry.title}
             <span class="summary">{entry.title}</span>
+        {/if}
+        {#if usage.length > 0}
+            <span class="usage">
+                <EntryUsageBar segments={usage} {icons} formatValue={formatUsage} />
+            </span>
         {/if}
     </span>
     <span class="actions">
@@ -129,7 +152,15 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .summary:last-child {
         margin-bottom: 10px;
+    }
+
+    .usage {
+        display: block;
+        margin: 4px 0 10px;
     }
 
     .actions {

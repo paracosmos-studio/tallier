@@ -6,26 +6,51 @@
     @component
     Renders the project groups + entry rows for a single day. Header-less;
     intended for the right-hand detail panel of a master/detail layout where
-    the date is already shown in the master column.
+    the date is already shown in the master column. App usage rows, when
+    given, become a per-app bar under each entry that recorded any; app
+    colors are ranked across the whole day so an app keeps one color in
+    every row.
 
     @param {ReportEntry[]} entries - entries belonging to this day.
     @param {Map<number, string>} colorMap - project ID to color mapping.
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for entry.
     @param {(entry: ReportEntry) => void} ondelete - trigger delete for entry.
+    @param {Map<number, AppUsageRow[]>} [usageByTimer] - active app segments keyed by timer id.
+    @param {Map<string, string>} [icons] - app id to png data uri for the usage tooltips.
 -->
 <script lang="ts">
     import EntryRow from "./entry-row.svelte";
     import { formatDuration } from "$lib/helpers/format";
-    import type { ReportEntry, ProjectEntryGroup } from "$lib/types";
+    import { APP_COLORS } from "$lib/helpers/colors";
+    import {
+        localDateTimeMs,
+        sumAppSeconds,
+        mergeAppSeconds,
+        rankAppColors,
+        usageSegments,
+    } from "$lib/helpers/app-usage";
+    import type { ReportEntry, ProjectEntryGroup, AppUsageRow, AppSeconds, StackedBarSegment } from "$lib/types";
 
     type Props = {
         entries: ReportEntry[];
         colorMap: Map<number, string>;
         onedit: (entry: ReportEntry) => void;
         ondelete: (entry: ReportEntry) => void;
+        usageByTimer?: Map<number, AppUsageRow[]>;
+        icons?: Map<string, string>;
     };
 
-    let { entries, colorMap, onedit, ondelete }: Props = $props();
+    const NO_USAGE: Map<number, AppUsageRow[]> = new Map();
+    const NO_ICONS: Map<string, string> = new Map();
+
+    let {
+        entries,
+        colorMap,
+        onedit,
+        ondelete,
+        usageByTimer = NO_USAGE,
+        icons = NO_ICONS,
+    }: Props = $props();
 
     let projectGroups: ProjectEntryGroup[] = $derived.by(() => {
         const map = new Map<number, ProjectEntryGroup>();
@@ -44,6 +69,30 @@
         }
         return Array.from(map.values());
     });
+
+    // per-app seconds inside each entry's own slice of its timer
+    let appsByEntry: Map<number, AppSeconds[]> = $derived.by(() => {
+        const out = new Map<number, AppSeconds[]>();
+        for (const e of entries) {
+            const rows = usageByTimer.get(e.timer_id);
+            if (!rows || !e.end) continue;
+            const apps = sumAppSeconds(rows, [
+                localDateTimeMs(e.date, e.start),
+                localDateTimeMs(e.date, e.end),
+            ]);
+            if (apps.length > 0) out.set(e.entry_id, apps);
+        }
+        return out;
+    });
+
+    let dayColors: Map<string, string> = $derived(
+        rankAppColors(mergeAppSeconds(appsByEntry.values()), APP_COLORS.length)
+    );
+
+    function usageFor(entry: ReportEntry): StackedBarSegment[] {
+        const apps = appsByEntry.get(entry.entry_id);
+        return apps ? usageSegments(apps, dayColors, entry.total) : [];
+    }
 </script>
 
 <div class="day-detail">
@@ -58,6 +107,8 @@
                 {#each pg.entries as entry (entry.entry_id)}
                     <EntryRow
                         {entry}
+                        usage={usageFor(entry)}
+                        {icons}
                         onedit={() => onedit(entry)}
                         ondelete={() => ondelete(entry)}
                     />

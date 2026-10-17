@@ -29,6 +29,7 @@ export interface ProjectExtras {
     color?: string | null;
     hourlyRate?: number | null;
     currency?: string | null;
+    trackAppUsage?: boolean;
 }
 
 
@@ -36,7 +37,7 @@ export interface ProjectExtras {
  * Creates a new project appended to the end of the position list.
  * @param name - display name for the project.
  * @param limits - optional timer limit config.
- * @param extras - optional swatch color, hourly rate, and currency.
+ * @param extras - optional swatch color, hourly rate, currency, and app tracking flag.
  */
 export async function createProject(
     name: string,
@@ -52,8 +53,8 @@ export async function createProject(
         `INSERT INTO projects
             (name, position, color, hourly_rate, currency,
              max_daily, max_daily_alert, max_weekly, max_weekly_alert,
-             max_daily_enabled, max_weekly_enabled)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+             max_daily_enabled, max_weekly_enabled, track_app_usage)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [
             name,
             nextPos,
@@ -66,18 +67,19 @@ export async function createProject(
             limits?.maxWeeklyAlert ?? null,
             limits?.maxDailyEnabled ? 1 : 0,
             limits?.maxWeeklyEnabled ? 1 : 0,
+            extras.trackAppUsage ? 1 : 0,
         ]
     );
 }
 
 
 /**
- * Updates the display name, limits, color, hourly rate, and currency
- * of an existing project.
+ * Updates the display name, limits, color, hourly rate, currency,
+ * and app tracking flag of an existing project.
  * @param id - project ID.
  * @param name - new display name.
  * @param limits - timer limit config.
- * @param extras - swatch color, hourly rate, currency (null clears).
+ * @param extras - swatch color, hourly rate, currency (null clears), app tracking flag.
  */
 export async function updateProject(
     id: number,
@@ -97,8 +99,9 @@ export async function updateProject(
              max_weekly = $7,
              max_weekly_alert = $8,
              max_daily_enabled = $9,
-             max_weekly_enabled = $10
-         WHERE id = $11`,
+             max_weekly_enabled = $10,
+             track_app_usage = $11
+         WHERE id = $12`,
         [
             name,
             extras.color ?? null,
@@ -110,6 +113,7 @@ export async function updateProject(
             limits?.maxWeeklyAlert ?? null,
             limits?.maxDailyEnabled ? 1 : 0,
             limits?.maxWeeklyEnabled ? 1 : 0,
+            extras.trackAppUsage ? 1 : 0,
             id,
         ]
     );

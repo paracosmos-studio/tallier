@@ -23,6 +23,7 @@ export interface Project {
   max_weekly_alert: number | null;
   max_daily_enabled: boolean;
   max_weekly_enabled: boolean;
+  track_app_usage: boolean;
 }
 
 export interface ProjectLimits {
@@ -130,6 +131,23 @@ export interface ProjectTotal {
   total_seconds: number;
 }
 
+export interface AppUsageRow {
+  timer_id: number;
+  app_id: string;
+  app_name: string;
+  started_at: number;
+  ended_at: number;
+  date: string;
+  start: string;
+  end: string;
+}
+
+export interface AppSeconds {
+  app_id: string;
+  app_name: string;
+  seconds: number;
+}
+
 export interface ProjectEntryGroup {
   projectId: number;
   projectName: string;
@@ -156,4 +174,11 @@ export type BarListItem = {
   label: string;
   value: number;
   color: string;
+};
+
+export type TooltipAnchor = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };

@@ -11,6 +11,7 @@
     import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
     import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
+    import { startUsageTracking, stopUsageTracking } from "$lib/usage";
     import Select from "$lib/components/select.svelte";
     import Menu from "$lib/components/menu.svelte";
     import Timer from "$lib/components/timer.svelte";
@@ -206,6 +207,10 @@
             if (entry) {
                 selectedProject = String(entry.project_id);
             }
+
+            // rust keeps tracking across route changes; this re-attach is a
+            // no-op for the same timer and closes stale rows after a crash
+            if (getSelectedProject()?.track_app_usage) startUsageTracking(existing.id).catch(() => {});
         }
 
         await refreshTodayTotal();
@@ -282,11 +287,15 @@
             await createEntry(timerId, Number(selectedProject));
         }
 
+        if (proj?.track_app_usage) startUsageTracking(timerId).catch(() => {});
+
         startLimitChecking();
         syncTray();
     }
 
     async function handleStop(timerId: number, showWindow = false, endAt?: Date) {
+        // no-op unless tracking; `endAt` clamps the segments for auto-pause
+        await stopUsageTracking(endAt?.getTime()).catch(() => {});
         await stopTimer(timerId, endAt);
         running = null;
         stopLimitChecking();
