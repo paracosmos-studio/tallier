@@ -41,13 +41,13 @@ typst-pdf = "=0.13.1"
 typst-svg = "=0.13.1"
 sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio"] }
 
-# app usage tracker: foreground app, idle time, app icon
+# app usage tracker (foreground app, idle time, app icon) + screen color sampler
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 block2 = "0.6"
 objc2-core-foundation = "0.3"
 objc2-foundation = { version = "0.3", features = ["NSNotification", "NSOperation", "NSString", "NSURL", "NSDictionary", "NSObject", "NSData", "NSGeometry"] }
-objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication", "NSImage", "NSImageRep", "NSBitmapImageRep", "NSGraphicsContext", "NSGraphics", "objc2-core-foundation"] }
+objc2-app-kit = { version = "0.3", features = ["NSWorkspace", "NSRunningApplication", "NSImage", "NSImageRep", "NSBitmapImageRep", "NSGraphicsContext", "NSGraphics", "NSColor", "NSColorSampler", "NSColorSpace", "block2", "objc2-core-foundation"] }
 objc2-core-graphics = { version = "0.3", features = ["CGEventSource", "CGEventTypes"] }
 
 [target.'cfg(windows)'.dependencies]

@@ -4,6 +4,7 @@
 mod files;
 mod invoice;
 mod migrations;
+mod sampler;
 mod tray;
 mod usage;
 mod util;
@@ -71,6 +72,8 @@ pub fn run() {
             usage::stop_usage_tracking,
             usage::usage_tracking_supported,
             usage::read_app_icons,
+            sampler::color_sampler_supported,
+            sampler::sample_screen_color,
             util::os_descriptor,
             util::updater_available,
         ])

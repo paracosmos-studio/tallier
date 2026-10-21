@@ -16,6 +16,9 @@
     @param {'center' | 'start'} [align='center'] - `center` centers on the anchor; `start` sits past its right edge and flips left when it would overflow.
     @param {number} [gap=8] - distance from the anchor in pixels.
     @param {'sm' | 'md'} [size='md'] - `sm` tightens the padding for one-line content.
+    @param {boolean} [interactive=false] - accepts pointer input so the content can hold controls; drops the tooltip role.
+    @param {(e: PointerEvent) => void} [onpointerenter] - pointer entered the tooltip (interactive only).
+    @param {(e: PointerEvent) => void} [onpointerleave] - pointer left the tooltip (interactive only).
     @param {Snippet} children - tooltip content.
 -->
 <script lang="ts">
@@ -29,6 +32,9 @@
         align?: "center" | "start";
         gap?: number;
         size?: "sm" | "md";
+        interactive?: boolean;
+        onpointerenter?: (e: PointerEvent) => void;
+        onpointerleave?: (e: PointerEvent) => void;
         children: Snippet;
     };
 
@@ -39,6 +45,9 @@
         align = "center",
         gap = 8,
         size = "md",
+        interactive = false,
+        onpointerenter,
+        onpointerleave,
         children,
     }: Props = $props();
 
@@ -90,8 +99,11 @@
         class="tooltip"
         class:ready={position !== null}
         class:sm={size === "sm"}
-        role="tooltip"
+        class:interactive
+        role={interactive ? "group" : "tooltip"}
         use:portal
+        {onpointerenter}
+        {onpointerleave}
         bind:clientWidth={width}
         bind:clientHeight={height}
         style:transform={position ? `translate(${position.x}px, ${position.y}px)` : ""}
@@ -123,6 +135,10 @@
 
     .tooltip.ready {
         visibility: visible;
+    }
+
+    .tooltip.interactive {
+        pointer-events: auto;
     }
 
     .tooltip.sm {
