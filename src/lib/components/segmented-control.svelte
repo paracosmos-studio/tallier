@@ -10,7 +10,7 @@
 
     @param {Array<{ value: string; label?: string; icon?: string; title?: string }>} options The selectable options.
     @param {string} value The currently selected option value (bindable).
-    @param {'sm' | 'md'} [size="md"] Size of the control.
+    @param {'xs' | 'sm' | 'md'} [size="md"] Size of the control.
     @param {(value: string) => void} [onchange] Callback when selection changes.
 -->
 
@@ -27,7 +27,7 @@
     interface Props {
         options: SegmentedOption[];
         value: string;
-        size?: 'sm' | 'md';
+        size?: 'xs' | 'sm' | 'md';
         onchange?: (value: string) => void;
     }
 
@@ -38,7 +38,7 @@
         onchange,
     }: Props = $props();
 
-    const iconSizeMap = { sm: '14', md: '16' };
+    const iconSizeMap = { xs: '12', sm: '14', md: '16' };
 
     const activeIndex: number = $derived(
         Math.max(0, options.findIndex(o => o.value === value))
@@ -119,6 +119,12 @@
         transition: color 0.2s ease;
         white-space: nowrap;
         text-align: center;
+    }
+
+    .seg-btn.xs {
+        padding: 0.15rem 0.55rem;
+        font-size: 0.7rem;
+        min-height: 20px;
     }
 
     .seg-btn.sm {

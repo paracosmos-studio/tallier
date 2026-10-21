@@ -14,6 +14,7 @@
     import { runStartupUsagePing } from '$lib/ping';
     import { beforeNavigate, goto } from '$app/navigation';
     import { initDB, getRunningTimer, stopTimer } from '$lib/db';
+    import { stopUsageTracking } from '$lib/usage';
     import { page } from '$app/state';
     import { applyWindowProfile, type WindowProfile } from '$lib/window';
 
@@ -128,7 +129,10 @@
 
     async function forceClose() {
         const running = await getRunningTimer();
-        if (running?.id != null) await stopTimer(running.id);
+        if (running?.id != null) {
+            await stopUsageTracking().catch(() => {});
+            await stopTimer(running.id);
+        }
         showCloseConfirm = false;
         unlisten?.();
         await appWindow.destroy();

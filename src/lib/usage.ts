@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
+
+import { invoke } from "@tauri-apps/api/core";
+
+let supported: Promise<boolean> | undefined;
+
+// whether this build records the foreground app (macos + windows). false
+// elsewhere, where the project form toggle stays hidden.
+export function usageTrackingSupported(): Promise<boolean> {
+    supported ??= invoke<boolean>("usage_tracking_supported").catch(() => false);
+    return supported;
+}
+
+// idempotent for the running timer; safe to call again after a remount
+export async function startUsageTracking(timerId: number): Promise<void> {
+    await invoke("start_usage_tracking", { timerId });
+}
+
+// no-op when nothing is tracking. `endAtMs` clamps the recorded segments, used
+// by auto-pause to end them at the pre-sleep moment.
+export async function stopUsageTracking(endAtMs?: number): Promise<void> {
+    await invoke("stop_usage_tracking", { endAtMs: endAtMs ?? null });
+}
+
+const iconCache = new Map<string, string | null>();
+
+// png data uris for the given app ids, fetched once per id and cached for
+// the session. ids without a stored icon are absent from the result.
+export async function getAppIcons(appIds: string[]): Promise<Map<string, string>> {
+    const missing: string[] = [...new Set(appIds)].filter(id => !iconCache.has(id));
+    if (missing.length > 0) {
+        const fetched = await invoke<Record<string, string>>("read_app_icons", { appIds: missing })
+            .catch(() => ({} as Record<string, string>));
+        for (const id of missing) iconCache.set(id, fetched[id] ?? null);
+    }
+    const out = new Map<string, string>();
+    for (const id of appIds) {
+        const uri = iconCache.get(id);
+        if (uri) out.set(id, uri);
+    }
+    return out;
+}
