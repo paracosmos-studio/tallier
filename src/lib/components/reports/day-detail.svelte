@@ -17,6 +17,7 @@
     @param {(entry: ReportEntry) => void} ondelete - trigger delete for entry.
     @param {Map<number, AppUsageRow[]>} [usageByTimer] - active app segments keyed by timer id.
     @param {Map<string, string>} [icons] - app id to png data uri for the usage tooltips.
+    @param {(entry: ReportEntry, segment: StackedBarSegment) => void} [ondeleteusage] - confirm removing one app's usage from an entry.
 -->
 <script lang="ts">
     import EntryRow from "./entry-row.svelte";
@@ -38,6 +39,7 @@
         ondelete: (entry: ReportEntry) => void;
         usageByTimer?: Map<number, AppUsageRow[]>;
         icons?: Map<string, string>;
+        ondeleteusage?: (entry: ReportEntry, segment: StackedBarSegment) => void;
     };
 
     const NO_USAGE: Map<number, AppUsageRow[]> = new Map();
@@ -50,6 +52,7 @@
         ondelete,
         usageByTimer = NO_USAGE,
         icons = NO_ICONS,
+        ondeleteusage,
     }: Props = $props();
 
     let projectGroups: ProjectEntryGroup[] = $derived.by(() => {
@@ -93,6 +96,11 @@
         const apps = appsByEntry.get(entry.entry_id);
         return apps ? usageSegments(apps, dayColors, entry.total) : [];
     }
+
+    function usageDeleter(entry: ReportEntry): ((segment: StackedBarSegment) => void) | undefined {
+        const remove = ondeleteusage;
+        return remove && ((segment: StackedBarSegment) => remove(entry, segment));
+    }
 </script>
 
 <div class="day-detail">
@@ -111,6 +119,7 @@
                         {icons}
                         onedit={() => onedit(entry)}
                         ondelete={() => ondelete(entry)}
+                        ondeleteusage={usageDeleter(entry)}
                     />
                 {/each}
             </div>

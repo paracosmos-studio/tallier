@@ -23,13 +23,14 @@
         deleteEntry,
         createManualEntry,
         getAppUsageRows,
+        deleteAppUsage,
     } from "$lib/db";
     import { getAppIcons } from "$lib/usage";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "$lib/helpers/format";
     import { computeDateRange } from "$lib/helpers/date-range";
     import { loadRangeState, saveRangeState } from "$lib/helpers/range-storage";
-    import type { Project, ReportEntry, AppUsageRow } from "$lib/types";
+    import type { Project, ReportEntry, AppUsageRow, StackedBarSegment } from "$lib/types";
 
     const persisted = loadRangeState();
     let selectedRange: string = $state(persisted.selectedRange ?? "30");
@@ -49,8 +50,25 @@
 
     let addOpen: boolean = $state(false);
 
-    let deleteOpen: boolean = $state(false);
-    let deleteTarget: ReportEntry | null = $state(null);
+    type DeleteTarget =
+        | { kind: "entry"; entry: ReportEntry }
+        | { kind: "usage"; entry: ReportEntry; segment: StackedBarSegment };
+
+    let deleteTarget: DeleteTarget | null = $state(null);
+
+    let deleteMessage: string = $derived.by(() => {
+        if (!deleteTarget) return "";
+
+        const { entry } = deleteTarget;
+        const when: string = `${formatDateMedium(entry.date)} @ ${formatTimeOfDay(entry.start)} - ${formatTimeOfDay(entry.end ?? "")}`;
+
+        if (deleteTarget.kind === "usage") {
+            const { label, value } = deleteTarget.segment;
+            return `Remove ${label} (${formatDuration(value, true)}) from entry ${when}? This cannot be undone.`;
+        }
+
+        return `Delete entry ${when}? This cannot be undone.`;
+    });
 
     interface GroupedDay {
         date: string;
@@ -164,21 +182,40 @@
         await loadEntries();
     }
 
-    function requestDelete(entry: ReportEntry) {
-        deleteTarget = entry;
-        deleteOpen = true;
+    function requestDelete(entry: ReportEntry): void {
+        deleteTarget = { kind: "entry", entry };
     }
 
-    async function confirmDelete() {
+    function requestDeleteUsage(entry: ReportEntry, segment: StackedBarSegment): void {
+        deleteTarget = { kind: "usage", entry, segment };
+    }
+
+    async function reloadUsage(): Promise<void> {
+        const range = computeDateRange(selectedRange, customStart, customEnd);
+        if (range) usageRows = await getAppUsageRows(range.start, range.end);
+    }
+
+    async function confirmDelete(): Promise<void> {
         if (!deleteTarget) return;
-        await deleteEntry(deleteTarget.entry_id, deleteTarget.timer_id);
-        deleteOpen = false;
+
+        const target: DeleteTarget = deleteTarget;
+
+        if (target.kind === "usage") {
+            await deleteAppUsage(target.entry.timer_id, String(target.segment.key));
+            deleteTarget = null;
+
+            await reloadUsage();
+            return;
+        }
+
+        await deleteEntry(target.entry.entry_id, target.entry.timer_id);
+
         deleteTarget = null;
+
         await loadEntries();
     }
 
-    function cancelDelete() {
-        deleteOpen = false;
+    function cancelDelete(): void {
         deleteTarget = null;
     }
 
@@ -250,6 +287,7 @@
                         {icons}
                         onedit={openEdit}
                         ondelete={requestDelete}
+                        ondeleteusage={requestDeleteUsage}
                     />
                 {:else}
                     <EmptyState
@@ -281,12 +319,10 @@
 />
 
 <DialogConfirm
-    open={deleteOpen}
-    title="Delete Entry"
-    message={deleteTarget
-        ? `Delete entry ${formatDateMedium(deleteTarget.date)} @ ${formatTimeOfDay(deleteTarget.start)} - ${formatTimeOfDay(deleteTarget.end ?? "")}? This cannot be undone.`
-        : ""}
-    confirmLabel="Delete"
+    open={deleteTarget !== null}
+    title={deleteTarget?.kind === "usage" ? "Remove App Usage" : "Delete Entry"}
+    message={deleteMessage}
+    confirmLabel={deleteTarget?.kind === "usage" ? "Remove" : "Delete"}
     cancelLabel="Cancel"
     onconfirm={confirmDelete}
     oncancel={cancelDelete}
