@@ -5,7 +5,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { getProjects, getReportEntries, getSetting } from "$lib/db";
+    import { getProjects, getReportEntries, getSetting, setSetting } from "$lib/db";
     import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
     import { buildProjectColorMap } from "$lib/helpers/colors";
     import { computeDateRange } from "$lib/helpers/date-range";
@@ -28,9 +28,14 @@
     import { notify } from "$lib/helpers/notify";
     import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
     import type { Project, ReportEntry } from "$lib/types";
-    import type { EntryOverride } from "$lib/helpers/timesheet";
+    import {
+        parseTimesheetView,
+        TIMESHEET_VIEW_SETTING_KEY,
+        DEFAULT_TIMESHEET_VIEW,
+        type EntryOverride,
+        type TimesheetView,
+    } from "$lib/helpers/timesheet";
 
-    type View = "vl" | "vw" | "vc";
     type Round = "1" | "5" | "15";
 
     let projects: Project[] = $state([]);
@@ -50,7 +55,7 @@
     let customStart: string = $state("");
     let customEnd: string = $state("");
     let selectedProjects: string[] = $state([]);
-    let view: View = $state("vl");
+    let view: TimesheetView = $state(DEFAULT_TIMESHEET_VIEW);
     let roundTo: Round = $state("1");
     let weekStartsOn: number = $state(DEFAULT_WEEK_START);
 
@@ -219,8 +224,13 @@
         projects = await getProjects();
         colorMap = buildProjectColorMap(projects);
         weekStartsOn = parseWeekStartsOn(await getSetting(WEEK_START_SETTING_KEY));
+        view = parseTimesheetView(await getSetting(TIMESHEET_VIEW_SETTING_KEY));
         await loadEntries();
     });
+
+    async function handleViewChange(value: string): Promise<void> {
+        await setSetting(TIMESHEET_VIEW_SETTING_KEY, value);
+    }
 </script>
 
 <main>
@@ -265,6 +275,7 @@
             options={viewOptions}
             size="sm"
             bind:value={view}
+            onchange={handleViewChange}
         />
     </div>
 
