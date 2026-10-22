@@ -4,32 +4,45 @@
 -->
 <!--
     @component
-    Dialog for entering a title and summary after stopping a timer.
+    Dialog for entering a title and summary for a timer.
 
     @param {boolean} open - Controls dialog visibility.
     @param {(title: string, summary: string, isBillable: boolean) => void} onsave - Callback with title, summary, and billable flag.
     @param {() => void} onskip - Callback when skipped.
     @param {(isBillable: boolean) => void} [onbillablechange] - Fires immediately when the billable toggle changes, so the flag persists even if the form is skipped.
+    @param {boolean} [running=false] - Timer is still running: present-tense placeholder and a Cancel button instead of Skip.
+    @param {Entry | null} [entry=null] - Existing entry whose title, summary and billable flag seed the form on open.
 -->
 
 <script lang="ts">
     import Dialog from "$lib/components/dialogs/dialog.svelte";
     import Button from "$lib/components/button.svelte";
     import ToggleRow from "$lib/components/toggle-row.svelte";
+    import type { Entry } from "$lib/types";
 
     type Props = {
         open: boolean;
         onsave: (title: string, summary: string, isBillable: boolean) => void;
         onskip: () => void;
         onbillablechange?: (isBillable: boolean) => void;
+        running?: boolean;
+        entry?: Entry | null;
     };
 
-    let { open, onsave, onskip, onbillablechange }: Props = $props();
+    let { open, onsave, onskip, onbillablechange, running = false, entry = null }: Props = $props();
 
     let title: string = $state("");
     let summary: string = $state("");
     let notBillable: boolean = $state(false);
     let error: string = $state("");
+
+    $effect(() => {
+        if (!open) return;
+        title = entry?.title ?? "";
+        summary = entry?.summary ?? "";
+        notBillable = entry ? !entry.is_billable : false;
+        error = "";
+    });
 
     function handleSave() {
         if (!title.trim()) {
@@ -67,7 +80,7 @@
             class:missing={error !== ""}
             type="text"
             required={true}
-            placeholder="what did you work on?"
+            placeholder={running ? "what are you working on?" : "what did you work on?"}
             maxlength="100"
             bind:value={title}
             oninput={() => (error = "")}
@@ -92,7 +105,7 @@
             fgColor="var(--gray-10)"
             onclick={handleSkip}
         >
-            Skip
+            {running ? "Cancel" : "Skip"}
         </Button>
         <Button
             size="xs"
