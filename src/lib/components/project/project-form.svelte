@@ -9,6 +9,7 @@
     import { CURRENCIES } from "$lib/helpers/currency";
     import Select from "$lib/components/select.svelte";
     import Toggle from "$lib/components/toggle.svelte";
+    import ColorPalette from "$lib/components/color-palette.svelte";
     import ProjectLimit from "./project-limit.svelte";
     import { usageTrackingSupported } from "$lib/usage";
 
@@ -125,7 +126,7 @@
                 title="Project color"
                 style="background-color: {color};"
                 aria-label="Pick project color"
-                aria-haspopup="listbox"
+                aria-haspopup="dialog"
                 aria-expanded={pickerOpen}
                 onclick={() => (pickerOpen = !pickerOpen)}
             ></button>
@@ -140,22 +141,13 @@
                 }}
             />
             {#if pickerOpen}
-                <ul class="swatches" role="listbox" aria-label="Color presets">
-                    {#each PROJECT_COLORS as preset (preset)}
-                        <li>
-                            <button
-                                type="button"
-                                class="swatch"
-                                class:selected={color === preset}
-                                style="background-color: {preset};"
-                                aria-label={preset}
-                                aria-selected={color === preset}
-                                role="option"
-                                onclick={() => { color = preset; pickerOpen = false; }}
-                            ></button>
-                        </li>
-                    {/each}
-                </ul>
+                <div class="palette-popover">
+                    <ColorPalette
+                        bind:value={color}
+                        presets={PROJECT_COLORS}
+                        onselect={() => (pickerOpen = false)}
+                    />
+                </div>
             {/if}
         </div>
         <ProjectLimit
@@ -272,38 +264,11 @@
         filter: brightness(1.15);
     }
 
-    .swatches {
+    .palette-popover {
         position: absolute;
         top: calc(100% + 4px);
         left: 0;
         z-index: 5;
-        display: grid;
-        grid-template-columns: repeat(8, 1fr);
-        gap: 0.3rem;
-        margin: 0;
-        padding: 0.4rem;
-        list-style: none;
-        background-color: var(--gray-90);
-        border: 1px solid var(--gray-70);
-        border-radius: 4px;
-    }
-
-    .swatch {
-        width: 20px;
-        height: 20px;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        padding: 0;
-        cursor: pointer;
-        transition: transform 0.1s ease, border-color 0.1s ease;
-    }
-
-    .swatch:hover {
-        transform: scale(1.08);
-    }
-
-    .swatch.selected {
-        border-color: var(--gray-10);
     }
 
     .field-row {
