@@ -335,8 +335,10 @@
 
         syncTray();
 
-        summaryEntry = await getEntryByTimerId(timerId);
-        summaryTimerId = timerId;
+        if (summaryTimerId === null) {
+            summaryEntry = await getEntryByTimerId(timerId);
+            if (!summaryEntry?.title) summaryTimerId = timerId;
+        }
 
         if (showWindow) {
             const w = getCurrentWindow();
