@@ -7,14 +7,25 @@ import { startOfWeek } from "./date-utils";
 import type { ReportEntry } from "../types";
 
 
+export type TimesheetView = "vl" | "vw" | "vc";
+
+export const TIMESHEET_VIEW_SETTING_KEY = "timesheetView";
+export const DEFAULT_TIMESHEET_VIEW: TimesheetView = "vl";
+
+const TIMESHEET_VIEWS: readonly TimesheetView[] = ["vl", "vw", "vc"];
+
+/** Parses a stored setting value into a valid view id; falls back to default. */
+export function parseTimesheetView(value: string | null | undefined): TimesheetView {
+    return TIMESHEET_VIEWS.includes(value as TimesheetView) ? (value as TimesheetView) : DEFAULT_TIMESHEET_VIEW;
+}
+
+
 export interface TimesheetProjectGroup {
     projectId: number;
     projectName: string;
     entries: ReportEntry[];
     total: number;
     totalRounded: number;
-    /** raw total ignoring hidden state, used as a stable sort key so the
-     * project list doesn't reflow when entries are hidden/un-hidden. */
     rankTotal: number;
 }
 
