@@ -22,7 +22,7 @@
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import type { Project } from "$lib/types";
+    import type { Entry, Project } from "$lib/types";
     import {
         getProjects,
         startTimer,
@@ -75,6 +75,7 @@
     let todayTotal = $state(0);
     let weekTotal = $state(0);
     let summaryTimerId: number | null = $state(null);
+    let summaryEntry: Entry | null = $state(null);
     let summarySeen: boolean = $state(false);
     let showSummaryDot = $derived(running !== null && !summarySeen);
     let projectColors = $derived(buildProjectColorMap(projects));
@@ -334,6 +335,7 @@
 
         syncTray();
 
+        summaryEntry = await getEntryByTimerId(timerId);
         summaryTimerId = timerId;
 
         if (showWindow) {
@@ -368,11 +370,13 @@
         }
     }
 
-    function openSummary() {
+    async function openSummary() {
         if (!running) return;
+        const timerId = running.timerId;
         summarySeen = true;
-        localStorage.setItem(SUMMARY_SEEN_KEY, String(running.timerId));
-        summaryTimerId = running.timerId;
+        localStorage.setItem(SUMMARY_SEEN_KEY, String(timerId));
+        summaryEntry = await getEntryByTimerId(timerId);
+        summaryTimerId = timerId;
     }
 </script>
 
@@ -432,6 +436,7 @@
         onskip={handleSkipSummary}
         onbillablechange={handleBillableChange}
         running={running !== null}
+        entry={summaryEntry}
     />
 </main>
 
