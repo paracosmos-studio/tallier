@@ -15,6 +15,7 @@
     @param {() => void} [onhide] - callback to toggle the hidden state.
     @param {StackedBarSegment[]} [usage=[]] - per-app slices for the usage bar; empty hides it.
     @param {Map<string, string>} [icons] - app id to png data uri for the usage tooltip.
+    @param {(segment: StackedBarSegment) => void} [ondeleteusage] - callback to confirm removing an app from the usage bar.
 -->
 <script lang="ts">
     import Icon from "$lib/components/icon.svelte";
@@ -31,6 +32,7 @@
         onhide?: () => void;
         usage?: StackedBarSegment[];
         icons?: Map<string, string>;
+        ondeleteusage?: (segment: StackedBarSegment) => void;
     };
 
     const NO_ICONS: Map<string, string> = new Map();
@@ -43,6 +45,7 @@
         onhide,
         usage = [],
         icons = NO_ICONS,
+        ondeleteusage,
     }: Props = $props();
 
     const formatUsage = (v: number): string => formatDuration(v, true);
@@ -67,7 +70,7 @@
         {/if}
         {#if usage.length > 0}
             <span class="usage">
-                <EntryUsageBar segments={usage} {icons} formatValue={formatUsage} />
+                <EntryUsageBar segments={usage} {icons} formatValue={formatUsage} ondelete={ondeleteusage} />
             </span>
         {/if}
     </span>
