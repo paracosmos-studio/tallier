@@ -10,7 +10,7 @@
 
     @param {boolean} open - Controls dialog visibility.
     @param {string} [title=""] - Header title text.
-    @param {boolean} [dismissible=true] - Whether the dialog can be closed via close icon, Escape, or backdrop click.
+    @param {boolean} [dismissible=true] - Whether the dialog can be closed via close icon or Escape.
     @param {string} [width] - Optional preferred width (e.g. "520px"). Capped by 90vw.
     @param {() => any} [headerExtras] - Optional snippet rendered centered in the header (e.g. inline pagination).
     @param {() => any} [headerRight] - Optional snippet rendered right-aligned in the header, before the close icon.
@@ -54,18 +54,9 @@
         e.preventDefault();
         if (dismissible) onclose();
     }
-
-    function handleBackdropClick(e: MouseEvent) {
-        if (dismissible && e.target === dialogEl) onclose();
-    }
 </script>
 
-<dialog
-    bind:this={dialogEl}
-    oncancel={handleCancel}
-    onclick={handleBackdropClick}
-    aria-label={title || "Dialog"}
->
+<dialog bind:this={dialogEl} oncancel={handleCancel} aria-label={title || "Dialog"}>
     <div class="dialog-inner" bind:this={innerEl} tabindex="-1" style:width={width ?? ""}>
         <header class:has-extras={!!headerExtras}>
             {#if title}
