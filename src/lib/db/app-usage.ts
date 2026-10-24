@@ -35,3 +35,18 @@ export async function getAppUsageRows(
         [formatDateISO(lower), endDate]
     );
 }
+
+
+/**
+ * Deletes every segment one app recorded under a timer, removing the app
+ * from the entry's usage; the time it covered becomes untracked.
+ * @param timerId - timer the segments belong to.
+ * @param appId - app identifier (bundle id or executable path).
+ */
+export async function deleteAppUsage(timerId: number, appId: string): Promise<void> {
+    const database = getDB();
+    await database.execute(
+        "DELETE FROM app_usage WHERE timer_id = $1 AND app_id = $2",
+        [timerId, appId]
+    );
+}
