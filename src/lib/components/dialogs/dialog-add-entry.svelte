@@ -111,7 +111,6 @@
                 bind:value={projectId}
                 size="md"
                 nullable={false}
-                searchable={false}
             />
         </div>
         <div class="row-3">
