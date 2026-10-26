@@ -304,6 +304,7 @@
 <DialogAddEntry
     open={addOpen}
     {projects}
+    initialDate={selectedDate}
     onsave={handleAdd}
     onclose={() => (addOpen = false)}
 />
