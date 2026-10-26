@@ -8,6 +8,7 @@
 
     @param {boolean} open - controls dialog visibility.
     @param {Project[]} projects - all projects for the dropdown.
+    @param {string | null} [initialDate=null] - ISO date to seed the date field; falls back to today.
     @param {(data: { projectId: number; date: string; start: string; end: string; title: string | null; summary: string | null; isBillable: boolean }) => void} onsave - save callback.
     @param {() => void} onclose - close callback.
 -->
@@ -22,6 +23,7 @@
     type Props = {
         open: boolean;
         projects: Project[];
+        initialDate?: string | null;
         onsave: (data: {
             projectId: number;
             date: string;
@@ -34,7 +36,7 @@
         onclose: () => void;
     };
 
-    let { open, projects, onsave, onclose }: Props = $props();
+    let { open, projects, initialDate = null, onsave, onclose }: Props = $props();
 
     let projectId: string = $state("");
     let date: string = $state("");
@@ -47,7 +49,7 @@
     $effect(() => {
         if (open) {
             projectId = projects[0] ? String(projects[0].id) : "";
-            date = formatDateISO(new Date());
+            date = initialDate ?? formatDateISO(new Date());
             title = "";
             summary = "";
             start = "09:00:00";
@@ -109,7 +111,6 @@
                 bind:value={projectId}
                 size="md"
                 nullable={false}
-                searchable={false}
             />
         </div>
         <div class="row-3">
