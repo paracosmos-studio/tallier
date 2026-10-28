@@ -7,20 +7,36 @@
     import { listen } from "@tauri-apps/api/event";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
-    import { getProjects, startTimer, stopTimer, createEntry, updateEntrySummary, updateEntryBillable, getEntryByTimerId, getRunningTimer, getTodayProjectTotal, getWeekProjectTotal, getProjectTotalsForLimits, getSetting } from "$lib/db";
     import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
-    import { setTrayTimer, setTrayAutoPause } from "$lib/tray";
+    import { setTrayTimer } from "$lib/tray";
     import type { TrayProject } from "$lib/tray";
     import { startUsageTracking, stopUsageTracking } from "$lib/usage";
     import Select from "$lib/components/select.svelte";
     import Menu from "$lib/components/menu.svelte";
+    import Icon from "$lib/components/icon.svelte";
+    import { Description } from "$lib/icons";
+    import { buildProjectColorMap } from "$lib/helpers/colors";
     import Timer from "$lib/components/timer.svelte";
     import DialogSummary from "$lib/components/dialogs/dialog-summary.svelte";
     import { setCompactHeight } from "$lib/window";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import type { Project } from "$lib/types";
+    import type { Entry, Project } from "$lib/types";
+    import {
+        getProjects,
+        startTimer,
+        stopTimer,
+        createEntry,
+        updateEntrySummary,
+        updateEntryBillable,
+        getEntryByTimerId,
+        getRunningTimer,
+        getTodayProjectTotal,
+        getWeekProjectTotal,
+        getProjectTotalsForLimits,
+        getSetting
+    } from "$lib/db";
 
     let selectedProject = $state("");
     let projects: Project[] = $state([]);
@@ -42,6 +58,7 @@
                 : { value: String(p.id), label: p.name };
         })
     );
+
     let limitReached = $derived.by(() => {
         const proj = getSelectedProject();
         if (!proj || !proj.max_daily_enabled) return false;
@@ -49,12 +66,19 @@
         if (proj.max_weekly && proj.max_weekly > 0 && weekTotal >= proj.max_weekly) return true;
         return false;
     });
+
     let timerDisabled = $derived(selectedProject === "" || limitReached);
+
+    const SUMMARY_SEEN_KEY = "home.summarySeenTimerId";
 
     let running: { timerId: number; startedAt: Date } | null = $state(null);
     let todayTotal = $state(0);
     let weekTotal = $state(0);
-    let stoppedTimerId: number | null = $state(null);
+    let summaryTimerId: number | null = $state(null);
+    let summaryEntry: Entry | null = $state(null);
+    let summarySeen: boolean = $state(false);
+    let showSummaryDot = $derived(running !== null && !summarySeen);
+    let projectColors = $derived(buildProjectColorMap(projects));
     let showTrayTitle: boolean = $state(false);
     let autoPauseOnSleep: boolean = $state(false);
     let weekStartsOn: number = $state(DEFAULT_WEEK_START);
@@ -68,7 +92,6 @@
         return projects.find(p => p.id === Number(selectedProject));
     }
 
-    // compute the effective max seconds (lowest applicable daily/weekly cap minus base)
     function getEffectiveMaxSeconds(): number | undefined {
         const proj = getSelectedProject();
         if (!proj || !proj.max_daily_enabled) return undefined;
@@ -202,14 +225,13 @@
         if (existing && existing.id !== undefined) {
             const startedAt = new Date(`${existing.date}T${existing.start}`);
             running = { timerId: existing.id, startedAt };
+            summarySeen = localStorage.getItem(SUMMARY_SEEN_KEY) === String(existing.id);
 
             const entry = await getEntryByTimerId(existing.id);
             if (entry) {
                 selectedProject = String(entry.project_id);
             }
 
-            // rust keeps tracking across route changes; this re-attach is a
-            // no-op for the same timer and closes stale rows after a crash
             if (getSelectedProject()?.track_app_usage) startUsageTracking(existing.id).catch(() => {});
         }
 
@@ -222,8 +244,8 @@
             startLimitChecking();
         }
 
-        // handle tray actions routed via layout navigation
         const trayAction = page.url.searchParams.get("tray");
+
         if (trayAction) {
             await goto("/", { replaceState: true });
             if (trayAction === "stop_timer" && running) {
@@ -238,20 +260,25 @@
 
         listen<string>("tray-menu-action", (event) => {
             const payload = event.payload;
+
             if (payload === "stop_timer" && running) {
                 handleStop(running.timerId, true);
+
             } else if (payload === "start_timer" && !running && selectedProject) {
                 handleStart();
+
             } else if (payload === "limit_reached" && running) {
                 handleStop(running.timerId, true);
                 const proj = getSelectedProject();
                 if (proj) notify("Timer Stopped", `${proj.name}: time limit reached`);
+
             } else if (payload.startsWith("auto_pause:") && running) {
                 const preSleepMs = Number(payload.slice("auto_pause:".length));
                 const endAt = preSleepMs > 0 ? new Date(preSleepMs) : undefined;
                 handleStop(running.timerId, true, endAt);
                 const proj = getSelectedProject();
                 if (proj) notify("Timer Stopped", `${proj.name}: system went to sleep`);
+
             } else if (payload.startsWith("select_project:")) {
                 const projId = Number(payload.slice("select_project:".length));
                 handleTrayProjectSelect(projId);
@@ -282,6 +309,7 @@
 
         const timerId = await startTimer();
         running = { timerId, startedAt: new Date() };
+        summarySeen = false;
 
         if (selectedProject) {
             await createEntry(timerId, Number(selectedProject));
@@ -294,16 +322,24 @@
     }
 
     async function handleStop(timerId: number, showWindow = false, endAt?: Date) {
-        // no-op unless tracking; `endAt` clamps the segments for auto-pause
         await stopUsageTracking(endAt?.getTime()).catch(() => {});
         await stopTimer(timerId, endAt);
+
         running = null;
+
         stopLimitChecking();
+
         await refreshTodayTotal();
         await refreshWeekTotal();
         await refreshProjectTotals();
+
         syncTray();
-        stoppedTimerId = timerId;
+
+        if (summaryTimerId === null) {
+            summaryEntry = await getEntryByTimerId(timerId);
+            if (!summaryEntry?.title) summaryTimerId = timerId;
+        }
+
         if (showWindow) {
             const w = getCurrentWindow();
             await w.show();
@@ -320,20 +356,29 @@
     }
 
     async function handleSummary(title: string, summary: string, isBillable: boolean) {
-        if (stoppedTimerId !== null) {
-            await updateEntrySummary(stoppedTimerId, title, summary, isBillable);
+        if (summaryTimerId !== null) {
+            await updateEntrySummary(summaryTimerId, title, summary, isBillable);
         }
-        stoppedTimerId = null;
+        summaryTimerId = null;
     }
 
     async function handleSkipSummary() {
-        stoppedTimerId = null;
+        summaryTimerId = null;
     }
 
     async function handleBillableChange(isBillable: boolean) {
-        if (stoppedTimerId !== null) {
-            await updateEntryBillable(stoppedTimerId, isBillable);
+        if (summaryTimerId !== null) {
+            await updateEntryBillable(summaryTimerId, isBillable);
         }
+    }
+
+    async function openSummary() {
+        if (!running) return;
+        const timerId = running.timerId;
+        summarySeen = true;
+        localStorage.setItem(SUMMARY_SEEN_KEY, String(timerId));
+        summaryEntry = await getEntryByTimerId(timerId);
+        summaryTimerId = timerId;
     }
 </script>
 
@@ -345,39 +390,95 @@
         onstart={handleStart}
         onstop={handleStop}
     />
-    <Select
-        options={projectOptions}
-        bind:value={selectedProject}
-        placeholder="Select Project"
-        disabled={running !== null}
-        onchange={async (value) => {
-            selectedProject = value;
-            await refreshTodayTotal();
-            await refreshWeekTotal();
-            syncTray();
-        }}
-        size="lg"
-        onopen={async () => {
-            const height =
-                projectOptions.length > 4 ? 343 :
-                    projectOptions.length === 4 ? 339 :
-                        projectOptions.length === 3 ? 303 :
-                            projectOptions.length === 2 ? 266 : 250;
-            await setCompactHeight(height);
-        }}
-        onclose={async () => {
-            await setCompactHeight(250);
-        }}
-    />
+    <div class="entry-row">
+        {#if running}
+            <button
+                class="summary-button"
+                title="Summary"
+                aria-label="Edit summary"
+                style:--dot-color={projectColors.get(Number(selectedProject))}
+                onclick={openSummary}
+            >
+                <Icon path={Description} size="18" fill="currentColor" />
+                {#if showSummaryDot}
+                    <span class="dot" aria-hidden="true"></span>
+                {/if}
+            </button>
+        {/if}
+        <Select
+            options={projectOptions}
+            bind:value={selectedProject}
+            placeholder="Select Project"
+            disabled={running !== null}
+            onchange={async (value) => {
+                selectedProject = value;
+                await refreshTodayTotal();
+                await refreshWeekTotal();
+                syncTray();
+            }}
+            size="lg"
+            onopen={async () => {
+                const height =
+                    projectOptions.length > 4 ? 343 :
+                        projectOptions.length === 4 ? 339 :
+                            projectOptions.length === 3 ? 303 :
+                                projectOptions.length === 2 ? 266 : 250;
+                await setCompactHeight(height);
+            }}
+            onclose={async () => {
+                await setCompactHeight(250);
+            }}
+        />
+    </div>
     <Menu />
 
     <DialogSummary
-        open={stoppedTimerId !== null}
+        open={summaryTimerId !== null}
         onsave={handleSummary}
         onskip={handleSkipSummary}
         onbillablechange={handleBillableChange}
+        running={running !== null}
+        entry={summaryEntry}
     />
 </main>
 
 <style>
+    .entry-row {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .summary-button {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 44px;
+        background: var(--field-bg);
+        border: 1px solid var(--gray-70);
+        border-radius: 6px;
+        color: var(--gray-20);
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .summary-button:hover,
+    .summary-button:focus-visible {
+        border-color: var(--gray-60);
+        background: var(--gray-80);
+        color: var(--color-text);
+        outline: none;
+    }
+
+    .dot {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--dot-color, var(--green));
+    }
 </style>
