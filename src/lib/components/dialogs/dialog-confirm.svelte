@@ -17,8 +17,8 @@
 -->
 
 <script lang="ts">
-    import Dialog from "$lib/components/dialogs/dialog.svelte";
-    import Button from "$lib/components/button.svelte";
+    import Dialog from "#lib/components/dialogs/dialog.svelte";
+    import Button from "#lib/components/button.svelte";
 
     type Props = {
         open: boolean;

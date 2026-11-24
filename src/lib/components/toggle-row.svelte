@@ -13,7 +13,7 @@
     @param {(checked: boolean) => void} [onchange] - fires when the toggle changes.
 -->
 <script lang="ts">
-    import Toggle from "$lib/components/toggle.svelte";
+    import Toggle from "#lib/components/toggle.svelte";
 
     type Props = {
         label: string;

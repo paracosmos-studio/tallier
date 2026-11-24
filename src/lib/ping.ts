@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
-import { getSetting, setSetting, deleteSetting } from "$lib/db";
-import { appMeta } from "$lib/helpers/export-meta";
-import { settings } from "$lib/config";
+import { getSetting, setSetting, deleteSetting } from "#lib/db/index.ts";
+import { appMeta } from "#lib/helpers/export-meta.ts";
+import { settings } from "#lib/config.ts";
 
 export const USAGE_PING_SETTING_KEY = "sendAnonymousUsagePing";
 export const USAGE_PING_ID_KEY = "anonymousPingId";

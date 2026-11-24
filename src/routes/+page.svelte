@@ -7,22 +7,22 @@
     import { listen } from "@tauri-apps/api/event";
     import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification";
     import { invoke } from "@tauri-apps/api/core";
-    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
-    import { setTrayTimer } from "$lib/tray";
-    import type { TrayProject } from "$lib/tray";
-    import { startUsageTracking, stopUsageTracking } from "$lib/usage";
-    import Select from "$lib/components/select.svelte";
-    import Menu from "$lib/components/menu.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Description } from "$lib/icons";
-    import { buildProjectColorMap } from "$lib/helpers/colors";
-    import Timer from "$lib/components/timer.svelte";
-    import DialogSummary from "$lib/components/dialogs/dialog-summary.svelte";
-    import { setCompactHeight } from "$lib/window";
+    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "#lib/helpers/date-utils.ts";
+    import { setTrayTimer } from "#lib/tray.ts";
+    import type { TrayProject } from "#lib/tray.ts";
+    import { startUsageTracking, stopUsageTracking } from "#lib/usage.ts";
+    import Select from "#lib/components/select.svelte";
+    import Menu from "#lib/components/menu.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import { Description } from "#lib/icons.ts";
+    import { buildProjectColorMap } from "#lib/helpers/colors.ts";
+    import Timer from "#lib/components/timer.svelte";
+    import DialogSummary from "#lib/components/dialogs/dialog-summary.svelte";
+    import { setCompactHeight } from "#lib/window.ts";
     import { getCurrentWindow } from "@tauri-apps/api/window";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import type { Entry, Project } from "$lib/types";
+    import type { Entry, Project } from "#lib/types.ts";
     import {
         getProjects,
         startTimer,
@@ -36,7 +36,7 @@
         getWeekProjectTotal,
         getProjectTotalsForLimits,
         getSetting
-    } from "$lib/db";
+    } from "#lib/db/index.ts";
 
     let selectedProject = $state("");
     let projects: Project[] = $state([]);
@@ -247,7 +247,7 @@
         const trayAction = page.url.searchParams.get("tray");
 
         if (trayAction) {
-            await goto("/", { replaceState: true });
+            await goto("/", { replace: true });
             if (trayAction === "stop_timer" && running) {
                 handleStop(running.timerId, true);
             } else if (trayAction === "start_timer" && !running && selectedProject) {

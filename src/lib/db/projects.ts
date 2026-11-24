@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
-import type { Project, ProjectLimits } from "$lib/types";
+import type { Project, ProjectLimits } from "#lib/types.ts";
 
 
 /** Returns all projects ordered by position ascending. */

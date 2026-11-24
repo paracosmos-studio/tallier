@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { invoke } from "@tauri-apps/api/core";
-import { normalizeHex } from "$lib/helpers/colors";
+import { normalizeHex } from "#lib/helpers/colors.ts";
 
 // minimal shape of the chromium eyedropper api (webview2); absent from lib.dom
 interface EyeDropperApi {

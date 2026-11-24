@@ -10,13 +10,13 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { getVersion } from "@tauri-apps/api/app";
-    import Icon from "$lib/components/icon.svelte";
-    import IconGithub from "$lib/components/icons/icon-github.svelte";
-    import IconStudio from "$lib/components/icons/icon-studio.svelte";
-    import Button from "$lib/components/button.svelte";
-    import { settings } from "$lib/config";
-    import { ChatBubble, Donate, ShieldPerson, Contract, Refresh } from "$lib/icons";
-    import { updaterAvailable, checkForUpdate, openUpdatePrompt } from "$lib/updater.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import IconGithub from "#lib/components/icons/icon-github.svelte";
+    import IconStudio from "#lib/components/icons/icon-studio.svelte";
+    import Button from "#lib/components/button.svelte";
+    import { settings } from "#lib/config.ts";
+    import { ChatBubble, Donate, ShieldPerson, Contract, Refresh } from "#lib/icons.ts";
+    import { updaterAvailable, checkForUpdate, openUpdatePrompt } from "#lib/updater.svelte.ts";
 
     const currentYear: number = new Date().getFullYear();
     const copyrightYear: number = Math.max(currentYear, settings.releaseYear);

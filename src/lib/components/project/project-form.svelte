@@ -4,14 +4,14 @@
 -->
 <script lang="ts">
     import { onMount, untrack } from "svelte";
-    import type { Project, ProjectLimits } from "$lib/types";
-    import { PROJECT_COLORS, getRandomProjectColor } from "$lib/helpers/colors";
-    import { CURRENCIES } from "$lib/helpers/currency";
-    import Select from "$lib/components/select.svelte";
-    import Toggle from "$lib/components/toggle.svelte";
-    import ColorPalette from "$lib/components/color-palette.svelte";
+    import type { Project, ProjectLimits } from "#lib/types.ts";
+    import { PROJECT_COLORS, getRandomProjectColor } from "#lib/helpers/colors.ts";
+    import { CURRENCIES } from "#lib/helpers/currency.ts";
+    import Select from "#lib/components/select.svelte";
+    import Toggle from "#lib/components/toggle.svelte";
+    import ColorPalette from "#lib/components/color-palette.svelte";
     import ProjectLimit from "./project-limit.svelte";
-    import { usageTrackingSupported } from "$lib/usage";
+    import { usageTrackingSupported } from "#lib/usage.ts";
 
     export interface ProjectFormExtras {
         color: string;

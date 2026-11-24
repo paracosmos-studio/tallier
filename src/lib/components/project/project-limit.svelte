@@ -20,7 +20,7 @@
 <script lang="ts">
     import Icon from "../icon.svelte";
     import TimeInput from "../time-input.svelte";
-    import { CheckboxChecked, CheckboxBlank } from "$lib/icons";
+    import { CheckboxChecked, CheckboxBlank } from "#lib/icons.ts";
 
     const ZERO = '00:00:00';
     const CAP = '99:59:59';

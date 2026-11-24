@@ -21,11 +21,11 @@
     @param {(entry: ReportEntry, siblings?: ReportEntry[]) => void} onedit - request to open the edit dialog; pass the full set of entries in the cell so the dialog can page through them.
 -->
 <script lang="ts">
-    import { formatDateShort, formatDateISO, MONTHS } from "$lib/helpers/format";
-    import { buildDayGroups, buildWeeks } from "$lib/helpers/timesheet";
-    import { orderedDayLabels } from "$lib/helpers/date-utils";
-    import type { ReportEntry, Project } from "$lib/types";
-    import type { EntryOverride, WeekSection } from "$lib/helpers/timesheet";
+    import { formatDateShort, formatDateISO, MONTHS } from "#lib/helpers/format.ts";
+    import { buildDayGroups, buildWeeks } from "#lib/helpers/timesheet.ts";
+    import { orderedDayLabels } from "#lib/helpers/date-utils.ts";
+    import type { ReportEntry, Project } from "#lib/types.ts";
+    import type { EntryOverride, WeekSection } from "#lib/helpers/timesheet.ts";
 
     type Props = {
         entries: ReportEntry[];

@@ -44,7 +44,7 @@
     import { onDestroy, onMount, untrack } from "svelte";
     import Button from "./button.svelte";
     import Icon from "./icon.svelte";
-    import { Add, Drag, Delete } from "$lib/icons";
+    import { Add, Drag, Delete } from "#lib/icons.ts";
 
     const MIN_COL_PX: number = 48;
 

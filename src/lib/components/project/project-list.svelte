@@ -15,11 +15,11 @@
 -->
 
 <script lang="ts">
-    import type { Project } from "$lib/types";
-    import Icon from "$lib/components/icon.svelte";
-    import EmptyState from "$lib/components/empty-state.svelte";
-    import { CheckCircle, CloseCircle, Build, Delete, Drag, FolderOutlined, Add } from "$lib/icons";
-    import { buildProjectColorMap } from "$lib/helpers/colors";
+    import type { Project } from "#lib/types.ts";
+    import Icon from "#lib/components/icon.svelte";
+    import EmptyState from "#lib/components/empty-state.svelte";
+    import { CheckCircle, CloseCircle, Build, Delete, Drag, FolderOutlined, Add } from "#lib/icons.ts";
+    import { buildProjectColorMap } from "#lib/helpers/colors.ts";
 
     type Props = {
         projects: Project[];

@@ -23,14 +23,14 @@
     @param {(entry: ReportEntry) => void} [onnavigate] - called with the sibling to switch to.
 -->
 <script lang="ts">
-    import Dialog from "$lib/components/dialogs/dialog.svelte";
-    import Select from "$lib/components/select.svelte";
-    import ToggleRow from "$lib/components/toggle-row.svelte";
-    import Button from "$lib/components/button.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { ArrowBack, ArrowForward } from "$lib/icons";
-    import { computeDuration, formatDuration, timeToSeconds } from "$lib/helpers/format";
-    import type { ReportEntry, Project } from "$lib/types";
+    import Dialog from "#lib/components/dialogs/dialog.svelte";
+    import Select from "#lib/components/select.svelte";
+    import ToggleRow from "#lib/components/toggle-row.svelte";
+    import Button from "#lib/components/button.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import { ArrowBack, ArrowForward } from "#lib/icons.ts";
+    import { computeDuration, formatDuration, timeToSeconds } from "#lib/helpers/format.ts";
+    import type { ReportEntry, Project } from "#lib/types.ts";
 
     type Props = {
         open: boolean;

@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
-import { startOfWeek, endOfWeek } from "$lib/helpers/date-utils";
-import type { Timer } from "$lib/types";
+import { startOfWeek, endOfWeek } from "#lib/helpers/date-utils.ts";
+import type { Timer } from "#lib/types.ts";
 
 function fmtISODate(d: Date): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

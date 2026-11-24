@@ -6,7 +6,7 @@
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
     import { page } from "$app/state";
-    import type { Project, ProjectLimits, Client, Profile } from "$lib/types";
+    import type { Project, ProjectLimits, Client, Profile } from "#lib/types.ts";
     import {
         Add,
         FolderOutlined,
@@ -17,19 +17,19 @@
         Tune,
         InfoOutlined,
         InfoFilled,
-    } from "$lib/icons";
-    import Icon from "$lib/components/icon.svelte";
-    import Button from "$lib/components/button.svelte";
-    import PageNavigation from "$lib/components/page-navigation.svelte";
-    import ProjectList from "$lib/components/project/project-list.svelte";
-    import ProjectForm from "$lib/components/project/project-form.svelte";
-    import ClientList from "$lib/components/client/client-list.svelte";
-    import ClientForm from "$lib/components/client/client-form.svelte";
-    import ProfileList from "$lib/components/profile/profile-list.svelte";
-    import ProfileForm from "$lib/components/profile/profile-form.svelte";
-    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
-    import PreferenceTab from "$lib/components/settings/preference-tab.svelte";
-    import AboutTab from "$lib/components/settings/about-tab.svelte";
+    } from "#lib/icons.ts";
+    import Icon from "#lib/components/icon.svelte";
+    import Button from "#lib/components/button.svelte";
+    import PageNavigation from "#lib/components/page-navigation.svelte";
+    import ProjectList from "#lib/components/project/project-list.svelte";
+    import ProjectForm from "#lib/components/project/project-form.svelte";
+    import ClientList from "#lib/components/client/client-list.svelte";
+    import ClientForm from "#lib/components/client/client-form.svelte";
+    import ProfileList from "#lib/components/profile/profile-list.svelte";
+    import ProfileForm from "#lib/components/profile/profile-form.svelte";
+    import DialogConfirm from "#lib/components/dialogs/dialog-confirm.svelte";
+    import PreferenceTab from "#lib/components/settings/preference-tab.svelte";
+    import AboutTab from "#lib/components/settings/about-tab.svelte";
     import {
         getProjects,
         createProject,
@@ -50,10 +50,10 @@
         reorderProfiles,
         deleteProfile,
         type ProjectExtras,
-    } from "$lib/db";
-    import { buildProjectColorMap } from "$lib/helpers/colors";
-    import { clientDisplayName } from "$lib/helpers/clients";
-    import { startUsageTracking, stopUsageTracking } from "$lib/usage";
+    } from "#lib/db/index.ts";
+    import { buildProjectColorMap } from "#lib/helpers/colors.ts";
+    import { clientDisplayName } from "#lib/helpers/clients.ts";
+    import { startUsageTracking, stopUsageTracking } from "#lib/usage.ts";
 
     type Tab = "projects" | "clients" | "profiles" | "preference" | "about";
     type ProjectView = "list" | "add" | "edit";
@@ -303,9 +303,8 @@
 
     function selectTab(id: Tab) {
         goto(id === "projects" ? "/settings" : `?tab=${id}`, {
-            replaceState: true,
-            keepFocus: true,
-            noScroll: true,
+            replace: true,
+            reset: false,
         });
     }
 

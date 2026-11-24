@@ -2,9 +2,9 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
-import { computeDuration } from "$lib/helpers/format";
-import { splitCrossMidnight } from "$lib/helpers/cross-midnight";
-import type { ReportEntry, DailyProjectTotal, ProjectTotal } from "$lib/types";
+import { computeDuration } from "#lib/helpers/format.ts";
+import { splitCrossMidnight } from "#lib/helpers/cross-midnight.ts";
+import type { ReportEntry, DailyProjectTotal, ProjectTotal } from "#lib/types.ts";
 
 
 /**

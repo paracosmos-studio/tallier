@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
-import { getSetting, setSetting } from "$lib/db";
+import { getSetting, setSetting } from "#lib/db/index.ts";
 
 export const PROJECT_COLORS: readonly string[] = [
     "#9ECB78",

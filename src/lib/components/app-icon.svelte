@@ -14,7 +14,7 @@
     @param {number} [size=18] - width and height in pixels.
 -->
 <script lang="ts">
-    import { appInitials } from "$lib/helpers/app-usage";
+    import { appInitials } from "#lib/helpers/app-usage.ts";
 
     type Props = {
         name: string;

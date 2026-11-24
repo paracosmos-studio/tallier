@@ -19,11 +19,11 @@
 <script lang="ts">
     import { onMount, untrack } from "svelte";
     import ProfileSelect from "./profile-select.svelte";
-    import DialogEditProfile from "$lib/components/dialogs/dialog-edit-profile.svelte";
-    import { getProfiles, createProfile, updateProfile } from "$lib/db";
-    import { generateInvoiceNo } from "$lib/helpers/invoice";
-    import { formatDateISO } from "$lib/helpers/format";
-    import type { Client, InvoiceMeta, Profile } from "$lib/types";
+    import DialogEditProfile from "#lib/components/dialogs/dialog-edit-profile.svelte";
+    import { getProfiles, createProfile, updateProfile } from "#lib/db/index.ts";
+    import { generateInvoiceNo } from "#lib/helpers/invoice.ts";
+    import { formatDateISO } from "#lib/helpers/format.ts";
+    import type { Client, InvoiceMeta, Profile } from "#lib/types.ts";
 
     type Props = {
         client?: Client;

@@ -21,16 +21,16 @@
 -->
 <script lang="ts">
     import EntryRow from "./entry-row.svelte";
-    import { formatDuration } from "$lib/helpers/format";
-    import { APP_COLORS } from "$lib/helpers/colors";
+    import { formatDuration } from "#lib/helpers/format.ts";
+    import { APP_COLORS } from "#lib/helpers/colors.ts";
     import {
         localDateTimeMs,
         sumAppSeconds,
         mergeAppSeconds,
         rankAppColors,
         usageSegments,
-    } from "$lib/helpers/app-usage";
-    import type { ReportEntry, ProjectEntryGroup, AppUsageRow, AppSeconds, StackedBarSegment } from "$lib/types";
+    } from "#lib/helpers/app-usage.ts";
+    import type { ReportEntry, ProjectEntryGroup, AppUsageRow, AppSeconds, StackedBarSegment } from "#lib/types.ts";
 
     type Props = {
         entries: ReportEntry[];

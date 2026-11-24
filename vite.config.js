@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
+import adapter from "@sveltejs/adapter-static";
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 
@@ -9,7 +10,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [sveltekit()],
+  plugins: [sveltekit({ adapter: adapter() })],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

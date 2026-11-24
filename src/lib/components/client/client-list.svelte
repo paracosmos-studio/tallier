@@ -17,12 +17,12 @@
     @param {() => void} [onadd] - Optional callback invoked from the empty state's call-to-action.
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
-    import EmptyState from "$lib/components/empty-state.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import EmptyState from "#lib/components/empty-state.svelte";
     import ClientAvatar from "./client-avatar.svelte";
-    import { Delete, WorkOutlined, Add, Drag } from "$lib/icons";
-    import { clientDisplayName, clientSubtext } from "$lib/helpers/clients";
-    import type { Client } from "$lib/types";
+    import { Delete, WorkOutlined, Add, Drag } from "#lib/icons.ts";
+    import { clientDisplayName, clientSubtext } from "#lib/helpers/clients.ts";
+    import type { Client } from "#lib/types.ts";
 
     type Props = {
         clients: Client[];

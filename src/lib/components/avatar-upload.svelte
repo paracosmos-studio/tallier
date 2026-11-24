@@ -14,14 +14,14 @@
 -->
 <script lang="ts">
     import { onDestroy } from "svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Add, Edit, Close } from "$lib/icons";
+    import Icon from "#lib/components/icon.svelte";
+    import { Add, Edit, Close } from "#lib/icons.ts";
     import {
         saveClientAvatar,
         deleteClientAvatar,
         AVATAR_ACCEPT,
         avatarSrc,
-    } from "$lib/helpers/clients";
+    } from "#lib/helpers/clients.ts";
 
     type Props = {
         value: string | null;

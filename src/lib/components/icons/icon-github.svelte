@@ -6,7 +6,7 @@
     @component
     GitHub brand glyph. Renders the Octocat in `currentColor` so the parent
     controls the fill via CSS color. Uses its own viewBox so it can't be
-    expressed as a single Material-Symbols path in `$lib/icons.ts`.
+    expressed as a single Material-Symbols path in `#lib/icons.ts`.
 
     @param {string} [size="16"] - Width/height in pixels.
 -->

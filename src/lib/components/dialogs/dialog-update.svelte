@@ -5,14 +5,14 @@
 <!--
     @component
     "Update available" prompt driven by the shared `updatePrompt` state in
-    $lib/updater.svelte. Rendered once in the root layout; both the startup
+    #lib/updater.svelte.ts. Rendered once in the root layout; both the startup
     auto-check and the About tab's manual check open it via openUpdatePrompt.
     Takes no props.
 -->
 
 <script lang="ts">
-    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
-    import { updatePrompt, dismissUpdatePrompt, installAndRelaunch } from "$lib/updater.svelte";
+    import DialogConfirm from "#lib/components/dialogs/dialog-confirm.svelte";
+    import { updatePrompt, dismissUpdatePrompt, installAndRelaunch } from "#lib/updater.svelte.ts";
 
     let installing: boolean = $state(false);
 

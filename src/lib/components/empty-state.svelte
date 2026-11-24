@@ -7,7 +7,7 @@
     Centered empty-state with a circular icon, heading, description, and an
     optional call-to-action button.
 
-    @param {string} icon - SVG path string from `$lib/icons`.
+    @param {string} icon - SVG path string from `#lib/icons.ts`.
     @param {string} title - heading text.
     @param {string} description - subtext shown beneath the heading.
     @param {string} [actionLabel] - label for the call-to-action button.
@@ -15,8 +15,8 @@
     @param {() => void} [onaction] - click handler for the action button.
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
-    import Button from "$lib/components/button.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import Button from "#lib/components/button.svelte";
 
     type Props = {
         icon: string;

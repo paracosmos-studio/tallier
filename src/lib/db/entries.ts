@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
-import type { Entry } from "$lib/types";
+import type { Entry } from "#lib/types.ts";
 
 
 /**

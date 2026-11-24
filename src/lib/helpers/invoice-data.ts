@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
-import type { TableColumn, TableRow } from "$lib/components/table.svelte";
-import type { Client, InvoiceData, InvoiceMeta, Profile } from "$lib/types";
+import type { TableColumn, TableRow } from "#lib/components/table.svelte";
+import type { Client, InvoiceData, InvoiceMeta, Profile } from "#lib/types.ts";
 import { formatDateMedium } from "./format";
 
 type Snapshot = { columns: TableColumn[]; rows: TableRow[] };

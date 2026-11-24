@@ -3,8 +3,8 @@
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
-    import { Alarm, Settings, ChartBar } from "$lib/icons";
+    import Icon from "#lib/components/icon.svelte";
+    import { Alarm, Settings, ChartBar } from "#lib/icons.ts";
     import { page } from '$app/state';
 
     interface TitleInfo {

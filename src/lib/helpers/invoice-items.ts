@@ -3,8 +3,8 @@
 
 import { roundSeconds, formatDateMedium } from "./format";
 import { currencySymbol } from "./currency";
-import type { ReportEntry, Project } from "$lib/types";
-import type { TableInit, TableInitRow } from "$lib/components/table.svelte";
+import type { ReportEntry, Project } from "#lib/types.ts";
+import type { TableInit, TableInitRow } from "#lib/components/table.svelte";
 
 export type InvoiceItemOptions = {
     cumulativeOnly: boolean;

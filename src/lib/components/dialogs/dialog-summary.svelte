@@ -15,10 +15,10 @@
 -->
 
 <script lang="ts">
-    import Dialog from "$lib/components/dialogs/dialog.svelte";
-    import Button from "$lib/components/button.svelte";
-    import ToggleRow from "$lib/components/toggle-row.svelte";
-    import type { Entry } from "$lib/types";
+    import Dialog from "#lib/components/dialogs/dialog.svelte";
+    import Button from "#lib/components/button.svelte";
+    import ToggleRow from "#lib/components/toggle-row.svelte";
+    import type { Entry } from "#lib/types.ts";
 
     type Props = {
         open: boolean;

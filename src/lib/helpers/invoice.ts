@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
-import type { Client } from "$lib/types";
+import type { Client } from "#lib/types.ts";
 
 /**
  * Builds an invoice number for a client. When the client defines an invoice ID

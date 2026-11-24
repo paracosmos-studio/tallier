@@ -14,8 +14,8 @@
 -->
 <script lang="ts">
     import { onDestroy } from 'svelte';
-    import Icon from '$lib/components/icon.svelte';
-    import { PlayCircle, StopCircle } from '$lib/icons';
+    import Icon from '#lib/components/icon.svelte';
+    import { PlayCircle, StopCircle } from '#lib/icons.ts';
 
     interface Props {
         disabled?: boolean;

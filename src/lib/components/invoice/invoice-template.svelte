@@ -15,9 +15,9 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { invoke } from "@tauri-apps/api/core";
-    import Button from "$lib/components/button.svelte";
-    import { toInvoiceInput } from "$lib/helpers/invoice-data";
-    import type { InvoiceData } from "$lib/types";
+    import Button from "#lib/components/button.svelte";
+    import { toInvoiceInput } from "#lib/helpers/invoice-data.ts";
+    import type { InvoiceData } from "#lib/types.ts";
 
     type Props = { data: InvoiceData; selected?: string };
 

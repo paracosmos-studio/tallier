@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
-import { deleteClientAvatar } from "$lib/helpers/clients";
-import type { Client, ClientContact } from "$lib/types";
+import { deleteClientAvatar } from "#lib/helpers/clients.ts";
+import type { Client, ClientContact } from "#lib/types.ts";
 
 async function storedAvatar(id: number): Promise<string | null> {
     const rows = await getDB().select<{ avatar: string | null }[]>(

@@ -3,7 +3,7 @@
 
 import { formatDateISO, nextDateISO, timeToSeconds } from "./format";
 import { APP_COLORS } from "./colors";
-import type { AppUsageRow, AppSeconds, StackedBarSegment } from "$lib/types";
+import type { AppUsageRow, AppSeconds, StackedBarSegment } from "#lib/types.ts";
 
 export const UNTRACKED_KEY: string = "untracked";
 export const UNTRACKED_LABEL: string = "Untracked";
