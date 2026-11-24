@@ -17,13 +17,13 @@
     @param {() => void} [onadd] - Fires from the empty-state "Add Profile" button.
 -->
 <script lang="ts">
-    import Select from "$lib/components/select.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import Button from "$lib/components/button.svelte";
-    import ClientAvatar from "$lib/components/client/client-avatar.svelte";
-    import { Edit, Add } from "$lib/icons";
-    import { firstContactValue } from "$lib/helpers/clients";
-    import type { Profile } from "$lib/types";
+    import Select from "#lib/components/select.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import Button from "#lib/components/button.svelte";
+    import ClientAvatar from "#lib/components/client/client-avatar.svelte";
+    import { Edit, Add } from "#lib/icons.ts";
+    import { firstContactValue } from "#lib/helpers/clients.ts";
+    import type { Profile } from "#lib/types.ts";
 
     type Props = {
         profiles: Profile[];

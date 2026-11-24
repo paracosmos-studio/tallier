@@ -4,8 +4,8 @@
 -->
 <script lang="ts">
     import { open } from "@tauri-apps/plugin-dialog";
-    import Icon from "$lib/components/icon.svelte";
-    import { HardDrive, FolderOpen } from "$lib/icons";
+    import Icon from "#lib/components/icon.svelte";
+    import { HardDrive, FolderOpen } from "#lib/icons.ts";
 
     type Props = {
         value?: string;

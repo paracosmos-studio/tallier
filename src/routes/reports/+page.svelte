@@ -3,22 +3,22 @@
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
-    import PageNavigation from "$lib/components/page-navigation.svelte";
-    import Button from "$lib/components/button.svelte";
-    import SummaryStats from "$lib/components/reports/summary-stats.svelte";
-    import BarList from "$lib/components/charts/bar-list.svelte";
-    import StackedBarChart from "$lib/components/charts/stacked-bar-chart.svelte";
-    import SegmentedControl from "$lib/components/segmented-control.svelte";
-    import AppIcon from "$lib/components/app-icon.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import EmptyState from "$lib/components/empty-state.svelte";
-    import DateRangeFilter from "$lib/components/date-range-filter.svelte";
-    import { Menu, ChartBar, Alarm } from "$lib/icons";
+    import PageNavigation from "#lib/components/page-navigation.svelte";
+    import Button from "#lib/components/button.svelte";
+    import SummaryStats from "#lib/components/reports/summary-stats.svelte";
+    import BarList from "#lib/components/charts/bar-list.svelte";
+    import StackedBarChart from "#lib/components/charts/stacked-bar-chart.svelte";
+    import SegmentedControl from "#lib/components/segmented-control.svelte";
+    import AppIcon from "#lib/components/app-icon.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import EmptyState from "#lib/components/empty-state.svelte";
+    import DateRangeFilter from "#lib/components/date-range-filter.svelte";
+    import { Menu, ChartBar, Alarm } from "#lib/icons.ts";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { getProjects, getDailyProjectTotals, getProjectTotals, getAppUsageRows } from "$lib/db";
-    import { getAppIcons, usageTrackingSupported } from "$lib/usage";
-    import { buildProjectColorMap } from "$lib/helpers/colors";
+    import { getProjects, getDailyProjectTotals, getProjectTotals, getAppUsageRows } from "#lib/db/index.ts";
+    import { getAppIcons, usageTrackingSupported } from "#lib/usage.ts";
+    import { buildProjectColorMap } from "#lib/helpers/colors.ts";
     import {
         dailyAppSeconds,
         mergeAppSeconds,
@@ -26,10 +26,10 @@
         usageSegments,
         OTHER_KEY,
         UNTRACKED_KEY,
-    } from "$lib/helpers/app-usage";
-    import { formatDuration, formatDateISO, formatDateShort, formatDateMedium } from "$lib/helpers/format";
-    import { computeDateRange } from "$lib/helpers/date-range";
-    import { loadRangeState, saveRangeState } from "$lib/helpers/range-storage";
+    } from "#lib/helpers/app-usage.ts";
+    import { formatDuration, formatDateISO, formatDateShort, formatDateMedium } from "#lib/helpers/format.ts";
+    import { computeDateRange } from "#lib/helpers/date-range.ts";
+    import { loadRangeState, saveRangeState } from "#lib/helpers/range-storage.ts";
     import type {
         Project,
         ProjectTotal,
@@ -39,7 +39,7 @@
         StackedBarColumn,
         StackedBarSegment,
         BarListItem,
-    } from "$lib/types";
+    } from "#lib/types.ts";
 
     type ReportView = "projects" | "apps";
 

@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { nextDateISO, timeToSeconds, SECONDS_PER_DAY } from "./format";
-import type { ReportEntry } from "$lib/types";
+import type { ReportEntry } from "#lib/types.ts";
 
 /**
  * Splits any entry whose `end` is on the next day into two segments

@@ -29,12 +29,12 @@
 
 <script lang="ts">
     import Dialog from "./dialog.svelte";
-    import Select from "$lib/components/select.svelte";
-    import Button from "$lib/components/button.svelte";
-    import Toggle from "$lib/components/toggle.svelte";
-    import SegmentedControl from "$lib/components/segmented-control.svelte";
-    import { computeDateRange } from "$lib/helpers/date-range";
-    import type { Project } from "$lib/types";
+    import Select from "#lib/components/select.svelte";
+    import Button from "#lib/components/button.svelte";
+    import Toggle from "#lib/components/toggle.svelte";
+    import SegmentedControl from "#lib/components/segmented-control.svelte";
+    import { computeDateRange } from "#lib/helpers/date-range.ts";
+    import type { Project } from "#lib/types.ts";
 
     type Props = {
         open: boolean;

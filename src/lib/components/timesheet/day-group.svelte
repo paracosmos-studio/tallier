@@ -20,10 +20,10 @@
 -->
 <script lang="ts">
     import ProjectRow from "./project-row.svelte";
-    import { formatDuration, formatDateLong } from "$lib/helpers/format";
-    import { projectKey } from "$lib/helpers/timesheet";
-    import type { ReportEntry } from "$lib/types";
-    import type { TimesheetProjectGroup } from "$lib/helpers/timesheet";
+    import { formatDuration, formatDateLong } from "#lib/helpers/format.ts";
+    import { projectKey } from "#lib/helpers/timesheet.ts";
+    import type { ReportEntry } from "#lib/types.ts";
+    import type { TimesheetProjectGroup } from "#lib/helpers/timesheet.ts";
 
     type Props = {
         date: string;

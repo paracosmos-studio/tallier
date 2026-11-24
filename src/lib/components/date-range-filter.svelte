@@ -15,9 +15,9 @@
     @param {(range: DateRange | null) => void} [onchange] - Fired after every change with the resolved range.
 -->
 <script lang="ts">
-    import Select from "$lib/components/select.svelte";
-    import { formatDateISO } from "$lib/helpers/format";
-    import { RANGE_OPTIONS, computeDateRange, type DateRange } from "$lib/helpers/date-range";
+    import Select from "#lib/components/select.svelte";
+    import { formatDateISO } from "#lib/helpers/format.ts";
+    import { RANGE_OPTIONS, computeDateRange, type DateRange } from "#lib/helpers/date-range.ts";
 
     type Props = {
         selectedRange?: string;

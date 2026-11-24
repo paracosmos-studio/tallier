@@ -21,11 +21,11 @@
     @param {(entry: ReportEntry) => void} onedit - open edit dialog for an entry.
 -->
 <script lang="ts">
-    import EntryRow from "$lib/components/reports/entry-row.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { ArrowDropdown, ArrowDropup } from "$lib/icons";
-    import { formatDuration } from "$lib/helpers/format";
-    import type { ReportEntry } from "$lib/types";
+    import EntryRow from "#lib/components/reports/entry-row.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import { ArrowDropdown, ArrowDropup } from "#lib/icons.ts";
+    import { formatDuration } from "#lib/helpers/format.ts";
+    import type { ReportEntry } from "#lib/types.ts";
 
     type Props = {
         projectName: string;

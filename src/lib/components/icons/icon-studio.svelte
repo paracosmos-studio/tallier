@@ -5,7 +5,7 @@
 <!--
     @component
     Paracosmos Studio brand glyph. Multi-path with a non-standard viewBox so
-    it can't share `$lib/icons.ts`'s single-path Material Symbols pipeline.
+    it can't share `#lib/icons.ts`'s single-path Material Symbols pipeline.
 
     @param {string} [size="16"] - Width/height in pixels.
 -->

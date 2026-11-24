@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
-import type { InvoiceData } from "$lib/types";
+import type { InvoiceData } from "#lib/types.ts";
 import type { ExportStamp } from "../export-meta";
 import { contactValues, docShell, escAddr, htmlEscape, itemsTable, links, mailHref, telHref, webHref } from "./shared";
 

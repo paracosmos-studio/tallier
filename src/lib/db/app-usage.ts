@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
 import { getDB } from "./connection";
-import { formatDateISO } from "$lib/helpers/format";
-import type { AppUsageRow } from "$lib/types";
+import { formatDateISO } from "#lib/helpers/format.ts";
+import type { AppUsageRow } from "#lib/types.ts";
 
 
 /**

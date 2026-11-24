@@ -6,13 +6,14 @@ use std::sync::OnceLock;
 
 use tauri::AppHandle;
 use typst::diag::{FileError, FileResult, SourceDiagnostic, Warned};
-use typst::foundations::{Bytes, Datetime, Dict, Value};
-use typst::layout::PagedDocument;
-use typst::syntax::{FileId, Source, VirtualPath};
+use typst::foundations::{Bytes, Datetime, Dict, Duration, Value};
+use typst::syntax::{FileId, RootedPath, Source, VirtualPath, VirtualRoot};
 use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
-use typst::{Library, World};
+use typst::{Library, LibraryExt, World};
+use typst_layout::PagedDocument;
 use typst_pdf::PdfOptions;
+use typst_svg::SvgOptions;
 
 use crate::files::{avatars_dir, is_safe_name};
 
@@ -109,7 +110,7 @@ impl World for InvoiceWorld {
         if id == self.main.id() {
             Ok(self.main.clone())
         } else {
-            Err(FileError::NotFound(id.vpath().as_rootless_path().into()))
+            Err(FileError::NotFound(id.vpath().get_without_slash().into()))
         }
     }
 
@@ -117,7 +118,7 @@ impl World for InvoiceWorld {
         self.assets
             .get(&id)
             .cloned()
-            .ok_or_else(|| FileError::NotFound(id.vpath().as_rootless_path().into()))
+            .ok_or_else(|| FileError::NotFound(id.vpath().get_without_slash().into()))
     }
 
     fn font(&self, index: usize) -> Option<Font> {
@@ -125,9 +126,15 @@ impl World for InvoiceWorld {
     }
 
     // deterministic: documents never embed a wall-clock; dates come from meta
-    fn today(&self, _: Option<i64>) -> Option<Datetime> {
+    fn today(&self, _: Option<Duration>) -> Option<Datetime> {
         None
     }
+}
+
+// interned id of an absolute path inside the virtual project root
+fn file_id(path: &str) -> Result<FileId, String> {
+    let vpath = VirtualPath::new(path).map_err(|e| e.to_string())?;
+    Ok(RootedPath::new(VirtualRoot::Project, vpath).intern())
 }
 
 fn stringify_diagnostics(diags: &[SourceDiagnostic]) -> String {
@@ -156,8 +163,7 @@ fn compile(
 
     let mut assets = HashMap::new();
     for (name, bytes) in logos {
-        let id = FileId::new(None, VirtualPath::new(name));
-        assets.insert(id, Bytes::new(bytes));
+        assets.insert(file_id(name)?, Bytes::new(bytes));
         inputs.insert(name.into(), Value::Bool(true));
     }
 
@@ -169,7 +175,7 @@ fn compile(
     src.push_str(template_src(template_id)?);
 
     let library = Library::builder().with_inputs(inputs).build();
-    let main = Source::new(FileId::new(None, VirtualPath::new(MAIN)), src);
+    let main = Source::new(file_id(MAIN)?, src);
 
     let world = InvoiceWorld {
         library: LazyHash::new(library),
@@ -237,7 +243,8 @@ pub fn render_invoice_svg(
 ) -> Result<Vec<String>, String> {
     let logos = resolve_logos(&app, sender_logo, recipient_avatar)?;
     let doc = compile(&template_id, &data, logos, None)?;
-    Ok(doc.pages.iter().map(typst_svg::svg).collect())
+    let opts = SvgOptions::default();
+    Ok(doc.pages().iter().map(|page| typst_svg::svg(page, &opts)).collect())
 }
 
 #[cfg(test)]
@@ -301,9 +308,9 @@ mod tests {
                 compile(id, SAMPLE, Vec::new(), Some(STAMP)).unwrap_or_else(|e| panic!("{id}: {e}"));
             let pdf = typst_pdf::pdf(&doc, &PdfOptions::default()).expect("pdf bytes");
             assert!(!pdf.is_empty(), "{id}: empty pdf");
-            assert!(!doc.pages.is_empty(), "{id}: no pages");
-            for page in &doc.pages {
-                assert!(typst_svg::svg(page).contains("<svg"), "{id}: no svg");
+            assert!(!doc.pages().is_empty(), "{id}: no pages");
+            for page in doc.pages() {
+                assert!(typst_svg::svg(page, &SvgOptions::default()).contains("<svg"), "{id}: no svg");
             }
         }
     }

@@ -6,20 +6,20 @@
     import { onMount, untrack } from 'svelte';
     import { getCurrentWindow } from '@tauri-apps/api/window';
     import { listen } from '@tauri-apps/api/event';
-    import WindowControls from '$lib/components/window-controls.svelte';
-    import WindowTitle from '$lib/components/window-title.svelte';
-    import DialogConfirm from '$lib/components/dialogs/dialog-confirm.svelte';
-    import DialogUpdate from '$lib/components/dialogs/dialog-update.svelte';
-    import { runStartupUpdateCheck } from '$lib/updater.svelte';
-    import { runStartupUsagePing } from '$lib/ping';
+    import WindowControls from '#lib/components/window-controls.svelte';
+    import WindowTitle from '#lib/components/window-title.svelte';
+    import DialogConfirm from '#lib/components/dialogs/dialog-confirm.svelte';
+    import DialogUpdate from '#lib/components/dialogs/dialog-update.svelte';
+    import { runStartupUpdateCheck } from '#lib/updater.svelte.ts';
+    import { runStartupUsagePing } from '#lib/ping.ts';
     import { beforeNavigate, goto } from '$app/navigation';
-    import { initDB, getRunningTimer, stopTimer } from '$lib/db';
-    import { stopUsageTracking } from '$lib/usage';
+    import { initDB, getRunningTimer, stopTimer } from '#lib/db/index.ts';
+    import { stopUsageTracking } from '#lib/usage.ts';
     import { page } from '$app/state';
-    import { applyWindowProfile, type WindowProfile } from '$lib/window';
+    import { applyWindowProfile, type WindowProfile } from '#lib/window.ts';
 
-    import "$lib/styles/fonts.css";
-    import "$lib/styles/global.css";
+    import "#lib/styles/fonts.css";
+    import "#lib/styles/global.css";
 
     let { children } = $props();
     let dbReady: boolean = $state(false);

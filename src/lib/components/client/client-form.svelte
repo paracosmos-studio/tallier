@@ -15,11 +15,11 @@
 -->
 <script lang="ts">
     import { untrack } from "svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Add, Delete } from "$lib/icons";
-    import type { Client, ClientContact } from "$lib/types";
-    import Button from "$lib/components/button.svelte";
-    import AvatarUpload from "$lib/components/avatar-upload.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import { Add, Delete } from "#lib/icons.ts";
+    import type { Client, ClientContact } from "#lib/types.ts";
+    import Button from "#lib/components/button.svelte";
+    import AvatarUpload from "#lib/components/avatar-upload.svelte";
 
     type Props = {
         client?: Client;

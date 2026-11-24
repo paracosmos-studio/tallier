@@ -16,8 +16,8 @@
 -->
 <script lang="ts">
     import type { Snippet } from "svelte";
-    import Tooltip from "$lib/components/tooltip.svelte";
-    import type { StackedBarColumn, TooltipAnchor } from "$lib/types";
+    import Tooltip from "#lib/components/tooltip.svelte";
+    import type { StackedBarColumn, TooltipAnchor } from "#lib/types.ts";
 
     type Props = {
         columns: StackedBarColumn[];

@@ -13,9 +13,9 @@
     @param {string} [name] - Contact name, used as image alt text.
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
-    import { Person } from "$lib/icons";
-    import { avatarSrc } from "$lib/helpers/clients";
+    import Icon from "#lib/components/icon.svelte";
+    import { Person } from "#lib/icons.ts";
+    import { avatarSrc } from "#lib/helpers/clients.ts";
 
     type Props = {
         src?: string | null;

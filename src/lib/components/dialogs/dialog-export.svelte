@@ -23,11 +23,11 @@
 </script>
 
 <script lang="ts">
-    import Dialog from "$lib/components/dialogs/dialog.svelte";
-    import RadioGroup from "$lib/components/radio-group.svelte";
-    import Toggle from "$lib/components/toggle.svelte";
-    import SelectDirectory from "$lib/components/select-directory.svelte";
-    import Button from "$lib/components/button.svelte";
+    import Dialog from "#lib/components/dialogs/dialog.svelte";
+    import RadioGroup from "#lib/components/radio-group.svelte";
+    import Toggle from "#lib/components/toggle.svelte";
+    import SelectDirectory from "#lib/components/select-directory.svelte";
+    import Button from "#lib/components/button.svelte";
 
     type Props = {
         open: boolean;

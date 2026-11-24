@@ -4,10 +4,10 @@
 -->
 <script lang="ts">
     import { onMount, untrack } from "svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Colorize } from "$lib/icons";
-    import { type Hsv, hexToHsv, hsvToHex, normalizeHex } from "$lib/helpers/colors";
-    import { colorSamplerSupported, sampleScreenColor } from "$lib/color-sampler";
+    import Icon from "#lib/components/icon.svelte";
+    import { Colorize } from "#lib/icons.ts";
+    import { type Hsv, hexToHsv, hsvToHex, normalizeHex } from "#lib/helpers/colors.ts";
+    import { colorSamplerSupported, sampleScreenColor } from "#lib/color-sampler.ts";
 
     type Props = {
         value: string;

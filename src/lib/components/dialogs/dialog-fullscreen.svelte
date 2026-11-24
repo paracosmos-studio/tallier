@@ -18,8 +18,8 @@
     @param {() => void} onclose - callback when dismissed (manually or via auto-close).
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
-    import { Close } from "$lib/icons";
+    import Icon from "#lib/components/icon.svelte";
+    import { Close } from "#lib/icons.ts";
 
     type Props = {
         children: () => any;

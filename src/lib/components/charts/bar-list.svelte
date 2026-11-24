@@ -20,7 +20,7 @@
 -->
 <script lang="ts">
     import type { Snippet } from "svelte";
-    import type { BarListItem } from "$lib/types";
+    import type { BarListItem } from "#lib/types.ts";
 
     type Props = {
         items: BarListItem[];

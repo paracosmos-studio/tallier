@@ -3,7 +3,7 @@
 
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { appDataDir, join } from "@tauri-apps/api/path";
-import type { Client, ClientContact } from "$lib/types";
+import type { Client, ClientContact } from "#lib/types.ts";
 
 /** first non-blank contact value in a list, trimmed, or null. */
 export function firstContactValue(list: ClientContact[] | null): string | null {

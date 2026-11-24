@@ -16,12 +16,12 @@
     @param {(segment: StackedBarSegment) => void} [ondelete] - remove requested for an app slice.
 -->
 <script lang="ts">
-    import Tooltip from "$lib/components/tooltip.svelte";
-    import AppIcon from "$lib/components/app-icon.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Delete } from "$lib/icons";
-    import { OTHER_KEY, UNTRACKED_KEY } from "$lib/helpers/app-usage";
-    import type { StackedBarSegment, TooltipAnchor } from "$lib/types";
+    import Tooltip from "#lib/components/tooltip.svelte";
+    import AppIcon from "#lib/components/app-icon.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import { Delete } from "#lib/icons.ts";
+    import { OTHER_KEY, UNTRACKED_KEY } from "#lib/helpers/app-usage.ts";
+    import type { StackedBarSegment, TooltipAnchor } from "#lib/types.ts";
 
     type Props = {
         segments: StackedBarSegment[];

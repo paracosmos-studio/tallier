@@ -7,7 +7,7 @@ import { buildExportStamp, type ExportStamp } from "./export-meta";
 import { joinPath } from "./fs";
 import { toInvoiceInput } from "./invoice-data";
 import { toHtml } from "./invoice-html";
-import type { InvoiceData } from "$lib/types";
+import type { InvoiceData } from "#lib/types.ts";
 
 export type InvoiceFormat = "pdf" | "html" | "csv" | "txt";
 

@@ -16,7 +16,7 @@
     @component
     Custom SVG icon component.
 
-    @param {string} path - The path of icon to display. Import paths from $lib/icons.ts.
+    @param {string} path - The path of icon to display. Import paths from #lib/icons.ts.
     @param {string} [size="24"] - The width and height of the icon in pixels. Defaults to "24".
     @param {string} [fill="#000"] - The fill color of the icon. Defaults to black ("#000").
 -->

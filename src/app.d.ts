@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 
-import type { WindowProfile } from '$lib/window';
+import type { WindowProfile } from '#lib/window.ts';
 
 declare global {
     namespace App {

@@ -4,8 +4,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { getSetting, getRunningTimer, stopTimer } from "$lib/db";
-import { notify } from "$lib/helpers/notify";
+import { getSetting, getRunningTimer, stopTimer } from "#lib/db/index.ts";
+import { notify } from "#lib/helpers/notify.ts";
 
 export const AUTO_UPDATE_SETTING_KEY = "autoUpdate";
 

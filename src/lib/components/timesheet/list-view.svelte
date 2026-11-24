@@ -20,10 +20,10 @@
 -->
 <script lang="ts">
     import DayGroup from "./day-group.svelte";
-    import { formatDuration } from "$lib/helpers/format";
-    import { buildDayGroups, projectKey } from "$lib/helpers/timesheet";
-    import type { ReportEntry, Project } from "$lib/types";
-    import type { TimesheetDayGroup, EntryOverride } from "$lib/helpers/timesheet";
+    import { formatDuration } from "#lib/helpers/format.ts";
+    import { buildDayGroups, projectKey } from "#lib/helpers/timesheet.ts";
+    import type { ReportEntry, Project } from "#lib/types.ts";
+    import type { TimesheetDayGroup, EntryOverride } from "#lib/helpers/timesheet.ts";
 
     type Props = {
         entries: ReportEntry[];

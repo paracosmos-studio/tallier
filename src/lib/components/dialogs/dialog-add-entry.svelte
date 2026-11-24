@@ -13,12 +13,12 @@
     @param {() => void} onclose - close callback.
 -->
 <script lang="ts">
-    import Dialog from "$lib/components/dialogs/dialog.svelte";
-    import Select from "$lib/components/select.svelte";
-    import Button from "$lib/components/button.svelte";
-    import ToggleRow from "$lib/components/toggle-row.svelte";
-    import { computeDuration, formatDateISO, formatDuration, timeToSeconds } from "$lib/helpers/format";
-    import type { Project } from "$lib/types";
+    import Dialog from "#lib/components/dialogs/dialog.svelte";
+    import Select from "#lib/components/select.svelte";
+    import Button from "#lib/components/button.svelte";
+    import ToggleRow from "#lib/components/toggle-row.svelte";
+    import { computeDuration, formatDateISO, formatDuration, timeToSeconds } from "#lib/helpers/format.ts";
+    import type { Project } from "#lib/types.ts";
 
     type Props = {
         open: boolean;

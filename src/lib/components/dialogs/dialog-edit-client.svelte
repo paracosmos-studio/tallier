@@ -17,10 +17,10 @@
 -->
 <script lang="ts">
     import Dialog from "./dialog.svelte";
-    import ClientForm from "$lib/components/client/client-form.svelte";
-    import ToggleRow from "$lib/components/toggle-row.svelte";
-    import Button from "$lib/components/button.svelte";
-    import type { Client } from "$lib/types";
+    import ClientForm from "#lib/components/client/client-form.svelte";
+    import ToggleRow from "#lib/components/toggle-row.svelte";
+    import Button from "#lib/components/button.svelte";
+    import type { Client } from "#lib/types.ts";
 
     type Props = {
         open: boolean;

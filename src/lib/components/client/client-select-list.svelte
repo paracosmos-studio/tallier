@@ -22,11 +22,11 @@
 -->
 
 <script lang="ts">
-    import type { Client } from "$lib/types";
-    import { clientDisplayName, clientSubtext } from "$lib/helpers/clients";
+    import type { Client } from "#lib/types.ts";
+    import { clientDisplayName, clientSubtext } from "#lib/helpers/clients.ts";
     import ClientAvatar from "./client-avatar.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Edit } from "$lib/icons";
+    import Icon from "#lib/components/icon.svelte";
+    import { Edit } from "#lib/icons.ts";
 
     type Props = {
         clients: Client[];

@@ -24,7 +24,7 @@
 
 <script lang="ts">
     import Icon from './icon.svelte';
-    import { ArrowDropdown, Search, Close, Check } from '$lib/icons';
+    import { ArrowDropdown, Search, Close, Check } from '#lib/icons.ts';
 
     interface Props {
         options: Array<{ value: string; label: string; hint?: string }>;

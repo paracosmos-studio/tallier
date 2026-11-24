@@ -23,7 +23,7 @@
 -->
 <script lang="ts">
     import type { Snippet } from "svelte";
-    import type { TooltipAnchor } from "$lib/types";
+    import type { TooltipAnchor } from "#lib/types.ts";
 
     type Props = {
         open: boolean;

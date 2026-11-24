@@ -18,11 +18,11 @@
     @param {(segment: StackedBarSegment) => void} [ondeleteusage] - callback to confirm removing an app from the usage bar.
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
+    import Icon from "#lib/components/icon.svelte";
     import EntryUsageBar from "./entry-usage-bar.svelte";
-    import { Edit, Delete, VisibilityOff } from "$lib/icons";
-    import { formatDuration, formatTimeOfDay } from "$lib/helpers/format";
-    import type { ReportEntry, StackedBarSegment } from "$lib/types";
+    import { Edit, Delete, VisibilityOff } from "#lib/icons.ts";
+    import { formatDuration, formatTimeOfDay } from "#lib/helpers/format.ts";
+    import type { ReportEntry, StackedBarSegment } from "#lib/types.ts";
 
     type Props = {
         entry: ReportEntry;

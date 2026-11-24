@@ -24,13 +24,13 @@
     @param {(entry: ReportEntry) => void} onedit - request to open the edit dialog.
 -->
 <script lang="ts">
-    import Icon from "$lib/components/icon.svelte";
-    import { ArrowBack, ArrowForward, VisibilityOff } from "$lib/icons";
-    import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "$lib/helpers/format";
-    import { buildCalendarDays } from "$lib/helpers/timesheet";
-    import { startOfWeek } from "$lib/helpers/date-utils";
-    import type { ReportEntry, Project } from "$lib/types";
-    import type { CalendarDay, EntryOverride } from "$lib/helpers/timesheet";
+    import Icon from "#lib/components/icon.svelte";
+    import { ArrowBack, ArrowForward, VisibilityOff } from "#lib/icons.ts";
+    import { formatDuration, formatDateISO, formatTimeOfDay, formatDateMedium, MONTHS, DAYS } from "#lib/helpers/format.ts";
+    import { buildCalendarDays } from "#lib/helpers/timesheet.ts";
+    import { startOfWeek } from "#lib/helpers/date-utils.ts";
+    import type { ReportEntry, Project } from "#lib/types.ts";
+    import type { CalendarDay, EntryOverride } from "#lib/helpers/timesheet.ts";
 
     type Props = {
         entries: ReportEntry[];

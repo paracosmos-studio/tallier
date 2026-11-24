@@ -4,19 +4,19 @@
 -->
 <script lang="ts">
     import { onMount, tick } from "svelte";
-    import Button from "$lib/components/button.svelte";
-    import ColorPicker from "$lib/components/color-picker.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import Tooltip from "$lib/components/tooltip.svelte";
-    import { Add, Check, Edit } from "$lib/icons";
-    import type { TooltipAnchor } from "$lib/types";
+    import Button from "#lib/components/button.svelte";
+    import ColorPicker from "#lib/components/color-picker.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import Tooltip from "#lib/components/tooltip.svelte";
+    import { Add, Check, Edit } from "#lib/icons.ts";
+    import type { TooltipAnchor } from "#lib/types.ts";
     import {
         MAX_CUSTOM_COLORS,
         getCustomColors,
         isLightColor,
         normalizeHex,
         setCustomColors,
-    } from "$lib/helpers/colors";
+    } from "#lib/helpers/colors.ts";
 
     type Props = {
         value: string;

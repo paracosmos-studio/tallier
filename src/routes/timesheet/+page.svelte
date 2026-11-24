@@ -5,36 +5,36 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
-    import { getProjects, getReportEntries, getSetting, setSetting } from "$lib/db";
-    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "$lib/helpers/date-utils";
-    import { buildProjectColorMap } from "$lib/helpers/colors";
-    import { computeDateRange } from "$lib/helpers/date-range";
-    import PageNavigation from "$lib/components/page-navigation.svelte";
-    import Button from "$lib/components/button.svelte";
-    import Select from "$lib/components/select.svelte";
-    import SegmentedControl from "$lib/components/segmented-control.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import EmptyState from "$lib/components/empty-state.svelte";
-    import DateRangeFilter from "$lib/components/date-range-filter.svelte";
-    import ListView from "$lib/components/timesheet/list-view.svelte";
-    import WeekView from "$lib/components/timesheet/week-view.svelte";
-    import CalendarView from "$lib/components/timesheet/calendar-view.svelte";
-    import DialogExport from "$lib/components/dialogs/dialog-export.svelte";
-    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
-    import DialogFullscreen from "$lib/components/dialogs/dialog-fullscreen.svelte";
-    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
-    import FlyingAirplaneSuccess from "$lib/animations/flying-airplane-success.svelte";
-    import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "$lib/helpers/export-timesheet";
-    import { notify } from "$lib/helpers/notify";
-    import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "$lib/icons";
-    import type { Project, ReportEntry } from "$lib/types";
+    import { getProjects, getReportEntries, getSetting, setSetting } from "#lib/db/index.ts";
+    import { parseWeekStartsOn, WEEK_START_SETTING_KEY, DEFAULT_WEEK_START } from "#lib/helpers/date-utils.ts";
+    import { buildProjectColorMap } from "#lib/helpers/colors.ts";
+    import { computeDateRange } from "#lib/helpers/date-range.ts";
+    import PageNavigation from "#lib/components/page-navigation.svelte";
+    import Button from "#lib/components/button.svelte";
+    import Select from "#lib/components/select.svelte";
+    import SegmentedControl from "#lib/components/segmented-control.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import EmptyState from "#lib/components/empty-state.svelte";
+    import DateRangeFilter from "#lib/components/date-range-filter.svelte";
+    import ListView from "#lib/components/timesheet/list-view.svelte";
+    import WeekView from "#lib/components/timesheet/week-view.svelte";
+    import CalendarView from "#lib/components/timesheet/calendar-view.svelte";
+    import DialogExport from "#lib/components/dialogs/dialog-export.svelte";
+    import DialogConfirm from "#lib/components/dialogs/dialog-confirm.svelte";
+    import DialogFullscreen from "#lib/components/dialogs/dialog-fullscreen.svelte";
+    import DialogEditEntry from "#lib/components/dialogs/dialog-edit-entry.svelte";
+    import FlyingAirplaneSuccess from "#lib/animations/flying-airplane-success.svelte";
+    import { exportTimesheet, pathExists, targetPath, type ExportFormat } from "#lib/helpers/export-timesheet.ts";
+    import { notify } from "#lib/helpers/notify.ts";
+    import { Download, ViewList, ViewWeek, CalendarMonth, Receipt, Alarm } from "#lib/icons.ts";
+    import type { Project, ReportEntry } from "#lib/types.ts";
     import {
         parseTimesheetView,
         TIMESHEET_VIEW_SETTING_KEY,
         DEFAULT_TIMESHEET_VIEW,
         type EntryOverride,
         type TimesheetView,
-    } from "$lib/helpers/timesheet";
+    } from "#lib/helpers/timesheet.ts";
 
     type Round = "1" | "5" | "15";
 

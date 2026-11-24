@@ -8,15 +8,15 @@
     and the persistent storage location selector.
 -->
 <script lang="ts">
-    import Toggle from "$lib/components/toggle.svelte";
-    import Select from "$lib/components/select.svelte";
+    import Toggle from "#lib/components/toggle.svelte";
+    import Select from "#lib/components/select.svelte";
 
     import { onMount } from "svelte";
-    import { getSetting, setSetting } from "$lib/db";
-    import { setTrayShowTitle, setTrayAutoPause } from "$lib/tray";
-    import { updaterAvailable, AUTO_UPDATE_SETTING_KEY } from "$lib/updater.svelte";
-    import { parseUsagePing, setUsagePingEnabled, runStartupUsagePing, USAGE_PING_SETTING_KEY } from "$lib/ping";
-    import { WEEK_START_SETTING_KEY, DEFAULT_WEEK_START, parseWeekStartsOn } from "$lib/helpers/date-utils";
+    import { getSetting, setSetting } from "#lib/db/index.ts";
+    import { setTrayShowTitle, setTrayAutoPause } from "#lib/tray.ts";
+    import { updaterAvailable, AUTO_UPDATE_SETTING_KEY } from "#lib/updater.svelte.ts";
+    import { parseUsagePing, setUsagePingEnabled, runStartupUsagePing, USAGE_PING_SETTING_KEY } from "#lib/ping.ts";
+    import { WEEK_START_SETTING_KEY, DEFAULT_WEEK_START, parseWeekStartsOn } from "#lib/helpers/date-utils.ts";
 
     type Settings = {
         taskbarDisplay: boolean

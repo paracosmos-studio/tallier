@@ -15,7 +15,7 @@
 
 <script lang="ts">
     import Icon from './icon.svelte';
-    import { CheckThicc } from '$lib/icons';
+    import { CheckThicc } from '#lib/icons.ts';
 
     type Props = {
         label: string;

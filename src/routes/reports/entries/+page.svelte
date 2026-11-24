@@ -3,17 +3,17 @@
     SPDX-FileCopyrightText: Copyright 2026 Paracosmos Studio Inc.
 -->
 <script lang="ts">
-    import PageNavigation from "$lib/components/page-navigation.svelte";
-    import Button from "$lib/components/button.svelte";
-    import Icon from "$lib/components/icon.svelte";
-    import { Add, CalendarMonth, Receipt, Alarm } from "$lib/icons";
+    import PageNavigation from "#lib/components/page-navigation.svelte";
+    import Button from "#lib/components/button.svelte";
+    import Icon from "#lib/components/icon.svelte";
+    import { Add, CalendarMonth, Receipt, Alarm } from "#lib/icons.ts";
     import { goto } from "$app/navigation";
-    import DayDetail from "$lib/components/reports/day-detail.svelte";
-    import EmptyState from "$lib/components/empty-state.svelte";
-    import DateRangeFilter from "$lib/components/date-range-filter.svelte";
-    import DialogEditEntry from "$lib/components/dialogs/dialog-edit-entry.svelte";
-    import DialogAddEntry from "$lib/components/dialogs/dialog-add-entry.svelte";
-    import DialogConfirm from "$lib/components/dialogs/dialog-confirm.svelte";
+    import DayDetail from "#lib/components/reports/day-detail.svelte";
+    import EmptyState from "#lib/components/empty-state.svelte";
+    import DateRangeFilter from "#lib/components/date-range-filter.svelte";
+    import DialogEditEntry from "#lib/components/dialogs/dialog-edit-entry.svelte";
+    import DialogAddEntry from "#lib/components/dialogs/dialog-add-entry.svelte";
+    import DialogConfirm from "#lib/components/dialogs/dialog-confirm.svelte";
     import { onMount } from "svelte";
     import {
         getProjects,
@@ -24,13 +24,13 @@
         createManualEntry,
         getAppUsageRows,
         deleteAppUsage,
-    } from "$lib/db";
-    import { getAppIcons } from "$lib/usage";
-    import { buildProjectColorMap } from "$lib/helpers/colors";
-    import { formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "$lib/helpers/format";
-    import { computeDateRange } from "$lib/helpers/date-range";
-    import { loadRangeState, saveRangeState } from "$lib/helpers/range-storage";
-    import type { Project, ReportEntry, AppUsageRow, StackedBarSegment } from "$lib/types";
+    } from "#lib/db/index.ts";
+    import { getAppIcons } from "#lib/usage.ts";
+    import { buildProjectColorMap } from "#lib/helpers/colors.ts";
+    import { formatDateLong, formatDateMedium, formatDuration, formatTimeOfDay } from "#lib/helpers/format.ts";
+    import { computeDateRange } from "#lib/helpers/date-range.ts";
+    import { loadRangeState, saveRangeState } from "#lib/helpers/range-storage.ts";
+    import type { Project, ReportEntry, AppUsageRow, StackedBarSegment } from "#lib/types.ts";
 
     const persisted = loadRangeState();
     let selectedRange: string = $state(persisted.selectedRange ?? "30");
